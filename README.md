@@ -6,11 +6,14 @@
 </p>
 
 <p align="center">
-  <a href="https://arxiv.org/abs/XXXX.XXXXX"><img src="https://img.shields.io/badge/arXiv-XXXX.XXXXX-B31B1B.svg" alt="arXiv" /></a>
-  <a href="https://github.com/summoneryhl/GE-Lab"><img src="https://img.shields.io/badge/GitHub-summoneryhl%2FGE--Lab-181717.svg" alt="GitHub" /></a>
+  <a href="https://openreview.net/pdf/ce35fb684e3b11b9c0f1fcc38598cfb3504c728e.pdf"><img src="https://img.shields.io/badge/📄%20arXiv-GE--Lab--v1-B31B1B.svg" alt="arXiv" /></a>
+  <a href="https://huggingface.co/summoneryhl/GE-Lab"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-GE--Lab--v1-FFD21E.svg" alt="Hugging Face" /></a>
+  <a href="https://neurips.cc/virtual/2025/loc/san-diego/poster/117497"><img src="https://img.shields.io/badge/🎉%20NeurIPS-2025-FF6B6B.svg" alt="NeurIPS 2025" /></a>
 </p>
 
-GUI Exploration Lab (GE-Lab) is a simulation environment for GUI agent navigation research. It enables flexible definition of screens, icons, and inter-screen navigation graphs, while providing full access to environment information for comprehensive training, evaluation, and analysis. Building on this environment, we study a three-stage training pipeline—Supervised Fine-Tuning (SFT), Single-Turn Reinforcement Learning (ST-RL), and Multi-Turn Reinforcement Learning (MT-RL)—to enhance agents’ screen navigation capabilities.
+GUI Exploration Lab (GE-Lab) is a simulation environment for GUI agent navigation research. It enables flexible definition of screens, icons, and inter-screen navigation graphs, while providing full access to environment information for comprehensive training, evaluation, and analysis. Building on this environment, we study a three-stage training pipeline consisting of Supervised Fine-Tuning (SFT), Single-Turn Reinforcement Learning (ST-RL), and Multi-Turn Reinforcement Learning (MT-RL) to enhance agents' screen navigation capabilities.
+
+**🎉 This work has been accepted by NeurIPS 2025!**
 
 ## Overview
 
@@ -168,7 +171,7 @@ Follow the steps below to generate an environment, train models, and evaluate.
     ```
   
 
-- Notes
+Notes:
 - Update dataset paths if you create custom data; see `datas/*.json` for formats
 - Checkpoints default to `checkpoint/gui_exp/<run_name>`; logs under `logs/train`
 - If `rlaunch` or multi‑node isn’t available, prefer the single‑GPU `swift` commands
@@ -222,7 +225,7 @@ Datasets are simple JSON files. Below are small examples for each stage placed u
   ]
   ```
 
-Tips
+Tips:
 - Ensure image paths are valid; sample images are under `datas/images/`.
 - The `Action` string carries coordinates in a `'<|box_start|>(x,y)<|box_end|>'` format expected by scripts.
 
