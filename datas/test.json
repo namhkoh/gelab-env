@@ -1,0 +1,33 @@
+[
+
+    {
+        "idx": 0,
+        "path": 1,
+        "task": "From page_1 to page_6",
+        "bbox": [
+            244,
+            1488,
+            444,
+            1688
+        ],
+        "bbox_norm": [
+            207,
+            582,
+            377,
+            660
+        ],
+        "messages": [
+            {
+                "role": "user",
+                "content": "<image>Instruction: from page_1 to page_6. History: Null"
+            },
+            {
+                "role": "assistant",
+                "content": "Explain:click Sports_73 icon on page_1.\tAction: click(start_box='<|box_start|>(258,619)<|box_end|>')"
+            }
+        ],
+        "images": [
+            "datas/images/page_1.png"
+        ]
+    }
+]

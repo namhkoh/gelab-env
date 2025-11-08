@@ -1,0 +1,32 @@
+[
+    {
+        "idx": 0,
+        "path": 1,
+        "task": "From page_3 to page_12",
+        "bbox_norm": [
+            402,
+            492,
+            572,
+            570
+        ],
+        "image": "datas/images/page_3.png",
+        "problem": "<image>Instruction: from page_3 to page_12. History: Null",
+        "solution": "Explain:click Flowers_and_plants_153 icon on page_3.\tAction: click(start_box='<|box_start|>(472,513)<|box_end|>')",
+        "source": "sub3"
+    },
+    {
+        "idx": 2,
+        "path": 2,
+        "task": "From page_3 to page_33",
+        "bbox_norm": [
+            402,
+            492,
+            572,
+            570
+        ],
+        "image": "datas/images/page_3.png",
+        "problem": "<image>Instruction: from page_3 to page_33. History: Null",
+        "solution": "Explain:click Flowers_and_plants_153 icon on page_3.\tAction: click(start_box='<|box_start|>(527,520)<|box_end|>')",
+        "source": "sub3"
+    }
+]

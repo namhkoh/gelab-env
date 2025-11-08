@@ -1,0 +1,41 @@
+[
+    {
+        "idx": 0,
+        "path": 7,
+        "task": "From page_161 to page_216",
+        "messages": [
+            {
+                "role": "user",
+                "content": "<image>Instruction: from page_161 to page_216. History: Null"
+            },
+            {
+                "role": "assistant",
+                "content": "Explain:click home icon on page_161.\tAction: click(start_box='<|box_start|>(850,69)<|box_end|>')"
+            }
+        ],
+        "images": [
+            "datas/images/page_161.png"
+        ],
+        "source": "sub4"
+    },
+    {
+        "idx": 1,
+        "path": 7,
+        "task": "From page_161 to page_216",
+        "messages": [
+            {
+                "role": "user",
+                "content": "<image>Instruction: from page_161 to page_216. History: step1: click home icon on page_161."
+            },
+            {
+                "role": "assistant",
+                "content": "Explain:click Hotel_and_restaurant_category_29 icon on page_0.\tAction: click(start_box='<|box_start|>(911,905)<|box_end|>')"
+            }
+        ],
+        "images": [
+            "datas/images/page_0.png"
+        ],
+        "source": "sub4"
+    }
+
+]
