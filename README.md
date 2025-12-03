@@ -6,8 +6,8 @@
 </p>
 
 <p align="center">
-  <a href="https://openreview.net/pdf/ce35fb684e3b11b9c0f1fcc38598cfb3504c728e.pdf"><img src="https://img.shields.io/badge/📄%20arXiv-gelab--sim-B31B1B.svg" alt="arXiv" /></a>
-  <a href="https://huggingface.co/summoneryhl/GE-Lab"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-gelab--sim-FFD21E.svg" alt="Hugging Face" /></a>
+  <a href="https://arxiv.org/abs/2512.02423"><img src="https://img.shields.io/badge/📄%20arXiv-gelab--engine-B31B1B.svg" alt="arXiv" /></a>
+  <a href="https://huggingface.co/Summoneryhl/GELab-Engine-7B"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-gelab--engine-FFD21E.svg" alt="Hugging Face" /></a>
   <a href="https://neurips.cc/virtual/2025/loc/san-diego/poster/117497"><img src="https://img.shields.io/badge/🎉%20NeurIPS-2025-FF6B6B.svg" alt="NeurIPS 2025" /></a>
 </p>
 
