@@ -1,0 +1,1156 @@
+{
+  "config": {
+    "model_path": "checkpoint/gui_exp/sft_consistent/v0-20260125-105121/checkpoint-2481",
+    "subtree_indices": [
+      4
+    ],
+    "max_steps": 12,
+    "num_attempts": 1
+  },
+  "metrics": {
+    "path_1": {
+      "n_tasks": 10,
+      "pass_at_1": 30.0,
+      "pass_at_k": 30.0
+    }
+  },
+  "overall": {
+    "total_tasks": 10,
+    "pass_at_1": 30.0,
+    "pass_at_k": 30.0
+  },
+  "results": [
+    {
+      "task_id": 0,
+      "source": "page_159",
+      "target": "page_219",
+      "path_length": 1,
+      "successes": [
+        false
+      ],
+      "pass_at_1": false,
+      "pass_at_k": false,
+      "final_page": "page_159",
+      "steps_taken": 1,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_159",
+          "response": "Explain:click Business_20",
+          "action_type": "unknown",
+          "coords": null
+        }
+      ]
+    },
+    {
+      "task_id": 1,
+      "source": "page_46",
+      "target": "page_0",
+      "path_length": 1,
+      "successes": [
+        true
+      ],
+      "pass_at_1": true,
+      "pass_at_k": true,
+      "final_page": "page_0",
+      "steps_taken": 1,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_46",
+          "response": "Explain:click home icon on page_46.\tAction: click(start_box='(1019,160)')",
+          "action_type": "click",
+          "coords": [
+            1019,
+            160
+          ],
+          "click_result": true,
+          "clicked_element": "home",
+          "new_page": "page_0"
+        }
+      ]
+    },
+    {
+      "task_id": 2,
+      "source": "page_47",
+      "target": "page_19",
+      "path_length": 1,
+      "successes": [
+        true
+      ],
+      "pass_at_1": true,
+      "pass_at_k": true,
+      "final_page": "page_19",
+      "steps_taken": 1,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_47",
+          "response": "Explain:click back icon on page_47.\tAction: click(start_box='(160,160)')",
+          "action_type": "click",
+          "coords": [
+            160,
+            160
+          ],
+          "click_result": true,
+          "clicked_element": "back",
+          "new_page": "page_19"
+        }
+      ]
+    },
+    {
+      "task_id": 3,
+      "source": "page_5",
+      "target": "page_0",
+      "path_length": 1,
+      "successes": [
+        false
+      ],
+      "pass_at_1": false,
+      "pass_at_k": false,
+      "final_page": "page_5",
+      "steps_taken": 12,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 2,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 3,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 4,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 5,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 6,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 7,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 8,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 9,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 10,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 11,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        },
+        {
+          "step": 12,
+          "page": "page_5",
+          "response": "Explain:click home icon on page_5.\tAction: click(start_box='(804,1358)')",
+          "action_type": "click",
+          "coords": [
+            804,
+            1358
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_5"
+        }
+      ]
+    },
+    {
+      "task_id": 4,
+      "source": "page_48",
+      "target": "page_0",
+      "path_length": 1,
+      "successes": [
+        true
+      ],
+      "pass_at_1": true,
+      "pass_at_k": true,
+      "final_page": "page_0",
+      "steps_taken": 1,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_48",
+          "response": "Explain:click home icon on page_48.\tAction: click(start_box='(1019,160)')",
+          "action_type": "click",
+          "coords": [
+            1019,
+            160
+          ],
+          "click_result": true,
+          "clicked_element": "home",
+          "new_page": "page_0"
+        }
+      ]
+    },
+    {
+      "task_id": 5,
+      "source": "page_50",
+      "target": "page_110",
+      "path_length": 1,
+      "successes": [
+        false
+      ],
+      "pass_at_1": false,
+      "pass_at_k": false,
+      "final_page": "page_50",
+      "steps_taken": 12,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 2,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 3,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 4,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 5,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 6,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 7,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 8,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 9,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 10,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 11,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        },
+        {
+          "step": 12,
+          "page": "page_50",
+          "response": "Explain:click Animals_65 icon on page_50.\tAction: click(start_box='(1034,898)')",
+          "action_type": "click",
+          "coords": [
+            1034,
+            898
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_50"
+        }
+      ]
+    },
+    {
+      "task_id": 6,
+      "source": "page_101",
+      "target": "page_161",
+      "path_length": 1,
+      "successes": [
+        false
+      ],
+      "pass_at_1": false,
+      "pass_at_k": false,
+      "final_page": "page_101",
+      "steps_taken": 12,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 2,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 3,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 4,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 5,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 6,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 7,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 8,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 9,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 10,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 11,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        },
+        {
+          "step": 12,
+          "page": "page_101",
+          "response": "Explain:click Business_201 icon on page_101.\tAction: click(start_box='(344,1818)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            1818
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_101"
+        }
+      ]
+    },
+    {
+      "task_id": 7,
+      "source": "page_102",
+      "target": "page_46",
+      "path_length": 1,
+      "successes": [
+        false
+      ],
+      "pass_at_1": false,
+      "pass_at_k": false,
+      "final_page": "page_0",
+      "steps_taken": 12,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_102",
+          "response": "Explain:click home icon on page_102.\tAction: click(start_box='(1019,160)')",
+          "action_type": "click",
+          "coords": [
+            1019,
+            160
+          ],
+          "click_result": true,
+          "clicked_element": "home",
+          "new_page": "page_0"
+        },
+        {
+          "step": 2,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 3,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 4,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 5,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 6,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 7,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 8,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 9,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 10,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 11,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 12,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        }
+      ]
+    },
+    {
+      "task_id": 8,
+      "source": "page_105",
+      "target": "page_48",
+      "path_length": 1,
+      "successes": [
+        false
+      ],
+      "pass_at_1": false,
+      "pass_at_k": false,
+      "final_page": "page_0",
+      "steps_taken": 12,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_105",
+          "response": "Explain:click home icon on page_105.\tAction: click(start_box='(1019,160)')",
+          "action_type": "click",
+          "coords": [
+            1019,
+            160
+          ],
+          "click_result": true,
+          "clicked_element": "home",
+          "new_page": "page_0"
+        },
+        {
+          "step": 2,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 3,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 4,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 5,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 6,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 7,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 8,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 9,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 10,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 11,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 12,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        }
+      ]
+    },
+    {
+      "task_id": 9,
+      "source": "page_46",
+      "target": "page_101",
+      "path_length": 1,
+      "successes": [
+        false
+      ],
+      "pass_at_1": false,
+      "pass_at_k": false,
+      "final_page": "page_0",
+      "steps_taken": 12,
+      "trajectory": [
+        {
+          "step": 1,
+          "page": "page_46",
+          "response": "Explain:click back icon on page_46.\tAction: click(start_box='(160,160)')",
+          "action_type": "click",
+          "coords": [
+            160,
+            160
+          ],
+          "click_result": true,
+          "clicked_element": "back",
+          "new_page": "page_18"
+        },
+        {
+          "step": 2,
+          "page": "page_18",
+          "response": "Explain:click back icon on page_18.\tAction: click(start_box='(160,160)')",
+          "action_type": "click",
+          "coords": [
+            160,
+            160
+          ],
+          "click_result": true,
+          "clicked_element": "back",
+          "new_page": "page_5"
+        },
+        {
+          "step": 3,
+          "page": "page_5",
+          "response": "Explain:click back icon on page_5.\tAction: click(start_box='(160,160)')",
+          "action_type": "click",
+          "coords": [
+            160,
+            160
+          ],
+          "click_result": true,
+          "clicked_element": "back",
+          "new_page": "page_0"
+        },
+        {
+          "step": 4,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 5,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 6,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 7,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 8,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 9,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 10,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 11,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        },
+        {
+          "step": 12,
+          "page": "page_0",
+          "response": "Explain:click Business_176 icon on page_0.\tAction: click(start_box='(344,2278)')",
+          "action_type": "click",
+          "coords": [
+            344,
+            2278
+          ],
+          "click_result": false,
+          "clicked_element": null,
+          "new_page": "page_0"
+        }
+      ]
+    }
+  ]
+}

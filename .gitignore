@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+
+# Generated UI environment (can be regenerated with python data_engine/tree.py)
+data_engine/ui_environment/
+
+# Generated training images (can be regenerated with data generation script)
+datas/images/
+
+# Model checkpoints
+checkpoint/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# System
+.DS_Store
+*.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+*.cache
+
+# Temporary files
+*.tmp
+*.temp
+
+# WANDB logs
+wandb/
