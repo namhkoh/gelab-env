@@ -151,8 +151,8 @@ from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
 from tqdm import tqdm
 
-# Load model
-model_path = "/path/to/checkpoint"
+# Load model from Hugging Face
+model_path = "namhokaist/gelab-sft-448"  # or local path
 model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
     model_path,
     torch_dtype=torch.bfloat16,
@@ -238,7 +238,20 @@ print(f"OOD Edge: {ood_edge_acc:.2f}%")
 
 ## 5. Model Checkpoints
 
-### Best SFT Model Location
+### Hugging Face (Recommended)
+
+The best SFT model is available on Hugging Face:
+
+**https://huggingface.co/namhokaist/gelab-sft-448**
+
+```python
+from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+
+model = Qwen2_5_VLForConditionalGeneration.from_pretrained("namhokaist/gelab-sft-448")
+processor = AutoProcessor.from_pretrained("namhokaist/gelab-sft-448")
+```
+
+### Local Path (if training yourself)
 
 ```
 /root/.cursor/worktrees/gelab-env__SSH__vast_/ofz/checkpoint/gui_exp/sft_448/v1-20260130-013131/v0-20260130-013206/checkpoint-956
