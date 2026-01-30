@@ -15,7 +15,8 @@ set -e
 # =============================================================================
 
 # WANDB Configuration
-export WANDB_API_KEY=""
+export WANDB_API_KEY="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"
+export WANDB_ENTITY="namhokoh-korea-advanced-institute-of-science-and-technology"
 export WANDB_PROJECT="gelab"
 export REPORT_TO="wandb"
 
@@ -142,11 +143,7 @@ swift rlhf \
     --add_version False \
     --report_to "$REPORT_TO" \
     --log_completions "$LOG_COMPLETIONS" \
-    --use_vllm true \
-    --vllm_max_model_len 4096 \
-    --vllm_gpu_memory_utilization 0.4 \
-    --vllm_device auto \
-    --num_infer_workers 8 \
+    --use_vllm false \
     2>&1 | tee "$LOG_FILE"
 
 echo ""
