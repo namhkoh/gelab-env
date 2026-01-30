@@ -30,7 +30,7 @@ export DATASET_PATH="datas/448_paper/st_rl_448.json"
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
 
-# Paper RL Hyperparameters (Table 8)
+# Paper RL Hyperparameters (Table 8) - Optimized for H200 143GB
 export MAX_PIXELS=200704  # 448x448
 export RLHF_TYPE="grpo"
 export REWARD_FUNCS="web_action_match web_coordinate_match web_intent_match"
@@ -39,19 +39,19 @@ export TARGET_MODULES="all-linear"
 export TORCH_DTYPE="bfloat16"
 export MAX_COMPLETION_LENGTH=1024
 export NUM_TRAIN_EPOCHS=5  # Paper: 5
-export PER_DEVICE_TRAIN_BATCH_SIZE=8  # Paper: 8
-export PER_DEVICE_EVAL_BATCH_SIZE=8
+export PER_DEVICE_TRAIN_BATCH_SIZE=16  # Increased from 8 to use more GPU memory
+export PER_DEVICE_EVAL_BATCH_SIZE=16
 export LEARNING_RATE=1e-6  # Paper: 1e-6
-export GRADIENT_ACCUMULATION_STEPS=1  # With 8 GPUs, effective batch = 64
-export DEEPSPEED_CONFIG="zero3"
+export GRADIENT_ACCUMULATION_STEPS=1  # Effective batch = 128 (16 * 8 GPUs)
+export DEEPSPEED_CONFIG="zero2"  # Zero2 is faster than Zero3 when memory allows
 export EVAL_STEPS=500
 export SAVE_STEPS=500
 export SAVE_TOTAL_LIMIT=5
 export LOGGING_STEPS=10
 export MAX_LENGTH=4096
 export WARMUP_RATIO=0.05  # From SFT settings
-export DATALOADER_NUM_WORKERS=4
-export DATASET_NUM_PROC=4
+export DATALOADER_NUM_WORKERS=8  # Increased for faster data loading
+export DATASET_NUM_PROC=8  # Increased for faster preprocessing
 export NUM_GENERATIONS=8  # Paper: 8
 export TEMPERATURE=1.2  # Paper: 1.2
 export TOP_P=1.0  # Paper: 1.0
