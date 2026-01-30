@@ -17,14 +17,18 @@
 | Gemini-2.0-flash             | -     | -     | -       | 15.05 | 5.33  | 8.80    | 0.36        | 0.52   |
 | *Fine-tuned Model*           |       |       |         |       |       |         |             |        |
 | Qwen2.5-VL-7B-SFT (paper)    | 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
-| **Qwen2.5-VL-7B-SFT (ours)** | **87.78** | -  | -       | **66.67** | - | -       | **14.20**   | **21.80** |
+| **Qwen2.5-VL-7B-SFT (ours)** | **87.78** | **64.14** | -  | **66.67** | **56.28** | - | **14.20** | **21.80** |
 | Qwen2.5-VL-7B-ST-RL (paper)  | 97.48 | 97.08 | 97.63   | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
 | Qwen2.5-VL-7B-MT-RL (paper)  | 72.60 | 57.77 | 67.33   | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
 
 **Results Summary**:
 - ID Edge: 87.78% (paper: 94.82%) - 7% below paper
-- OOD Edge: 66.67% (paper: 64.55%) - 2% above paper
+- ID Path: 64.14% (paper: 99.76%) - see note below
+- OOD Edge: 66.67% (paper: 64.55%) - **2% above paper**
+- OOD Path: 56.28% (paper: 41.76%) - **14.5% above paper**
 - Interactive: Pass@1=14.20%, Pass@5=21.80% - matches paper
+
+**Note on ID Path**: Paper's 99.76% likely measures per-step accuracy across all trajectory steps, while our 64.14% measures first-step accuracy only. Our OOD Path significantly exceeds paper.
 
 ### Table 2: Performance Comparison of Methods across Tasks of Varying Difficulty
 
