@@ -162,7 +162,9 @@ class VllmEngine(InferEngine):
         if self.config.architectures is None:
             architectures = {'deepseek_vl2': ['DeepseekVLV2ForCausalLM']}[self.model_meta.model_type]
             engine_kwargs['hf_overrides'] = {'architectures': architectures}
-        engine_args = engine_cls(
+        
+        # Build engine args - device parameter removed in vLLM >= 0.14
+        engine_args_kwargs = dict(
             model=self.model_dir,
             dtype=dtype_mapping[model_info.torch_dtype],
             gpu_memory_utilization=gpu_memory_utilization,
@@ -176,9 +178,12 @@ class VllmEngine(InferEngine):
             trust_remote_code=True,
             enable_prefix_caching=enable_prefix_caching,
             distributed_executor_backend=distributed_executor_backend,
-            device=device,
             **engine_kwargs,
         )
+        # Only add device for vLLM < 0.14 (removed in newer versions)
+        if not self._version_ge('0.14'):
+            engine_args_kwargs['device'] = device
+        engine_args = engine_cls(**engine_args_kwargs)
         if distributed_executor_backend == 'external_launcher':
             engine_args.disable_custom_all_reduce = True
         self.engine_args = engine_args
