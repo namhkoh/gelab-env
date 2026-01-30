@@ -16,8 +16,11 @@ import glob
 # --------------------------
 class UIElement:
     """UI element class, containing icon and function description"""
+    # Icon size for 448x448 canvas (must match LayoutGenerator.ICON_WIDTH/HEIGHT)
+    ICON_SIZE = 50
+    
     def __init__(self, image: Image.Image, func: str):
-        self.raw_image = image.resize((200, 200))  # Modified to 200x200, was 50x50
+        self.raw_image = image.resize((self.ICON_SIZE, self.ICON_SIZE))
         self.func_desc = func
         self.used = False
 
@@ -407,21 +410,27 @@ class UIManager:
         self.all_elements = [UIElement(img, f) for img, f in zip(images, funcs) 
                            if f not in ['back', 'home']]
         
-        # Modify system icon colors and styles
-        back_img = Image.new('RGB', (200, 200), (255, 200, 200))  # Light red, size modified to 200x200
-        home_img = Image.new('RGB', (200, 200), (200, 255, 200))  # Light green, size modified to 200x200
+        # System icon size for 448x448 canvas (matches UIElement.ICON_SIZE)
+        sys_icon_size = UIElement.ICON_SIZE
         
-        # Add text
+        # Modify system icon colors and styles
+        back_img = Image.new('RGB', (sys_icon_size, sys_icon_size), (255, 200, 200))  # Light red
+        home_img = Image.new('RGB', (sys_icon_size, sys_icon_size), (200, 255, 200))  # Light green
+        
+        # Add text with scaled font for smaller icons
+        font_size = max(10, sys_icon_size // 4)  # Scale font to icon size
         for img, text in [(back_img, 'back'), (home_img, 'home')]:
             draw = ImageDraw.Draw(img)
-
-            font = ImageFont.truetype("font/helvetica.ttf", 60)  # Increase system button font size
+            try:
+                font = ImageFont.truetype("font/helvetica.ttf", font_size)
+            except:
+                font = None
             # Calculate text size to center display
             text_bbox = draw.textbbox((0, 0), text, font=font)
             text_width = text_bbox[2] - text_bbox[0]
             text_height = text_bbox[3] - text_bbox[1]
-            x = (200 - text_width) // 2
-            y = (200 - text_height) // 2
+            x = (sys_icon_size - text_width) // 2
+            y = (sys_icon_size - text_height) // 2
             draw.text((x, y), text, fill=(0, 0, 0), font=font)  # Black text
         
         self.sys_elements = {
@@ -622,11 +631,12 @@ class TopologyGenerator:
 
 class LayoutGenerator:
     """Layout generation engine"""
-    CANVAS_SIZE = (1179, 2556)
-    ICON_HEIGHT = 200  # Modified to 200, was 50
-    ICON_WIDTH = 200   # Modified to 200, was 50
-    MARGIN = 60  # Slightly increase edge white space
-    TOP_MARGIN = 150  # Slightly increase top margin
+    # Modified to match author's 448x448 square format
+    CANVAS_SIZE = (448, 448)
+    ICON_HEIGHT = 50  # Scaled down for 448x448 canvas
+    ICON_WIDTH = 50   # Scaled down for 448x448 canvas
+    MARGIN = 20  # Scaled margin for smaller canvas
+    TOP_MARGIN = 50  # Scaled top margin for smaller canvas
     
     @classmethod
     def _generate_predefined_positions(cls) -> List[Tuple[int, int]]:
@@ -687,7 +697,8 @@ class LayoutGenerator:
             positions['home'] = (x1, y1, x1 + cls.ICON_WIDTH, y1 + cls.ICON_HEIGHT)
         
         # Page title position (Reserved for RenderEngine use)
-        title_width = 400  # Increase reserved title width, adapt to wider screen
+        # Scale title width proportionally to canvas (about 50% of canvas width)
+        title_width = cls.CANVAS_SIZE[0] // 2
         title_x = (cls.CANVAS_SIZE[0] - title_width) // 2
         positions['page_title'] = (title_x, y1, title_x + title_width, y1 + cls.ICON_HEIGHT)
         
@@ -816,16 +827,17 @@ class TopologyBuilder:
 class RenderEngine:
     def render(self, page: UIPage) -> Image.Image:
         """Render page image"""
-        img = Image.new('RGB', (1179, 2556), (255, 255, 255))  # Modified canvas size
+        # Use LayoutGenerator canvas size for consistency
+        img = Image.new('RGB', LayoutGenerator.CANVAS_SIZE, (255, 255, 255))
         draw = ImageDraw.Draw(img)
         
         # Draw page title
         title_bbox = page.layout['page_title']
         title_text = page.page_id
-        # Use larger font
+        # Use smaller font for 448x448 canvas
         try:
             from PIL import ImageFont
-            font = ImageFont.truetype("font/helvetica.ttf", 80, encoding="unic")  # Increase title font size
+            font = ImageFont.truetype("font/helvetica.ttf", 24, encoding="unic")  # Scaled font for smaller canvas
         except:
             font = None
         
