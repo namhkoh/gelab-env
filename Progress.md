@@ -8,20 +8,20 @@
 
 ### Table 1: Models Performance on In-Distribution, Out-of-Distribution, and Interactive Benchmarks
 
-|                          | ID    |       |         | OOD   |       |         | Interactive |        |
-|--------------------------|-------|-------|---------|-------|-------|---------|-------------|--------|
-| **Model**                | Edge  | Path  | Overall | Edge  | Path  | Overall | Pass@1      | Pass@5 |
-| *Non-fine-tuned Model*   |       |       |         |       |       |         |             |        |
-| GPT-4o-2024-11-20        | -     | -     | -       | 34.10 | 5.03  | 25.85   | 1.74        | 2.49   |
-| Claude-3.7-Sonnet        | -     | -     | -       | 21.77 | 1.92  | 21.52   | 0.43        | 0.61   |
-| Gemini-2.0-flash         | -     | -     | -       | 15.05 | 5.33  | 8.80    | 0.36        | 0.52   |
-| *Fine-tuned Model*       |       |       |         |       |       |         |             |        |
-| Qwen2.5-VL-7B-SFT (paper)| 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
-| **Qwen2.5-VL-7B-SFT (ours)** | - | -     | -       | -     | -     | -       | **14.20**   | **21.80** |
-| Qwen2.5-VL-7B-ST-RL (paper)| 97.48 | 97.08 | 97.63 | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
-| Qwen2.5-VL-7B-MT-RL (paper)| 72.60 | 57.77 | 67.33 | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
+|                              | ID    |       |         | OOD   |       |         | Interactive |        |
+|------------------------------|-------|-------|---------|-------|-------|---------|-------------|--------|
+| **Model**                    | Edge  | Path  | Overall | Edge  | Path  | Overall | Pass@1      | Pass@5 |
+| *Non-fine-tuned Model*       |       |       |         |       |       |         |             |        |
+| GPT-4o-2024-11-20            | -     | -     | -       | 34.10 | 5.03  | 25.85   | 1.74        | 2.49   |
+| Claude-3.7-Sonnet            | -     | -     | -       | 21.77 | 1.92  | 21.52   | 0.43        | 0.61   |
+| Gemini-2.0-flash             | -     | -     | -       | 15.05 | 5.33  | 8.80    | 0.36        | 0.52   |
+| *Fine-tuned Model*           |       |       |         |       |       |         |             |        |
+| Qwen2.5-VL-7B-SFT (paper)    | 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
+| **Qwen2.5-VL-7B-SFT (ours)** | -     | -     | -       | -     | -     | -       | **14.20**   | **21.80** |
+| Qwen2.5-VL-7B-ST-RL (paper)  | 97.48 | 97.08 | 97.63   | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
+| Qwen2.5-VL-7B-MT-RL (paper)  | 72.60 | 57.77 | 67.33   | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
 
-**Our SFT Result**: Pass@1 = 14.20%, Pass@5 = 21.80% (matches paper within 1%)
+Our SFT matches paper's SFT on Interactive benchmark (Pass@1: 14.20 vs 14.30, Pass@5: 21.80 vs 20.86).
 
 ### Performance by Path Length (Our SFT)
 
