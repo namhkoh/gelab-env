@@ -246,6 +246,16 @@ ICON_SIZE = (50, 50)      # was (200, 200)
 
 ### Model Checkpoint
 
+**Hugging Face**: https://huggingface.co/namhokaist/gelab-sft-448
+
+```python
+from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+
+model = Qwen2_5_VLForConditionalGeneration.from_pretrained("namhokaist/gelab-sft-448")
+processor = AutoProcessor.from_pretrained("namhokaist/gelab-sft-448")
+```
+
+**Local path**:
 ```
 checkpoint/gui_exp/sft_448/v1-20260130-013131/v0-20260130-013206/checkpoint-956
 ```
