@@ -6,16 +6,34 @@
 
 ## Final Results Summary
 
-### Paper Table 1 Reproduction
+### Table 1: Models Performance on In-Distribution, Out-of-Distribution, and Interactive Benchmarks
 
-| Metric | Our SFT | Paper SFT | Status |
-|--------|---------|-----------|--------|
-| **ID Edge** | **100.00%** | 94.82% | ✅ +5.18% |
-| **ID Path** | **64.14%** | 99.76% | ⚠️ Methodology differs |
-| **OOD Edge** | **100.00%** | 64.55% | ✅ +35.45% |
-| **OOD Path** | **56.28%** | 41.76% | ✅ +14.52% |
+|                          | ID    |       |         | OOD   |       |         | Interactive |        |
+|--------------------------|-------|-------|---------|-------|-------|---------|-------------|--------|
+| **Model**                | Edge  | Path  | Overall | Edge  | Path  | Overall | Pass@1      | Pass@5 |
+| *Non-fine-tuned Model*   |       |       |         |       |       |         |             |        |
+| GPT-4o-2024-11-20        | -     | -     | -       | 34.10 | 5.03  | 25.85   | 1.74        | 2.49   |
+| Claude-3.7-Sonnet        | -     | -     | -       | 21.77 | 1.92  | 21.52   | 0.43        | 0.61   |
+| Gemini-2.0-flash         | -     | -     | -       | 15.05 | 5.33  | 8.80    | 0.36        | 0.52   |
+| *Fine-tuned Model*       |       |       |         |       |       |         |             |        |
+| Qwen2.5-VL-7B-SFT (paper)| 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
+| **Qwen2.5-VL-7B-SFT (ours)** | - | -     | -       | -     | -     | -       | **14.20**   | **21.80** |
+| Qwen2.5-VL-7B-ST-RL (paper)| 97.48 | 97.08 | 97.63 | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
+| Qwen2.5-VL-7B-MT-RL (paper)| 72.60 | 57.77 | 67.33 | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
 
-**Key Achievement**: OOD generalization significantly exceeds paper's reported SFT results.
+**Our SFT Result**: Pass@1 = 14.20%, Pass@5 = 21.80% (matches paper within 1%)
+
+### Performance by Path Length (Our SFT)
+
+| Path Length | Pass@1 | Pass@5 | Samples |
+|-------------|--------|--------|---------|
+| Path@1 | 90.5% | 95.2% | 21 |
+| Path@2 | 41.5% | 68.3% | 41 |
+| Path@3 | 27.1% | 50.0% | 48 |
+| Path@4 | 13.3% | 24.1% | 83 |
+| Path@5 | 7.0% | 8.8% | 114 |
+| Path@6 | 3.2% | 5.3% | 95 |
+| Path@7 | 0.0% | 2.0% | 98 |
 
 ---
 
@@ -180,8 +198,11 @@ ICON_SIZE = (50, 50)      # was (200, 200)
 |------|---------|
 | `data_engine/tree.py` | Generate 448×448 UI environment |
 | `data_engine/generate_paper_dataset.py` | Create paper-aligned train/test splits |
+| `data_engine/generate_st_rl_data.py` | Generate ST-RL Path data |
 | `gui_scripts/sft_448.sh` | SFT training script |
+| `gui_scripts/st_rl_448.sh` | ST-RL training script |
 | `eval/evaluate_paper_style.py` | Paper Table 1 style evaluation |
+| `eval/interactive_benchmark.py` | Interactive Pass@1/Pass@5 evaluation |
 
 ### Generated Data
 
@@ -232,11 +253,13 @@ python eval/evaluate_paper_style.py \
 - [x] Environment generation (448×448, balanced)
 - [x] SFT training with paper-aligned data
 - [x] Paper Table 1 style evaluation
-- [x] OOD generalization exceeds paper baseline
+- [x] Interactive benchmark evaluation (Pass@1=14.20%, Pass@5=21.80%)
+- [x] Results match paper's SFT baseline
+
+### In Progress
+- [ ] ST-RL training on subtrees 2-3
 
 ### Future Work
-- [ ] Implement full path completion evaluation (multi-step accuracy)
-- [ ] ST-RL training on subtrees 2-3
 - [ ] MT-RL with interactive environment
 - [ ] Compare RL results to paper's Table 1
 
@@ -251,5 +274,5 @@ python eval/evaluate_paper_style.py \
 
 ---
 
-*Last updated: 2026-01-30 (Final paper-aligned evaluation complete)*
+*Last updated: 2026-01-30 (Interactive benchmark validated: Pass@1=14.20%, Pass@5=21.80%)*
 
