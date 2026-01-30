@@ -16,8 +16,8 @@ fi
 # Number of GPUs
 NPROC_PER_NODE=8
 
-# Dataset path (448x448 format)
-DATASET_PATH="datas/448/sft_448.json"
+# Dataset path (448x448 format - paper-aligned balanced subtrees)
+DATASET_PATH="datas/448_paper/sft_aligned.json"
 
 # Output directory
 OUTPUT_DIR="checkpoint/gui_exp/sft_448/v1-$(date +%Y%m%d-%H%M%S)"

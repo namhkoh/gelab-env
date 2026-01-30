@@ -1,0 +1,1172 @@
+[
+  {
+    "idx": 0,
+    "type": "edge",
+    "source_page": "page_5",
+    "target_page": "page_18",
+    "icon_name": "Business_122",
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_122 icon on page_5."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_122 icon on page_5.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 1,
+    "type": "edge",
+    "source_page": "page_5",
+    "target_page": "page_19",
+    "icon_name": "Animals_88",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_88 icon on page_5."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_88 icon on page_5.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 2,
+    "type": "edge",
+    "source_page": "page_5",
+    "target_page": "page_20",
+    "icon_name": "Animals_102",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_102 icon on page_5."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_102 icon on page_5.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 3,
+    "type": "edge",
+    "source_page": "page_18",
+    "target_page": "page_45",
+    "icon_name": "Business_153",
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_153 icon on page_18."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_153 icon on page_18.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_18.png"
+    ]
+  },
+  {
+    "idx": 4,
+    "type": "edge",
+    "source_page": "page_18",
+    "target_page": "page_46",
+    "icon_name": "Business_168",
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_168 icon on page_18."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_168 icon on page_18.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_18.png"
+    ]
+  },
+  {
+    "idx": 5,
+    "type": "edge",
+    "source_page": "page_45",
+    "target_page": "page_99",
+    "icon_name": "Business_202",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_202 icon on page_45."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_202 icon on page_45.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_45.png"
+    ]
+  },
+  {
+    "idx": 6,
+    "type": "edge",
+    "source_page": "page_45",
+    "target_page": "page_100",
+    "icon_name": "Animals_46",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_46 icon on page_45."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_46 icon on page_45.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_45.png"
+    ]
+  },
+  {
+    "idx": 7,
+    "type": "edge",
+    "source_page": "page_99",
+    "target_page": "page_159",
+    "icon_name": "Animals_103",
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_103 icon on page_99."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_103 icon on page_99.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_99.png"
+    ]
+  },
+  {
+    "idx": 8,
+    "type": "edge",
+    "source_page": "page_159",
+    "target_page": "page_219",
+    "icon_name": "Animals_80",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_80 icon on page_159."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_80 icon on page_159.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_159.png"
+    ]
+  },
+  {
+    "idx": 9,
+    "type": "edge",
+    "source_page": "page_100",
+    "target_page": "page_160",
+    "icon_name": "Business_183",
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_183 icon on page_100."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_183 icon on page_100.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_100.png"
+    ]
+  },
+  {
+    "idx": 10,
+    "type": "edge",
+    "source_page": "page_160",
+    "target_page": "page_220",
+    "icon_name": "Business_124",
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_124 icon on page_160."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_124 icon on page_160.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_160.png"
+    ]
+  },
+  {
+    "idx": 11,
+    "type": "edge",
+    "source_page": "page_46",
+    "target_page": "page_101",
+    "icon_name": "Animals_48",
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_48 icon on page_46."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_48 icon on page_46.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_46.png"
+    ]
+  },
+  {
+    "idx": 12,
+    "type": "edge",
+    "source_page": "page_46",
+    "target_page": "page_102",
+    "icon_name": "Business_126",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_126 icon on page_46."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_126 icon on page_46.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_46.png"
+    ]
+  },
+  {
+    "idx": 13,
+    "type": "edge",
+    "source_page": "page_101",
+    "target_page": "page_161",
+    "icon_name": "Animals_61",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_61 icon on page_101."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_61 icon on page_101.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_101.png"
+    ]
+  },
+  {
+    "idx": 14,
+    "type": "edge",
+    "source_page": "page_161",
+    "target_page": "page_221",
+    "icon_name": "Business_163",
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_163 icon on page_161."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_163 icon on page_161.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_161.png"
+    ]
+  },
+  {
+    "idx": 15,
+    "type": "edge",
+    "source_page": "page_102",
+    "target_page": "page_162",
+    "icon_name": "Animals_29",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_29 icon on page_102."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_29 icon on page_102.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_102.png"
+    ]
+  },
+  {
+    "idx": 16,
+    "type": "edge",
+    "source_page": "page_162",
+    "target_page": "page_222",
+    "icon_name": "Business_170",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_170 icon on page_162."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_170 icon on page_162.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_162.png"
+    ]
+  },
+  {
+    "idx": 17,
+    "type": "edge",
+    "source_page": "page_19",
+    "target_page": "page_47",
+    "icon_name": "Animals_93",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_93 icon on page_19."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_93 icon on page_19.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_19.png"
+    ]
+  },
+  {
+    "idx": 18,
+    "type": "edge",
+    "source_page": "page_19",
+    "target_page": "page_48",
+    "icon_name": "Business_233",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_233 icon on page_19."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_233 icon on page_19.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_19.png"
+    ]
+  },
+  {
+    "idx": 19,
+    "type": "edge",
+    "source_page": "page_47",
+    "target_page": "page_103",
+    "icon_name": "Business_117",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_117 icon on page_47."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_117 icon on page_47.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_47.png"
+    ]
+  },
+  {
+    "idx": 20,
+    "type": "edge",
+    "source_page": "page_47",
+    "target_page": "page_104",
+    "icon_name": "Business_223",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_223 icon on page_47."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_223 icon on page_47.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_47.png"
+    ]
+  },
+  {
+    "idx": 21,
+    "type": "edge",
+    "source_page": "page_103",
+    "target_page": "page_163",
+    "icon_name": "Business_131",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_131 icon on page_103."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_131 icon on page_103.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_103.png"
+    ]
+  },
+  {
+    "idx": 22,
+    "type": "edge",
+    "source_page": "page_163",
+    "target_page": "page_223",
+    "icon_name": "Business_182",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_182 icon on page_163."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_182 icon on page_163.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_163.png"
+    ]
+  },
+  {
+    "idx": 23,
+    "type": "edge",
+    "source_page": "page_104",
+    "target_page": "page_164",
+    "icon_name": "Animals_110",
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_110 icon on page_104."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_110 icon on page_104.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_104.png"
+    ]
+  },
+  {
+    "idx": 24,
+    "type": "edge",
+    "source_page": "page_164",
+    "target_page": "page_224",
+    "icon_name": "Business_115",
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_115 icon on page_164."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_115 icon on page_164.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_164.png"
+    ]
+  },
+  {
+    "idx": 25,
+    "type": "edge",
+    "source_page": "page_48",
+    "target_page": "page_105",
+    "icon_name": "Business_195",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_195 icon on page_48."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_195 icon on page_48.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_48.png"
+    ]
+  },
+  {
+    "idx": 26,
+    "type": "edge",
+    "source_page": "page_48",
+    "target_page": "page_106",
+    "icon_name": "Animals_30",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_30 icon on page_48."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_30 icon on page_48.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_48.png"
+    ]
+  },
+  {
+    "idx": 27,
+    "type": "edge",
+    "source_page": "page_105",
+    "target_page": "page_165",
+    "icon_name": "Business_148",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_148 icon on page_105."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_148 icon on page_105.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_105.png"
+    ]
+  },
+  {
+    "idx": 28,
+    "type": "edge",
+    "source_page": "page_165",
+    "target_page": "page_225",
+    "icon_name": "Animals_39",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_39 icon on page_165."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_39 icon on page_165.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_165.png"
+    ]
+  },
+  {
+    "idx": 29,
+    "type": "edge",
+    "source_page": "page_106",
+    "target_page": "page_166",
+    "icon_name": "Business_210",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_210 icon on page_106."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_210 icon on page_106.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_106.png"
+    ]
+  },
+  {
+    "idx": 30,
+    "type": "edge",
+    "source_page": "page_166",
+    "target_page": "page_226",
+    "icon_name": "Animals_19",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_19 icon on page_166."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_19 icon on page_166.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_166.png"
+    ]
+  },
+  {
+    "idx": 31,
+    "type": "edge",
+    "source_page": "page_20",
+    "target_page": "page_49",
+    "icon_name": "Business_138",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_138 icon on page_20."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_138 icon on page_20.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_20.png"
+    ]
+  },
+  {
+    "idx": 32,
+    "type": "edge",
+    "source_page": "page_20",
+    "target_page": "page_50",
+    "icon_name": "Animals_84",
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_84 icon on page_20."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_84 icon on page_20.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_20.png"
+    ]
+  },
+  {
+    "idx": 33,
+    "type": "edge",
+    "source_page": "page_49",
+    "target_page": "page_107",
+    "icon_name": "Business_189",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_189 icon on page_49."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_189 icon on page_49.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_49.png"
+    ]
+  },
+  {
+    "idx": 34,
+    "type": "edge",
+    "source_page": "page_49",
+    "target_page": "page_108",
+    "icon_name": "Business_222",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_222 icon on page_49."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_222 icon on page_49.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_49.png"
+    ]
+  },
+  {
+    "idx": 35,
+    "type": "edge",
+    "source_page": "page_107",
+    "target_page": "page_167",
+    "icon_name": "Animals_6",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_6 icon on page_107."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_6 icon on page_107.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_107.png"
+    ]
+  },
+  {
+    "idx": 36,
+    "type": "edge",
+    "source_page": "page_167",
+    "target_page": "page_227",
+    "icon_name": "Animals_57",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_57 icon on page_167."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_57 icon on page_167.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_167.png"
+    ]
+  },
+  {
+    "idx": 37,
+    "type": "edge",
+    "source_page": "page_108",
+    "target_page": "page_168",
+    "icon_name": "Business_198",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_198 icon on page_108."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_198 icon on page_108.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_108.png"
+    ]
+  },
+  {
+    "idx": 38,
+    "type": "edge",
+    "source_page": "page_168",
+    "target_page": "page_228",
+    "icon_name": "Animals_77",
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_77 icon on page_168."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_77 icon on page_168.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_168.png"
+    ]
+  },
+  {
+    "idx": 39,
+    "type": "edge",
+    "source_page": "page_50",
+    "target_page": "page_109",
+    "icon_name": "Business_135",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_135 icon on page_50."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_135 icon on page_50.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_50.png"
+    ]
+  },
+  {
+    "idx": 40,
+    "type": "edge",
+    "source_page": "page_50",
+    "target_page": "page_110",
+    "icon_name": "Animals_10",
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_10 icon on page_50."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_10 icon on page_50.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_50.png"
+    ]
+  },
+  {
+    "idx": 41,
+    "type": "edge",
+    "source_page": "page_109",
+    "target_page": "page_169",
+    "icon_name": "Animals_32",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Animals_32 icon on page_109."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_32 icon on page_109.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_109.png"
+    ]
+  },
+  {
+    "idx": 42,
+    "type": "edge",
+    "source_page": "page_169",
+    "target_page": "page_229",
+    "icon_name": "Business_123",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_123 icon on page_169."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_123 icon on page_169.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_169.png"
+    ]
+  },
+  {
+    "idx": 43,
+    "type": "edge",
+    "source_page": "page_110",
+    "target_page": "page_170",
+    "icon_name": "Business_201",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_201 icon on page_110."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_201 icon on page_110.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_110.png"
+    ]
+  },
+  {
+    "idx": 44,
+    "type": "edge",
+    "source_page": "page_170",
+    "target_page": "page_230",
+    "icon_name": "Business_228",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain: click Business_228 icon on page_170."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_228 icon on page_170.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "data_engine/ui_environment_448/latest/pages/page_170.png"
+    ]
+  }
+]
