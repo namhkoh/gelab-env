@@ -17,18 +17,18 @@
 | Gemini-2.0-flash             | -     | -     | -       | 15.05 | 5.33  | 8.80    | 0.36        | 0.52   |
 | *Fine-tuned Model*           |       |       |         |       |       |         |             |        |
 | Qwen2.5-VL-7B-SFT (paper)    | 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
-| **Qwen2.5-VL-7B-SFT (ours)** | **87.78** | **64.14** | -  | **66.67** | **56.28** | - | **14.20** | **21.80** |
+| **Qwen2.5-VL-7B-SFT (ours)** | **87.78** | **76.32** | -  | **66.67** | **67.75** | - | **14.20** | **21.80** |
 | Qwen2.5-VL-7B-ST-RL (paper)  | 97.48 | 97.08 | 97.63   | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
 | Qwen2.5-VL-7B-MT-RL (paper)  | 72.60 | 57.77 | 67.33   | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
 
 **Results Summary**:
 - ID Edge: 87.78% (paper: 94.82%) - 7% below paper
-- ID Path: 64.14% (paper: 99.76%) - see note below
+- ID Path: 76.32% (paper: 99.76%) - see note below
 - OOD Edge: 66.67% (paper: 64.55%) - **2% above paper**
-- OOD Path: 56.28% (paper: 41.76%) - **14.5% above paper**
+- OOD Path: 67.75% (paper: 41.76%) - **26% above paper!**
 - Interactive: Pass@1=14.20%, Pass@5=21.80% - matches paper
 
-**Note on ID Path**: Paper's 99.76% likely measures per-step accuracy across all trajectory steps, while our 64.14% measures first-step accuracy only. Our OOD Path significantly exceeds paper.
+**Note on ID Path**: After fixing prompt format (from "Navigate from X to Y" to "Instruction: from X to Y"), ID Path improved from 64% to 76%. Remaining gap vs paper's 99.76% likely due to paper using per-step accuracy across trajectories. Our OOD Path significantly exceeds paper.
 
 ### Table 2: Performance Comparison of Methods across Tasks of Varying Difficulty
 
@@ -151,6 +151,24 @@ The original Edge test files had an incorrect format that leaked the answer:
 This caused inflated 100% accuracy. After fixing to correct format:
 - ID Edge: 87.78% (vs paper 94.82%)
 - OOD Edge: 66.67% (vs paper 64.55%)
+
+### Why ID Path is Lower (64.14% vs 99.76%)
+
+**Critical Issue: Prompt Format Mismatch**
+
+The test data uses a different prompt format than training:
+
+| Data | Prompt Format |
+|------|---------------|
+| **Training** | `Instruction: from page_X to page_Y. History: Null` |
+| **Test** | `Navigate from page_X to page_Y. Click the correct icon.` |
+
+This causes the model to underperform because it wasn't trained on this prompt style.
+
+**Additional Factors**:
+1. **54.9% overlap**: Only 229 of 417 test source→target pairs appear in training
+2. **Possible metric difference**: Paper may use per-step accuracy across full trajectories, not just first-step
+3. **OOD Path is more reliable**: Our OOD Path (56.28%) exceeds paper (41.76%) by 14.5%, suggesting the model generalizes well when prompt format isn't the issue
 
 ### Why OOD Edge Slightly Exceeds Paper
 
