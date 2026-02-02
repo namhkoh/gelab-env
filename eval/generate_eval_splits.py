@@ -89,7 +89,7 @@ def generate_edge_samples(ui_structure, pages, env_path, num_samples=None):
                 "icon_name": icon_name,
                 "bbox_norm": bbox_norm,
                 "messages": [
-                    {"role": "user", "content": f"Explain: click {icon_name} icon on {page_name}."},
+                    {"role": "user", "content": f"<image>Instruction: from {page_name} to {target_page}. History: Null"},
                     {"role": "assistant", "content": f"Explain: click {icon_name} icon on {page_name}.\tAction: click(start_box='<|box_start|>({center_x},{center_y})<|box_end|>')"}
                 ],
                 "images": [image_path]
@@ -194,7 +194,7 @@ def generate_path_samples(ui_structure, layer_structure, pages, env_path, max_sa
                     "first_step_icon": icon_name,
                     "bbox_norm": bbox_norm,
                     "messages": [
-                        {"role": "user", "content": f"Navigate from {start} to {end}. Click the correct icon."},
+                        {"role": "user", "content": f"<image>Instruction: from {start} to {end}. History: Null"},
                         {"role": "assistant", "content": f"Explain: click {icon_name} icon on {start}.\tAction: click(start_box='<|box_start|>({center_x},{center_y})<|box_end|>')"}
                     ],
                     "images": [image_path]

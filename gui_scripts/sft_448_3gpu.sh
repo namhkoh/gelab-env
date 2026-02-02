@@ -2,11 +2,11 @@
 set -e
 
 # =============================================================================
-# ST-RL Training Script - Paper-Aligned (GE-Lab Table 8)
-# Adjusted for 3x A100 80GB
+# SFT Training Script - 448x448 Environment
+# Optimized for 3x A100 80GB
 # =============================================================================
 
-# Environment Variables (user-provided)
+# Environment Variables
 export WANDB_API_KEY="${WANDB_API_KEY:?Set WANDB_API_KEY in your environment}"
 export WANDB_ENTITY="namhokoh-korea-advanced-institute-of-science-and-technology"
 export WANDB_PROJECT="gelab"
@@ -20,78 +20,58 @@ export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 export USE_HF=1
 export REPORT_TO="wandb"
 
+# Redirect temp files to avoid disk quota issues
+export WANDB_DIR="/ext_hdd2/nhkoh/wandb"
+export WANDB_CACHE_DIR="/ext_hdd2/nhkoh/.cache/wandb"
+export TMPDIR="/ext_hdd2/nhkoh/tmp"
+export TRITON_CACHE_DIR="/ext_hdd2/nhkoh/.cache/triton"
+mkdir -p "$WANDB_DIR" "$WANDB_CACHE_DIR" "$TMPDIR" "$TRITON_CACHE_DIR"
+
 # Model and Data Paths
-export SAVE_NAME="st_rl_448"
-export MODEL_PATH="namhokaist/gelab-sft-448"
-export DATASET_PATH="datas/448_paper/st_rl_path_only.json"
+export SAVE_NAME="sft_448_retrain"
+export MODEL_PATH="Qwen/Qwen2.5-VL-7B-Instruct"
+export DATASET_PATH="datas/448_retrain/sft_aligned.json"
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
 
 # =============================================================================
-# Paper Table 8 - RL Hyperparameters (EXACT)
+# Paper Table 8 - SFT Hyperparameters
 # =============================================================================
-export LEARNING_RATE=1e-6
-export NUM_TRAIN_EPOCHS=5
-export NUM_GENERATIONS=8
-export TEMPERATURE=1.2
-export TOP_P=1.0
-export TOP_K=8
-export MAX_PIXELS=200704
+export LEARNING_RATE=1e-5
+export NUM_TRAIN_EPOCHS=1
+export MAX_PIXELS=200704  # 448x448
 
-# GPU Adjustment for 3x A100 80GB
-# Paper: 16 GPUs × batch=8 = 128 effective batch
-# Ours: 3 GPUs × batch=2 × grad_acc=8 = 48 effective batch (memory-safe for GRPO)
+# GPU Configuration for 3x A100 80GB
+# Paper: 16 GPUs × batch=2 = 32 effective batch
+# Ours: 3 GPUs × batch=4 × grad_acc=3 = 36 effective batch (close to paper)
 export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=2
-export GRADIENT_ACCUMULATION_STEPS=8
+export PER_DEVICE_TRAIN_BATCH_SIZE=4
+export PER_DEVICE_EVAL_BATCH_SIZE=1
+export GRADIENT_ACCUMULATION_STEPS=3
 
-# GRPO Configuration
-export RLHF_TYPE="grpo"
+# Training Configuration
 export TRAIN_TYPE="full"
 export TORCH_DTYPE="bfloat16"
 export DEEPSPEED_CONFIG="zero2"
-export MAX_COMPLETION_LENGTH=512
-export MAX_LENGTH=2048
+export MAX_LENGTH=4096
 export WARMUP_RATIO=0.05
-
-# Reward Functions (Paper Section 3.3.1)
-export REWARD_FUNCS="web_action_match web_coordinate_match_bbox web_intent_match"
-export REWARD_WEIGHTS="0.25 0.5 0.25"
+export DATALOADER_NUM_WORKERS=4
 
 # Logging
-export EVAL_STEPS=200
-export SAVE_STEPS=200
+export LOGGING_STEPS=10
+export SAVE_STEPS=500
 export SAVE_TOTAL_LIMIT=3
-export LOGGING_STEPS=5
-export DATALOADER_NUM_WORKERS=4
-export DATASET_NUM_PROC=4
-export LOG_COMPLETIONS="true"
-
-# System Prompt (Paper Appendix A.10)
-export SYSTEM_PROMPT="You are a GUI Navigation Agent. Navigate to the target page by clicking icons.
-
-Input format:
-- Instruction: from <source> to <target>. History: <previous_steps>
-- Current screen image
-
-Output format:
-Explain: click <icon_name> icon on <page>.	Action: click(start_box='<|box_start|>(x,y)<|box_end|>')
-OR
-Explain: this is target page.	Action: complete
-
-Coordinates use (0,0) top-left to (1000,1000) bottom-right system."
 
 # Create directories
 mkdir -p "$BASE_LOG_DIR"
-mkdir -p "$HF_HOME"
-mkdir -p "$XDG_CACHE_HOME"
+mkdir -p "$BASE_OUTPUT_DIR"
 
 time_start=$(date '+%Y%m%d_%H%M%S')
 OUTPUT_DIR="$BASE_OUTPUT_DIR/$SAVE_NAME/v0-${time_start}"
-LOG_FILE="$BASE_LOG_DIR/st_rl_448_${time_start}.log"
+LOG_FILE="$BASE_LOG_DIR/sft_448_${time_start}.log"
 
 echo "============================================================"
-echo "ST-RL TRAINING (Paper Table 8 Aligned)"
+echo "SFT TRAINING - 448x448 Environment"
 echo "============================================================"
 echo "Start time: $(date)"
 echo "Model: $MODEL_PATH"
@@ -99,58 +79,48 @@ echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_DIR"
 echo "GPUs: $NPROC_PER_NODE x A100 80GB"
 echo ""
-echo "Paper Parameters (Table 8):"
+echo "Parameters:"
 echo "  Learning rate: $LEARNING_RATE"
 echo "  Per-device batch: $PER_DEVICE_TRAIN_BATCH_SIZE"
 echo "  Grad accumulation: $GRADIENT_ACCUMULATION_STEPS"
 echo "  Epochs: $NUM_TRAIN_EPOCHS"
-echo "  Num generations: $NUM_GENERATIONS"
-echo "  Temperature: $TEMPERATURE"
+echo "  Max pixels: $MAX_PIXELS"
 echo ""
 echo "Effective batch: $((PER_DEVICE_TRAIN_BATCH_SIZE * NPROC_PER_NODE * GRADIENT_ACCUMULATION_STEPS))"
 echo "============================================================"
 
+# Show dataset info
 python -c "import json; data=json.load(open('$DATASET_PATH')); print(f'Dataset samples: {len(data)}')"
 
 CUDA_VISIBLE_DEVICES=0,1,2 \
 NPROC_PER_NODE=$NPROC_PER_NODE \
 MAX_PIXELS=$MAX_PIXELS \
-swift rlhf \
-    --rlhf_type "$RLHF_TYPE" \
+swift sft \
     --model "$MODEL_PATH" \
-    --reward_funcs $REWARD_FUNCS \
-    --reward_weights $REWARD_WEIGHTS \
+    --dataset "$DATASET_PATH" \
     --train_type "$TRAIN_TYPE" \
     --torch_dtype "$TORCH_DTYPE" \
-    --dataset "$DATASET_PATH" \
-    --max_completion_length "$MAX_COMPLETION_LENGTH" \
     --num_train_epochs "$NUM_TRAIN_EPOCHS" \
     --per_device_train_batch_size "$PER_DEVICE_TRAIN_BATCH_SIZE" \
+    --per_device_eval_batch_size "$PER_DEVICE_EVAL_BATCH_SIZE" \
     --learning_rate "$LEARNING_RATE" \
     --gradient_accumulation_steps "$GRADIENT_ACCUMULATION_STEPS" \
     --deepspeed "$DEEPSPEED_CONFIG" \
-    --eval_steps "$EVAL_STEPS" \
-    --save_steps "$SAVE_STEPS" \
-    --save_total_limit "$SAVE_TOTAL_LIMIT" \
     --logging_steps "$LOGGING_STEPS" \
     --max_length "$MAX_LENGTH" \
     --output_dir "$OUTPUT_DIR" \
     --warmup_ratio "$WARMUP_RATIO" \
     --dataloader_num_workers "$DATALOADER_NUM_WORKERS" \
-    --dataset_num_proc "$DATASET_NUM_PROC" \
-    --num_generations "$NUM_GENERATIONS" \
-    --temperature "$TEMPERATURE" \
-    --top_p "$TOP_P" \
-    --top_k "$TOP_K" \
-    --system "$SYSTEM_PROMPT" \
+    --save_steps "$SAVE_STEPS" \
+    --save_total_limit "$SAVE_TOTAL_LIMIT" \
     --add_version False \
     --report_to "$REPORT_TO" \
-    --log_completions "$LOG_COMPLETIONS" \
+    --gradient_checkpointing true \
     2>&1 | tee "$LOG_FILE"
 
 echo ""
 echo "============================================================"
-echo "ST-RL Training Complete"
+echo "SFT Training Complete"
 echo "End time: $(date)"
 echo "Output: $OUTPUT_DIR"
 echo "============================================================"

@@ -1,0 +1,1172 @@
+[
+  {
+    "idx": 0,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_85.png",
+    "problem": "<image>Instruction: from page_85 to page_145. History: Null",
+    "solution": "Explain: click Animals_43 icon on page_85.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 1,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_3.png",
+    "problem": "<image>Instruction: from page_3 to page_12. History: Null",
+    "solution": "Explain: click Business_186 icon on page_3.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 2,
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_3.png",
+    "problem": "<image>Instruction: from page_3 to page_13. History: Null",
+    "solution": "Explain: click Business_218 icon on page_3.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 3,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_3.png",
+    "problem": "<image>Instruction: from page_3 to page_14. History: Null",
+    "solution": "Explain: click Business_181 icon on page_3.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 4,
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_36.png",
+    "problem": "<image>Instruction: from page_36 to page_81. History: Null",
+    "solution": "Explain: click Animals_6 icon on page_36.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 5,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_36.png",
+    "problem": "<image>Instruction: from page_36 to page_82. History: Null",
+    "solution": "Explain: click Animals_78 icon on page_36.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 6,
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_12.png",
+    "problem": "<image>Instruction: from page_12 to page_33. History: Null",
+    "solution": "Explain: click Animals_86 icon on page_12.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 7,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_12.png",
+    "problem": "<image>Instruction: from page_12 to page_34. History: Null",
+    "solution": "Explain: click Animals_103 icon on page_12.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 8,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_146.png",
+    "problem": "<image>Instruction: from page_146 to page_206. History: Null",
+    "solution": "Explain: click Business_151 icon on page_146.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 9,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_76.png",
+    "problem": "<image>Instruction: from page_76 to page_136. History: Null",
+    "solution": "Explain: click Business_127 icon on page_76.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 10,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_138.png",
+    "problem": "<image>Instruction: from page_138 to page_198. History: Null",
+    "solution": "Explain: click Animals_50 icon on page_138.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 11,
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_83.png",
+    "problem": "<image>Instruction: from page_83 to page_143. History: Null",
+    "solution": "Explain: click Business_234 icon on page_83.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 12,
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_80.png",
+    "problem": "<image>Instruction: from page_80 to page_140. History: Null",
+    "solution": "Explain: click Business_213 icon on page_80.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 13,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_139.png",
+    "problem": "<image>Instruction: from page_139 to page_199. History: Null",
+    "solution": "Explain: click Animals_5 icon on page_139.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 14,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_135.png",
+    "problem": "<image>Instruction: from page_135 to page_195. History: Null",
+    "solution": "Explain: click Animals_28 icon on page_135.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 15,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_84.png",
+    "problem": "<image>Instruction: from page_84 to page_144. History: Null",
+    "solution": "Explain: click Business_163 icon on page_84.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 16,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_37.png",
+    "problem": "<image>Instruction: from page_37 to page_83. History: Null",
+    "solution": "Explain: click Business_128 icon on page_37.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 17,
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_37.png",
+    "problem": "<image>Instruction: from page_37 to page_84. History: Null",
+    "solution": "Explain: click Animals_61 icon on page_37.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 18,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_140.png",
+    "problem": "<image>Instruction: from page_140 to page_200. History: Null",
+    "solution": "Explain: click Business_135 icon on page_140.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 19,
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_136.png",
+    "problem": "<image>Instruction: from page_136 to page_196. History: Null",
+    "solution": "Explain: click Animals_102 icon on page_136.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 20,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_79.png",
+    "problem": "<image>Instruction: from page_79 to page_139. History: Null",
+    "solution": "Explain: click Business_2 icon on page_79.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 21,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_86.png",
+    "problem": "<image>Instruction: from page_86 to page_146. History: Null",
+    "solution": "Explain: click Business_121 icon on page_86.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 22,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_14.png",
+    "problem": "<image>Instruction: from page_14 to page_37. History: Null",
+    "solution": "Explain: click Animals_35 icon on page_14.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 23,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_14.png",
+    "problem": "<image>Instruction: from page_14 to page_38. History: Null",
+    "solution": "Explain: click Animals_42 icon on page_14.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 24,
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_141.png",
+    "problem": "<image>Instruction: from page_141 to page_201. History: Null",
+    "solution": "Explain: click Business_106 icon on page_141.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 25,
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_13.png",
+    "problem": "<image>Instruction: from page_13 to page_35. History: Null",
+    "solution": "Explain: click Business_129 icon on page_13.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 26,
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_13.png",
+    "problem": "<image>Instruction: from page_13 to page_36. History: Null",
+    "solution": "Explain: click Business_158 icon on page_13.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 27,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_34.png",
+    "problem": "<image>Instruction: from page_34 to page_77. History: Null",
+    "solution": "Explain: click Business_217 icon on page_34.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 28,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_34.png",
+    "problem": "<image>Instruction: from page_34 to page_78. History: Null",
+    "solution": "Explain: click Business_120 icon on page_34.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 29,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_81.png",
+    "problem": "<image>Instruction: from page_81 to page_141. History: Null",
+    "solution": "Explain: click Business_176 icon on page_81.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 30,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_143.png",
+    "problem": "<image>Instruction: from page_143 to page_203. History: Null",
+    "solution": "Explain: click Business_166 icon on page_143.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 31,
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_137.png",
+    "problem": "<image>Instruction: from page_137 to page_197. History: Null",
+    "solution": "Explain: click Animals_12 icon on page_137.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 32,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_145.png",
+    "problem": "<image>Instruction: from page_145 to page_205. History: Null",
+    "solution": "Explain: click Animals_71 icon on page_145.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 33,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_77.png",
+    "problem": "<image>Instruction: from page_77 to page_137. History: Null",
+    "solution": "Explain: click Animals_47 icon on page_77.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 34,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_35.png",
+    "problem": "<image>Instruction: from page_35 to page_79. History: Null",
+    "solution": "Explain: click Animals_53 icon on page_35.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 35,
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_35.png",
+    "problem": "<image>Instruction: from page_35 to page_80. History: Null",
+    "solution": "Explain: click Animals_33 icon on page_35.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 36,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_142.png",
+    "problem": "<image>Instruction: from page_142 to page_202. History: Null",
+    "solution": "Explain: click Business_216 icon on page_142.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 37,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_33.png",
+    "problem": "<image>Instruction: from page_33 to page_75. History: Null",
+    "solution": "Explain: click Animals_68 icon on page_33.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 38,
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_33.png",
+    "problem": "<image>Instruction: from page_33 to page_76. History: Null",
+    "solution": "Explain: click Animals_54 icon on page_33.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 39,
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_75.png",
+    "problem": "<image>Instruction: from page_75 to page_135. History: Null",
+    "solution": "Explain: click Business_102 icon on page_75.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 40,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_82.png",
+    "problem": "<image>Instruction: from page_82 to page_142. History: Null",
+    "solution": "Explain: click Animals_49 icon on page_82.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 41,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_78.png",
+    "problem": "<image>Instruction: from page_78 to page_138. History: Null",
+    "solution": "Explain: click Animals_66 icon on page_78.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 42,
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_38.png",
+    "problem": "<image>Instruction: from page_38 to page_85. History: Null",
+    "solution": "Explain: click Animals_74 icon on page_38.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 43,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_38.png",
+    "problem": "<image>Instruction: from page_38 to page_86. History: Null",
+    "solution": "Explain: click Business_111 icon on page_38.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 44,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_144.png",
+    "problem": "<image>Instruction: from page_144 to page_204. History: Null",
+    "solution": "Explain: click Animals_82 icon on page_144.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub2_edge"
+  },
+  {
+    "idx": 45,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_16.png",
+    "problem": "<image>Instruction: from page_16 to page_41. History: Null",
+    "solution": "Explain: click Animals_31 icon on page_16.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 46,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_16.png",
+    "problem": "<image>Instruction: from page_16 to page_42. History: Null",
+    "solution": "Explain: click Business_122 icon on page_16.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 47,
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_148.png",
+    "problem": "<image>Instruction: from page_148 to page_208. History: Null",
+    "solution": "Explain: click Animals_92 icon on page_148.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 48,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_41.png",
+    "problem": "<image>Instruction: from page_41 to page_91. History: Null",
+    "solution": "Explain: click Business_148 icon on page_41.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 49,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_41.png",
+    "problem": "<image>Instruction: from page_41 to page_92. History: Null",
+    "solution": "Explain: click Business_208 icon on page_41.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 50,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_158.png",
+    "problem": "<image>Instruction: from page_158 to page_218. History: Null",
+    "solution": "Explain: click Business_199 icon on page_158.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 51,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_92.png",
+    "problem": "<image>Instruction: from page_92 to page_152. History: Null",
+    "solution": "Explain: click Business_147 icon on page_92.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 52,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_93.png",
+    "problem": "<image>Instruction: from page_93 to page_153. History: Null",
+    "solution": "Explain: click Business_131 icon on page_93.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 53,
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_96.png",
+    "problem": "<image>Instruction: from page_96 to page_156. History: Null",
+    "solution": "Explain: click Business_117 icon on page_96.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 54,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_94.png",
+    "problem": "<image>Instruction: from page_94 to page_154. History: Null",
+    "solution": "Explain: click Business_171 icon on page_94.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 55,
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_147.png",
+    "problem": "<image>Instruction: from page_147 to page_207. History: Null",
+    "solution": "Explain: click Business_115 icon on page_147.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 56,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_87.png",
+    "problem": "<image>Instruction: from page_87 to page_147. History: Null",
+    "solution": "Explain: click Business_152 icon on page_87.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 57,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_40.png",
+    "problem": "<image>Instruction: from page_40 to page_89. History: Null",
+    "solution": "Explain: click Animals_30 icon on page_40.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 58,
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_40.png",
+    "problem": "<image>Instruction: from page_40 to page_90. History: Null",
+    "solution": "Explain: click Business_232 icon on page_40.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 59,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_156.png",
+    "problem": "<image>Instruction: from page_156 to page_216. History: Null",
+    "solution": "Explain: click Business_220 icon on page_156.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 60,
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_39.png",
+    "problem": "<image>Instruction: from page_39 to page_87. History: Null",
+    "solution": "Explain: click Animals_91 icon on page_39.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 61,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_39.png",
+    "problem": "<image>Instruction: from page_39 to page_88. History: Null",
+    "solution": "Explain: click Business_156 icon on page_39.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 62,
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_157.png",
+    "problem": "<image>Instruction: from page_157 to page_217. History: Null",
+    "solution": "Explain: click Animals_72 icon on page_157.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 63,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_91.png",
+    "problem": "<image>Instruction: from page_91 to page_151. History: Null",
+    "solution": "Explain: click Business_144 icon on page_91.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 64,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_152.png",
+    "problem": "<image>Instruction: from page_152 to page_212. History: Null",
+    "solution": "Explain: click Animals_29 icon on page_152.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 65,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_155.png",
+    "problem": "<image>Instruction: from page_155 to page_215. History: Null",
+    "solution": "Explain: click Animals_45 icon on page_155.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 66,
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_44.png",
+    "problem": "<image>Instruction: from page_44 to page_97. History: Null",
+    "solution": "Explain: click Business_184 icon on page_44.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 67,
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_44.png",
+    "problem": "<image>Instruction: from page_44 to page_98. History: Null",
+    "solution": "Explain: click Animals_20 icon on page_44.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 68,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_43.png",
+    "problem": "<image>Instruction: from page_43 to page_95. History: Null",
+    "solution": "Explain: click Animals_93 icon on page_43.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 69,
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_43.png",
+    "problem": "<image>Instruction: from page_43 to page_96. History: Null",
+    "solution": "Explain: click Animals_94 icon on page_43.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 70,
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_89.png",
+    "problem": "<image>Instruction: from page_89 to page_149. History: Null",
+    "solution": "Explain: click Business_196 icon on page_89.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 71,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_42.png",
+    "problem": "<image>Instruction: from page_42 to page_93. History: Null",
+    "solution": "Explain: click Business_153 icon on page_42.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 72,
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_42.png",
+    "problem": "<image>Instruction: from page_42 to page_94. History: Null",
+    "solution": "Explain: click Business_182 icon on page_42.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 73,
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_17.png",
+    "problem": "<image>Instruction: from page_17 to page_43. History: Null",
+    "solution": "Explain: click Business_11 icon on page_17.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 74,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_17.png",
+    "problem": "<image>Instruction: from page_17 to page_44. History: Null",
+    "solution": "Explain: click Business_16 icon on page_17.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 75,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_97.png",
+    "problem": "<image>Instruction: from page_97 to page_157. History: Null",
+    "solution": "Explain: click Business_187 icon on page_97.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 76,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_90.png",
+    "problem": "<image>Instruction: from page_90 to page_150. History: Null",
+    "solution": "Explain: click Animals_81 icon on page_90.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 77,
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_153.png",
+    "problem": "<image>Instruction: from page_153 to page_213. History: Null",
+    "solution": "Explain: click Business_150 icon on page_153.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 78,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_88.png",
+    "problem": "<image>Instruction: from page_88 to page_148. History: Null",
+    "solution": "Explain: click Animals_52 icon on page_88.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 79,
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_151.png",
+    "problem": "<image>Instruction: from page_151 to page_211. History: Null",
+    "solution": "Explain: click Animals_90 icon on page_151.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 80,
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_98.png",
+    "problem": "<image>Instruction: from page_98 to page_158. History: Null",
+    "solution": "Explain: click Business_149 icon on page_98.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 81,
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_95.png",
+    "problem": "<image>Instruction: from page_95 to page_155. History: Null",
+    "solution": "Explain: click Business_13 icon on page_95.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 82,
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_150.png",
+    "problem": "<image>Instruction: from page_150 to page_210. History: Null",
+    "solution": "Explain: click Animals_34 icon on page_150.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 83,
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_149.png",
+    "problem": "<image>Instruction: from page_149 to page_209. History: Null",
+    "solution": "Explain: click Business_137 icon on page_149.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 84,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_4.png",
+    "problem": "<image>Instruction: from page_4 to page_15. History: Null",
+    "solution": "Explain: click Business_222 icon on page_4.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 85,
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_4.png",
+    "problem": "<image>Instruction: from page_4 to page_16. History: Null",
+    "solution": "Explain: click Business_124 icon on page_4.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 86,
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_4.png",
+    "problem": "<image>Instruction: from page_4 to page_17. History: Null",
+    "solution": "Explain: click Business_160 icon on page_4.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 87,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_15.png",
+    "problem": "<image>Instruction: from page_15 to page_39. History: Null",
+    "solution": "Explain: click Animals_76 icon on page_15.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 88,
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_15.png",
+    "problem": "<image>Instruction: from page_15 to page_40. History: Null",
+    "solution": "Explain: click Business_197 icon on page_15.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')",
+    "source": "sub3_edge"
+  },
+  {
+    "idx": 89,
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "image": "data_engine/ui_environment_448/latest/pages/page_154.png",
+    "problem": "<image>Instruction: from page_154 to page_214. History: Null",
+    "solution": "Explain: click Business_119 icon on page_154.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')",
+    "source": "sub3_edge"
+  }
+]

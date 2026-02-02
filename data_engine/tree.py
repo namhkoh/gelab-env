@@ -944,20 +944,21 @@ def calculate_required_icons(tree_depth: int, nodes_per_level: List[int]) -> int
     return total_icons
 
 if __name__ == "__main__":
-    # Modify configuration parameters
-    # tree_depth = 5         # Tree depth
-    # nodes_per_level = [15,4,5,3]  # List of child nodes per level, length should be tree_depth-1
-    # nodes_per_level = [4,2,3,2]  # List of child nodes per level, length should be tree_depth-1
-    nodes_per_level = [5, 3, 2, 2, 1, 1]
-    tree_depth = len(nodes_per_level)+1
+    # Paper-aligned configuration (GE-Lab paper Section 3.1)
+    # Creates 5-subtree structure with 231 total pages
+    # - Subtrees 0-1: SFT Path training
+    # - Subtrees 2-3: RL training  
+    # - Subtree 4: OOD testing (held out)
+    nodes_per_level = [5, 3, 2, 2, 1, 1]  # 5 subtrees, ~46 pages each = 231 total
+    tree_depth = len(nodes_per_level) + 1  # depth = 7
     is_random_node = False
     
     # Calculate required number of icons
     required_icons = calculate_required_icons(tree_depth, nodes_per_level)
     print(f"Minimum number of icons needed for tree structure: {required_icons}")
     
-    # Create output directory
-    output_dir = os.path.join("ui_environment", time.strftime("%Y%m%d_%H%M%S"))
+    # Create output directory (448x448 paper-aligned)
+    output_dir = os.path.join("ui_environment_448", time.strftime("%Y%m%d_%H%M%S"))
     os.makedirs(output_dir, exist_ok=True)
     
     # Modify icon directory to local path
