@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+
+# Training artifacts
+checkpoint/
+wandb/
+logs/
+
+# Generated results & outputs
+eval_results/
+results/
+omni_result/
+Sequence/
+
+# Generated UI environments (regenerable from scripts)
+data_engine/ui_environment*/
+data_engine/assets/
+
+# Generated images
+datas/images/
+
+# Backups
+datas_backup_*/
+
+# Generated docs
+gelab-md/
+
+# Debug & log files
+*.log
+debug_click_verification.png
