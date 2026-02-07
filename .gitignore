@@ -27,9 +27,6 @@ environment/demo/pages_old_*/
 # Backups
 datas_backup_*/
 
-# Generated docs
-gelab-md/
-
 # Symlinks to generated environments
 datas/448_retrain/pages
 
