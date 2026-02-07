@@ -38,26 +38,27 @@ export BASE_LOG_DIR="./logs/train"
 # =============================================================================
 export LEARNING_RATE=1e-6
 export NUM_TRAIN_EPOCHS=10  # Original authors use 10
-export NUM_GENERATIONS=3  # Must divide evenly into effective eval batch (3 GPUs x 1 = 3). Paper uses 8.
+export NUM_GENERATIONS=3  # Must divide total batch (3 GPUs x 1 = 3). Conservative for multi-turn (longer sequences).
 export TEMPERATURE=1.2
 export TOP_P=1.0
 export TOP_K=8
 export MAX_PIXELS=200704
 
 # GPU Adjustment for 3x A100 80GB (80GB each)
-# Each generation runs up to 8 multi-turn steps of inference
-# Reduced batch size to avoid NCCL timeout / OOM
-# batch=2 * 3 GPUs * grad_acc=8 = 48 effective batch (same effective, lower peak memory)
+# Each generation runs up to 12 multi-turn steps of inference
+# batch=1, num_gen=3 to fit multi-turn's longer sequences in 80GB
+# 3 GPUs × batch=1 × grad_acc=16 = 48 effective batch
 export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=2
-export GRADIENT_ACCUMULATION_STEPS=8
+export PER_DEVICE_TRAIN_BATCH_SIZE=1
+export GRADIENT_ACCUMULATION_STEPS=16
 
 # GRPO Configuration 
 export RLHF_TYPE="grpo"
 export TRAIN_TYPE="full"
 export TORCH_DTYPE="bfloat16"
-export DEEPSPEED_CONFIG="zero3"  # Original authors use zero3
-export MAX_COMPLETION_LENGTH=1024  # Original: 1024
+export DEEPSPEED_CONFIG="zero3"
+export GRADIENT_CHECKPOINTING="true"
+export MAX_COMPLETION_LENGTH=1024
 export MAX_LENGTH=4096  # Original: 4096
 export WARMUP_RATIO=0.05
 
@@ -122,6 +123,7 @@ echo "============================================================"
 
 python -c "import json; data=json.load(open('$DATASET_PATH')); print(f'Dataset samples: {len(data)}')"
 
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 CUDA_VISIBLE_DEVICES=0,1,2 \
 NPROC_PER_NODE=$NPROC_PER_NODE \
 MAX_PIXELS=$MAX_PIXELS \
@@ -134,10 +136,12 @@ swift rlhf \
     --torch_dtype "$TORCH_DTYPE" \
     --dataset "$DATASET_PATH" \
     --max_completion_length "$MAX_COMPLETION_LENGTH" \
+    ${MAX_STEPS:+--max_steps $MAX_STEPS} \
     --num_train_epochs "$NUM_TRAIN_EPOCHS" \
     --per_device_train_batch_size "$PER_DEVICE_TRAIN_BATCH_SIZE" \
     --learning_rate "$LEARNING_RATE" \
     --gradient_accumulation_steps "$GRADIENT_ACCUMULATION_STEPS" \
+    --gradient_checkpointing "$GRADIENT_CHECKPOINTING" \
     --deepspeed "$DEEPSPEED_CONFIG" \
     --eval_steps "$EVAL_STEPS" \
     --save_steps "$SAVE_STEPS" \
@@ -148,6 +152,7 @@ swift rlhf \
     --warmup_ratio "$WARMUP_RATIO" \
     --dataloader_num_workers "$DATALOADER_NUM_WORKERS" \
     --dataset_num_proc "$DATASET_NUM_PROC" \
+    --per_device_eval_batch_size "$PER_DEVICE_TRAIN_BATCH_SIZE" \
     --num_generations "$NUM_GENERATIONS" \
     --temperature "$TEMPERATURE" \
     --top_p "$TOP_P" \

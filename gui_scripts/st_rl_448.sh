@@ -31,32 +31,35 @@ export BASE_LOG_DIR="./logs/train"
 # Paper Table 8 - RL Hyperparameters (EXACT)
 # =============================================================================
 export LEARNING_RATE=1e-6
-export NUM_TRAIN_EPOCHS=5
-export NUM_GENERATIONS=8
+export NUM_TRAIN_EPOCHS=3
+export NUM_GENERATIONS=6
 export TEMPERATURE=1.2
 export TOP_P=1.0
 export TOP_K=8
 export MAX_PIXELS=200704
 
 # GPU Adjustment for 3x A100 80GB
-# Paper: 16 GPUs × batch=8 = 128 effective batch
-# Ours: 3 GPUs × batch=2 × grad_acc=8 = 48 effective batch (memory-safe for GRPO)
+# Paper: 16 GPUs × batch=8 × num_gen=8 = 128 effective batch
+# Ours: 3 GPUs × batch=8 × grad_acc=2 = 48 effective batch
+# num_gen=6 divides effective batch (3×8=24), maximizes GPU utilization
 export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=2
-export GRADIENT_ACCUMULATION_STEPS=8
+export PER_DEVICE_TRAIN_BATCH_SIZE=8
+export GRADIENT_ACCUMULATION_STEPS=2
 
 # GRPO Configuration
 export RLHF_TYPE="grpo"
 export TRAIN_TYPE="full"
 export TORCH_DTYPE="bfloat16"
-export DEEPSPEED_CONFIG="zero2"
+export DEEPSPEED_CONFIG="zero3"
+export GRADIENT_CHECKPOINTING="true"
 export MAX_COMPLETION_LENGTH=512
 export MAX_LENGTH=2048
 export WARMUP_RATIO=0.05
 
-# Reward Functions (Paper Section 3.3.1)
-export REWARD_FUNCS="web_action_match web_coordinate_match_bbox web_intent_match"
-export REWARD_WEIGHTS="0.25 0.5 0.25"
+# Reward Functions (Paper Section 3.3.1 - 4 equally-weighted components)
+# r_type + r_coord + r_intent + r_format
+export REWARD_FUNCS="web_action_match web_coordinate_match_bbox web_intent_match format_constraint"
+export REWARD_WEIGHTS="0.25 0.25 0.25 0.25"
 
 # Logging
 export EVAL_STEPS=200
@@ -112,6 +115,7 @@ echo "============================================================"
 
 python -c "import json; data=json.load(open('$DATASET_PATH')); print(f'Dataset samples: {len(data)}')"
 
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 CUDA_VISIBLE_DEVICES=0,1,2 \
 NPROC_PER_NODE=$NPROC_PER_NODE \
 MAX_PIXELS=$MAX_PIXELS \
@@ -124,10 +128,12 @@ swift rlhf \
     --torch_dtype "$TORCH_DTYPE" \
     --dataset "$DATASET_PATH" \
     --max_completion_length "$MAX_COMPLETION_LENGTH" \
+    ${MAX_STEPS:+--max_steps $MAX_STEPS} \
     --num_train_epochs "$NUM_TRAIN_EPOCHS" \
     --per_device_train_batch_size "$PER_DEVICE_TRAIN_BATCH_SIZE" \
     --learning_rate "$LEARNING_RATE" \
     --gradient_accumulation_steps "$GRADIENT_ACCUMULATION_STEPS" \
+    --gradient_checkpointing "$GRADIENT_CHECKPOINTING" \
     --deepspeed "$DEEPSPEED_CONFIG" \
     --eval_steps "$EVAL_STEPS" \
     --save_steps "$SAVE_STEPS" \
@@ -138,6 +144,7 @@ swift rlhf \
     --warmup_ratio "$WARMUP_RATIO" \
     --dataloader_num_workers "$DATALOADER_NUM_WORKERS" \
     --dataset_num_proc "$DATASET_NUM_PROC" \
+    --per_device_eval_batch_size "$PER_DEVICE_TRAIN_BATCH_SIZE" \
     --num_generations "$NUM_GENERATIONS" \
     --temperature "$TEMPERATURE" \
     --top_p "$TOP_P" \

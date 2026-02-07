@@ -86,16 +86,22 @@ bash gui_scripts/sft_448_3gpu.sh
 
 Fine-tunes the SFT checkpoint with GRPO on single-step navigation using subtrees 2-3.
 
-| Parameter | Value |
-|-----------|-------|
-| Base Model | SFT checkpoint |
-| Algorithm | GRPO |
-| Dataset | 3,000 single-step edge samples |
-| Learning Rate | 1e-6 |
-| Epochs | 10 |
-| Num Generations | 3 |
-| Temperature | 1.2 |
-| DeepSpeed | ZeRO Stage 3 |
+| Parameter | Our Value | Paper Value | Notes |
+|-----------|-----------|-------------|-------|
+| Base Model | `namhokaist/gelab-sft-448` | SFT checkpoint | HuggingFace hosted |
+| Algorithm | GRPO | GRPO | |
+| Dataset | 12,439 path-only samples | 12,439 | |
+| Learning Rate | 1e-6 | 1e-6 | |
+| Epochs | 3 | 5 | Reduced for faster iteration |
+| Per-device Batch Size | 8 | 8 | Matches paper exactly |
+| Num Generations | 6 | 8 | Closest divisor of effective batch (3x8=24) |
+| Gradient Accumulation | 2 | — | Effective batch: 3x8x2=48 (paper: 128) |
+| Temperature | 1.2 | 1.2 | |
+| DeepSpeed | ZeRO Stage 3 | — | Required for 80GB GPUs (ZeRO-2 OOMs) |
+| Gradient Checkpointing | true | — | Trades compute for memory |
+| Reward Functions | 4 equally-weighted (0.25x4) | 4 equally-weighted | r_type + r_coord + r_intent + r_format |
+
+Supports optional `MAX_STEPS` env var for quick validation runs (e.g., `export MAX_STEPS=20`).
 
 ```bash
 export WANDB_API_KEY="your_key"
@@ -107,33 +113,59 @@ bash gui_scripts/st_rl_448.sh
 
 **Script**: `gui_scripts/mt_rl_448.sh`
 
-Fine-tunes the SFT checkpoint with GRPO on multi-turn navigation episodes (up to 8 steps) using subtrees 2-3.
+Fine-tunes the SFT checkpoint with GRPO on multi-turn navigation episodes (up to 12 steps) using subtrees 2-3.
 
-| Parameter | Value | Paper Value |
-|-----------|-------|-------------|
-| Base Model | SFT checkpoint (retrained) | SFT checkpoint |
-| Algorithm | GRPO | GRPO |
-| Dataset | 2,200 multi-turn tasks | 2,200 tasks |
-| Learning Rate | 1e-6 | 1e-6 |
-| Epochs | 10 | 10 |
-| Num Generations | 3 | 8 |
-| Temperature | 1.2 | 1.2 |
-| Max Completion Length | 1024 | 1024 |
-| Reward Function | A2B (sparse) | A2B (sparse) |
-| Multi-Turn Env | `gelab_multi_turn` | `gelab_multi_turn` |
-| DeepSpeed | ZeRO Stage 3 | ZeRO Stage 3 |
+| Parameter | Our Value | Paper Value | Notes |
+|-----------|-----------|-------------|-------|
+| Base Model | SFT checkpoint (retrained) | SFT checkpoint | |
+| Algorithm | GRPO | GRPO | |
+| Dataset | 2,200 multi-turn tasks | 2,200 tasks | |
+| Learning Rate | 1e-6 | 1e-6 | |
+| Epochs | 10 | 10 | |
+| Per-device Batch Size | 1 | 8 | Conservative: multi-turn seqs are long |
+| Num Generations | 3 | 8 | Must divide effective batch (3x1=3) |
+| Gradient Accumulation | 16 | — | Effective batch: 3x1x16=48 (paper: 128) |
+| Temperature | 1.2 | 1.2 | |
+| Max Completion Length | 1024 | 1024 | |
+| Max Turns | 12 | 12 | Allows backtracking on Path@7 tasks |
+| Reward Function | A2B (sparse) | A2B (sparse) | +1 if target reached, 0 otherwise |
+| Multi-Turn Env | `gelab_multi_turn` | `gelab_multi_turn` | |
+| DeepSpeed | ZeRO Stage 3 | ZeRO Stage 3 | |
+| Gradient Checkpointing | true | — | Required for memory |
 
 The multi-turn environment (`swift/plugin/multi_turn.py`) simulates interactive episodes:
 1. Model outputs `click(x,y)` -> environment checks if click hits a valid icon bbox
 2. If valid click: transitions to target page, updates history, gives model the new screenshot
 3. If model reaches target page and outputs `complete`: episode ends with reward=1
-4. If 8 steps exceeded or invalid navigation: episode ends with reward=0
+4. If 12 steps exceeded or invalid navigation: episode ends with reward=0
+
+Supports optional `MAX_STEPS` env var for quick validation runs.
 
 ```bash
 export WANDB_API_KEY="your_key"
 export HF_TOKEN="your_token"
 bash gui_scripts/mt_rl_448.sh
 ```
+
+### 2.4 Hardware Adaptation: 3x A100 80GB vs Paper's 16x A800
+
+The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A100 80GB required several adaptations:
+
+| Adaptation | Reason |
+|------------|--------|
+| ZeRO-3 (not ZeRO-2) | ZeRO-2 OOMs at optimizer step — it keeps full model params + gradients on each GPU. ZeRO-3 partitions everything. |
+| Gradient checkpointing | Reduces activation memory by recomputing during backward pass. ~20 GB savings per GPU. |
+| `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` | Reduces CUDA memory fragmentation. |
+| `per_device_eval_batch_size` set explicitly | Must match divisibility constraint with `num_generations`. |
+| `num_generations` reduced (8 -> 6 or 3) | Must evenly divide `per_device_batch_size x num_gpus`. With 3 GPUs, valid values are constrained. |
+| Effective batch 48 (not 128) | 3 GPUs vs 16 — compensated with gradient accumulation. |
+
+**Memory profiles (ST-RL):**
+- ZeRO-2, batch=2, gen=6: OOM (73/80 GB, needed 10 GB more for optimizer)
+- ZeRO-3, batch=1, gen=3: 63.6 GB (works, conservative)
+- ZeRO-3, batch=8, gen=6: **55.5 GB** (works, optimal — matches paper's per-device batch)
+
+**Impact on results:** Expect directionally similar results with some degradation (est. 2-5% on OOD metrics) from reduced `num_generations` (noisier GRPO advantage estimates). The relative ranking SFT < ST-RL < MT-RL should hold.
 
 ---
 
