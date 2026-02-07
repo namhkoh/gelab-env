@@ -97,7 +97,7 @@ def load_image_dimensions(image_path):
     except Exception as e:
         raise IOError(f"Error opening or reading image '{image_path}': {e}") from e
 
-def check_gelab_result_and_give_tips_multi_turn(inputs, num_turns):
+def check_gelab_result_and_give_tips_multi_turn(inputs):
 
     path = "environment/demo/ui_structure.json"
 
@@ -117,8 +117,25 @@ def check_gelab_result_and_give_tips_multi_turn(inputs, num_turns):
 
         curr_action = input['messages'][-1]['content']
 
-        # '''begin'''
-        prompt = input['messages'][0]['content']
+        # If model outputs "complete", mark as finished (final turn after reaching target)
+        if 'complete' in curr_action.lower():
+            input['finished'] = True
+            input['curr_page'] = input['images'][0]['path'].split('/')[-1].replace('.png', '')
+            input['finish_reason'] = 'stop'
+            outputs.append(deepcopy(input))
+            continue
+
+        # Find the first user message (skip system prompt if present)
+        prompt = None
+        user_msg_idx = 0
+        for msg_idx, msg in enumerate(input['messages']):
+            if msg['role'] == 'user':
+                prompt = msg['content']
+                user_msg_idx = msg_idx
+                break
+        if prompt is None:
+            prompt = input['messages'][0]['content']
+            user_msg_idx = 0
 
         page_identifier_pattern = r"((?:[A-Za-z0-9_]+_)?page_\d+)"
 
@@ -150,14 +167,37 @@ def check_gelab_result_and_give_tips_multi_turn(inputs, num_turns):
                         current_page = item['target_page']
                         break
 
-                if current_page == target_page:     
-                    # print(f"The action is correct, curr_action is {curr_action}.")
-                    input['finished'] = True
-                    input['curr_page'] = input['images'][0]['path'].split('/')[-1].replace('.png', '')
-                    input['finish_reason'] = 'stop'
+                if current_page == target_page:
+                    # Target reached via click. Update image to target page
+                    # and let the model generate one more turn to say "complete".
+                    curr_image_path = input['images'][0]['path']
+                    image_name = curr_image_path.split('/')[-1]
+                    new_image_name = current_page + ".png"
+                    new_image_path = curr_image_path.replace(image_name, new_image_name)
+                    input['images'] = [{'bytes': None, 'path': new_image_path}]
+
+                    # Update history with the successful click
+                    last_message = input['messages'][user_msg_idx]['content']
+                    history_match_inner = re.search(r'History: (.*?)(?:\. State:|$)', last_message)
+                    history_inner = history_match_inner.group(1) if history_match_inner else ""
+                    step_count_inner = len(re.findall(r'step\d+:', history_inner))
+                    next_step_inner = f"step{step_count_inner + 1}: click {last_icon_name} icon on {last_page_name}"
+                    new_history_inner = f"{history_inner}.{next_step_inner}" if history_inner else next_step_inner
+
+                    instruction_parts_inner = last_message.split(' History: ')
+                    base_instruction_inner = instruction_parts_inner[0]
+                    new_message_inner = f'{base_instruction_inner} History: {new_history_inner}'.replace("Null.", "")
+                    input['messages'][user_msg_idx]['content'] = new_message_inner
+                    input['messages'] = input['messages'][:user_msg_idx + 1]
+
+                    input['finished'] = False
                     outputs.append(deepcopy(input))
                     continue
 
+        # Count turns from history in the prompt
+        history_match = re.search(r'History: (.*?)(?:\. State:|$)', prompt)
+        history = history_match.group(1) if history_match else ""
+        num_turns = len(re.findall(r'step\d+:', history))
         if num_turns >= 8:
             input['finished'] = True
             input['curr_page'] = input['images'][0]['path'].split('/')[-1].replace('.png', '')
@@ -167,6 +207,13 @@ def check_gelab_result_and_give_tips_multi_turn(inputs, num_turns):
 
         curr_image_path = input['images'][0]['path']
         image_name = curr_image_path.split('/')[-1]
+        if image_name not in page_transitions:
+            print(f"[multi_turn] WARNING: image '{image_name}' not found in page_transitions, marking finished")
+            input['finished'] = True
+            input['curr_page'] = image_name.replace('.png', '')
+            input['finish_reason'] = 'stop'
+            outputs.append(deepcopy(input))
+            continue
         transitions = page_transitions[image_name]
         curr_action = input['messages'][-1]['content']
 
@@ -185,8 +232,8 @@ def check_gelab_result_and_give_tips_multi_turn(inputs, num_turns):
                 if x_min <= content_x <= x_max and y_min <= content_y <= y_max:
                     click_idx = idx
 
-        except:
-
+        except Exception as e:
+            print(f"[multi_turn] WARNING: error processing click for '{image_name}': {e}")
             click_idx = -1
 
         if click_idx != -1:
@@ -195,8 +242,7 @@ def check_gelab_result_and_give_tips_multi_turn(inputs, num_turns):
             new_image_path = curr_image_path.replace(image_name, new_image_name)
             input['images'] = [{'bytes': None, 'path': new_image_path}]
 
-            last_message = input['messages'][0]['content']  # Changed to first message
-            # Modified regex to match both formats
+            last_message = input['messages'][user_msg_idx]['content']
             history_match = re.search(r'History: (.*?)(?:\. State:|$)', last_message)
             history = history_match.group(1) if history_match else ""
             try:
@@ -210,44 +256,39 @@ def check_gelab_result_and_give_tips_multi_turn(inputs, num_turns):
             next_step = f"step{step_count + 1}: click {clicked_icon_name} icon on {image_name[:-4]}"
 
             new_history = f"{history}.{next_step}" if history else next_step
-            
+
             # Create new instruction message with original format
             instruction_parts = last_message.split(' History: ')
-            base_instruction = instruction_parts[0]  # Gets the "Instruction: from page_X to page_Y" part
+            base_instruction = instruction_parts[0]
             new_message = f'{base_instruction} History: {new_history}'.replace("Null.", "")
-            # print(input['messages'][0]['content'])
-            # print(type(input['messages'][0]['content']))
-            input['messages'] = [{'role': 'user', 'content': new_message}]
+            input['messages'][user_msg_idx]['content'] = new_message
+            # Keep only system (if any) + updated user message
+            input['messages'] = input['messages'][:user_msg_idx + 1]
 
             outputs.append(deepcopy(input))
 
         else:
-            last_message = input['messages'][0]['content']  # Changed to first message
-            # Modified regex to match both formats
+            last_message = input['messages'][user_msg_idx]['content']
             history_match = re.search(r'History: (.*?)(?:\. State:|$)', last_message)
             history = history_match.group(1) if history_match else "None"
 
-            try:    
-                # clicked_icon_name = curr_action.split(" ")[1]
+            try:
                 clicked_icon_name = curr_action.split(" ")[2]
             except:
                 clicked_icon_name = "None"
-            
+
             # Count existing steps to determine next step number
             step_count = len(re.findall(r'step\d+:', history))
             next_step = f"step{step_count + 1}: click {clicked_icon_name} icon on {image_name[:-4]}"
             new_history = f"{history}.{next_step}" if history else next_step
-            
+
             # Create new instruction message with original format
             instruction_parts = last_message.split(' History: ')
-            base_instruction = instruction_parts[0]  # Gets the "Instruction: from page_X to page_Y" part
+            base_instruction = instruction_parts[0]
             new_message = f'{base_instruction} History: {new_history}'.replace("Null.", "")
-
-            # input['messages'] = [{'role': 'user', 'content': new_message}]
-            if input['messages'] and len(input['messages']) > 0:
-                input['messages'][0]['content'] = new_message
-            else:
-                input['messages'] = [{'role': 'user', 'content': new_message}]
+            input['messages'][user_msg_idx]['content'] = new_message
+            # Keep only system (if any) + updated user message
+            input['messages'] = input['messages'][:user_msg_idx + 1]
             outputs.append(deepcopy(input))
 
     return outputs  
