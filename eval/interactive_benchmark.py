@@ -24,6 +24,21 @@ from PIL import Image
 from vllm import LLM, SamplingParams
 from transformers import AutoProcessor
 
+
+# System prompt matching ST-RL training (gui_scripts/st_rl_448.sh)
+SYSTEM_PROMPT = """You are a GUI Navigation Agent. Navigate to the target page by clicking icons.
+
+Input format:
+- Instruction: from <source> to <target>. History: <previous_steps>
+- Current screen image
+
+Output format:
+Explain: click <icon_name> icon on <page>.\tAction: click(start_box='<|box_start|>(x,y)<|box_end|>')
+OR
+Explain: this is target page.\tAction: complete
+
+Coordinates use (0,0) top-left to (1000,1000) bottom-right system."""
+
 # Add parent directory
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -136,11 +151,14 @@ class InteractiveEvaluator:
         """Get model prediction for a single sample using vllm."""
         image = Image.open(image_path).convert("RGB")
         
-        # Build chat message with image placeholder
-        messages = [{"role": "user", "content": [
-            {"type": "image"},
-            {"type": "text", "text": instruction}
-        ]}]
+        # Build chat message with system prompt and image placeholder
+        messages = [
+            {"role": "system", "content": [{"type": "text", "text": SYSTEM_PROMPT}]},
+            {"role": "user", "content": [
+                {"type": "image"},
+                {"type": "text", "text": instruction}
+            ]}
+        ]
         
         # Apply chat template to get proper prompt format
         prompt = self.processor.apply_chat_template(

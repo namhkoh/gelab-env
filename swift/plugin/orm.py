@@ -674,19 +674,27 @@ class A2B(ORM):
             # print(f"{idx} completion:\n{completion}")
             if "complete" in completion:
 
-                content = kwargs['messages'][idx][0]['content']
-                target_page_match = re.search(r'to page_(\d+)', content)
+                # Find first user message (skip system prompt if present)
+                content = None
+                for msg in kwargs['messages'][idx]:
+                    if msg.get('role') == 'user':
+                        content = msg['content']
+                        break
+                if content is None:
+                    content = kwargs['messages'][idx][0]['content']
+
+                target_page_match = re.search(r'to ((?:[A-Za-z0-9_]+_)?page_\d+)', content)
                 content = content.split('step')[-1]
 
                 last_icon_name = re.search(r"click\s+(.*?)\s+icon", content)
-                last_page_name = re.search(r"page_(\d+)", content)
+                last_page_name = re.search(r"((?:[A-Za-z0-9_]+_)?page_\d+)", content)
 
-                if not last_icon_name or not last_page_name:
+                if not last_icon_name or not last_page_name or not target_page_match:
                     rewards.append(0.0)
                     continue
-                
+
                 last_icon_name = last_icon_name.group(1).strip()
-                last_page_name = "page_" + last_page_name.group(1).strip()
+                last_page_name = last_page_name.group(1).strip()
 
                 current_page = None
                 if last_page_name in self.pages:
@@ -694,8 +702,7 @@ class A2B(ORM):
                         if last_icon_name == item['action']:
                             current_page = item['target_page']
                             break
-                target_page_num = target_page_match.group(1)
-                target_page = "page_" + target_page_num
+                target_page = target_page_match.group(1)
                 if current_page == target_page:
                     rewards.append(1.0)
                 else:
@@ -724,21 +731,26 @@ class A2B_wo(ORM):
         for idx, completion in enumerate(completions):
 
             
-            content = kwargs['messages'][idx][0]['content']
-            target_page_match = re.search(r'to page_(\d+)', content)
+            # Find first user message (skip system prompt if present)
+            content = None
+            for msg in kwargs['messages'][idx]:
+                if msg.get('role') == 'user':
+                    content = msg['content']
+                    break
+            if content is None:
+                content = kwargs['messages'][idx][0]['content']
 
-            # content = content.split('step')[-1]
-            # completion
+            target_page_match = re.search(r'to ((?:[A-Za-z0-9_]+_)?page_\d+)', content)
 
             last_icon_name = re.search(r"click\s+(.*?)\s+icon", completion)
-            last_page_name = re.search(r"page_(\d+)", completion)
+            last_page_name = re.search(r"((?:[A-Za-z0-9_]+_)?page_\d+)", completion)
 
-            if not last_icon_name or not last_page_name:
+            if not last_icon_name or not last_page_name or not target_page_match:
                 rewards.append(0.0)
                 continue
-            
+
             last_icon_name = last_icon_name.group(1).strip()
-            last_page_name = "page_" + last_page_name.group(1).strip()
+            last_page_name = last_page_name.group(1).strip()
 
             current_page = None
             if last_page_name in self.pages:
@@ -746,8 +758,7 @@ class A2B_wo(ORM):
                     if last_icon_name == item['action']:
                         current_page = item['target_page']
                         break
-            target_page_num = target_page_match.group(1)
-            target_page = "page_" + target_page_num
+            target_page = target_page_match.group(1)
             if current_page == target_page:
                 rewards.append(1.0)
             else:

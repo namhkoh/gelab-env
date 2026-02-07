@@ -17,6 +17,21 @@ from PIL import Image
 from tqdm import tqdm
 
 
+# System prompt matching ST-RL training (gui_scripts/st_rl_448.sh)
+SYSTEM_PROMPT = """You are a GUI Navigation Agent. Navigate to the target page by clicking icons.
+
+Input format:
+- Instruction: from <source> to <target>. History: <previous_steps>
+- Current screen image
+
+Output format:
+Explain: click <icon_name> icon on <page>.\tAction: click(start_box='<|box_start|>(x,y)<|box_end|>')
+OR
+Explain: this is target page.\tAction: complete
+
+Coordinates use (0,0) top-left to (1000,1000) bottom-right system."""
+
+
 class GELabEnvironment:
     """Interactive GE-Lab environment for evaluation."""
     
@@ -31,8 +46,8 @@ class GELabEnvironment:
         self.page_to_subtree = self._build_subtree_mapping()
         self.nav_graph = self._build_nav_graph()
         
-        self.CANVAS_WIDTH = 1179
-        self.CANVAS_HEIGHT = 2556
+        self.CANVAS_WIDTH = 448  # Must match training data canvas size
+        self.CANVAS_HEIGHT = 448  # Must match training data canvas size
         self.NORM_SIZE = 1000
         
     def _build_subtree_mapping(self) -> Dict[str, int]:
@@ -109,20 +124,19 @@ class GELabEnvironment:
 def worker_init(gpu_id: int, model_path: str):
     """Initialize model on specific GPU for worker process."""
     global worker_model, worker_processor, worker_device
-    
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
-    worker_device = "cuda:0"
-    
+
+    worker_device = f"cuda:{gpu_id}"
+
     from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
-    
+
     worker_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         model_path,
         torch_dtype=torch.bfloat16,
-        device_map="auto"
+        device_map=worker_device
     )
     worker_model.eval()
     worker_processor = AutoProcessor.from_pretrained(model_path)
-    
+
     return gpu_id
 
 
@@ -137,11 +151,15 @@ def parse_action(response: str) -> Tuple[str, Optional[Tuple[int, int]]]:
     return 'invalid', None
 
 
-def get_model_response(img_path: str, prompt: str) -> str:
+def get_model_response(img_path: str, prompt: str, use_sampling: bool = False) -> str:
     """Get model response using worker's model."""
     global worker_model, worker_processor, worker_device
-    
+
     messages = [
+        {
+            "role": "system",
+            "content": [{"type": "text", "text": SYSTEM_PROMPT}]
+        },
         {
             "role": "user",
             "content": [
@@ -150,92 +168,130 @@ def get_model_response(img_path: str, prompt: str) -> str:
             ]
         }
     ]
-    
+
     text = worker_processor.apply_chat_template(
         messages, tokenize=False, add_generation_prompt=True
     )
-    
+
     image = Image.open(img_path).convert('RGB')
-    
+
     inputs = worker_processor(
         text=[text],
         images=[image],
         padding=True,
         return_tensors="pt"
     ).to(worker_device)
-    
+
+    gen_kwargs = dict(
+        **inputs,
+        max_new_tokens=256,
+        pad_token_id=worker_processor.tokenizer.pad_token_id
+    )
+    if use_sampling:
+        gen_kwargs.update(do_sample=True, temperature=0.7, top_p=0.9)
+    else:
+        gen_kwargs.update(do_sample=False)
+
     with torch.no_grad():
-        output_ids = worker_model.generate(
-            **inputs,
-            max_new_tokens=256,
-            do_sample=False,
-            pad_token_id=worker_processor.tokenizer.pad_token_id
-        )
-    
+        output_ids = worker_model.generate(**gen_kwargs)
+
     generated_ids = output_ids[:, inputs.input_ids.shape[1]:]
     response = worker_processor.batch_decode(
         generated_ids, skip_special_tokens=True
     )[0]
-    
+
     return response
 
 
-def run_episode(env: GELabEnvironment, start_page: str, target_page: str, 
-                max_steps: int = 15) -> Tuple[bool, int, List[str]]:
+def extract_icon_name(response: str) -> Optional[str]:
+    """Extract icon name from model response like 'click Animals_96 icon on page_1'."""
+    match = re.search(r'click\s+(\S+)\s+icon', response, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    return None
+
+
+def find_icon_at_coords(env: GELabEnvironment, page_id: str, x: int, y: int) -> Optional[str]:
+    """Reverse-lookup: find which icon was clicked at normalized (x, y) coordinates."""
+    if page_id not in env.pages:
+        return None
+    layout = env.pages[page_id].get('layout', {})
+    for icon_name, icon_info in layout.items():
+        bbox = icon_info['bbox']
+        norm_bbox = env.normalize_bbox(bbox)
+        x_min, y_min, x_max, y_max = norm_bbox
+        if x_min <= x <= x_max and y_min <= y <= y_max:
+            return icon_name
+    return None
+
+
+def run_episode(env: GELabEnvironment, start_page: str, target_page: str,
+                max_steps: int = 15, use_sampling: bool = False) -> Tuple[bool, int, List[str]]:
     """Run single episode."""
     current_page = start_page
     task = f"from {start_page} to {target_page}"
     history = []
     trajectory = [current_page]
-    
+
     for step in range(max_steps):
         img_path = env.get_page_image_path(current_page)
         if not os.path.exists(img_path):
             return False, step + 1, trajectory
-        
-        history_str = " ".join(history) if history else "Null"
-        prompt = f"Instruction: {task}. History: {history_str}"
-        
-        response = get_model_response(img_path, prompt)
+
+        history_str = "; ".join(history) if history else "Null"
+        prompt = f"<image>Instruction: {task}. History: {history_str}"
+
+        response = get_model_response(img_path, prompt, use_sampling=use_sampling)
         action_type, coords = parse_action(response)
-        
+
         if action_type == 'complete':
-            success = (current_page == target_page)
-            return success, step + 1, trajectory
-        
+            return current_page == target_page, step + 1, trajectory
+
         elif action_type == 'click' and coords:
             x, y = coords
+            # Extract icon name from model response, fall back to env lookup
+            icon_name = extract_icon_name(response)
+            if icon_name is None:
+                icon_name = find_icon_at_coords(env, current_page, x, y)
+
             new_page, valid = env.click(current_page, x, y)
-            history.append(f"step{step+1}: click at ({x},{y}) on {current_page}")
+
+            if icon_name:
+                history.append(f"step{step+1}: click {icon_name} icon on {current_page}")
+            else:
+                history.append(f"step{step+1}: click icon on {current_page}")
+
             if new_page != current_page:
                 trajectory.append(new_page)
             current_page = new_page
         else:
             history.append(f"step{step+1}: invalid action on {current_page}")
-    
+
     return current_page == target_page, max_steps, trajectory
 
 
 def evaluate_task(args):
     """Evaluate single task - called by worker."""
     task, env_config, num_attempts = args
-    
+
     # Reconstruct environment in worker
     env = GELabEnvironment(
         env_config['ui_structure_path'],
         env_config['ui_layer_path'],
         env_config['pages_dir']
     )
-    
+
     start = task['start']
     end = task['end']
     path_len = task['path_length']
-    
+
     successes = []
     for attempt in range(num_attempts):
-        success, steps, trajectory = run_episode(env, start, end)
+        # First attempt: greedy; subsequent: sampling for diversity
+        use_sampling = (attempt > 0)
+        success, steps, trajectory = run_episode(env, start, end, use_sampling=use_sampling)
         successes.append(success)
-    
+
     return {
         'task_id': task['id'],
         'path_length': path_len,
@@ -276,14 +332,12 @@ def generate_test_tasks(env: GELabEnvironment, test_subtree: int = 4,
     return tasks
 
 
-def run_gpu_worker(gpu_id: int, tasks: List[Dict], env_config: Dict, 
+def run_gpu_worker(gpu_id: int, worker_id: int, tasks: List[Dict], env_config: Dict,
                    model_path: str, num_attempts: int, results_queue):
-    """Worker function for each GPU."""
-    # Initialize model on this GPU
+    """Worker function - multiple workers can share a GPU."""
     worker_init(gpu_id, model_path)
-    
-    # Process assigned tasks
-    for task in tqdm(tasks, desc=f"GPU {gpu_id}", position=gpu_id):
+
+    for task in tqdm(tasks, desc=f"GPU{gpu_id}-W{worker_id}", position=worker_id):
         result = evaluate_task((task, env_config, num_attempts))
         results_queue.put(result)
 
@@ -291,15 +345,17 @@ def run_gpu_worker(gpu_id: int, tasks: List[Dict], env_config: Dict,
 def main():
     parser = argparse.ArgumentParser(description="Multi-GPU Interactive GE-Lab Evaluation")
     parser.add_argument("--model_path", type=str, required=True)
-    parser.add_argument("--env_dir", type=str, 
+    parser.add_argument("--env_dir", type=str,
                         default="data_engine/ui_environment/20260129_085348")
     parser.add_argument("--test_subtree", type=int, default=4)
     parser.add_argument("--num_tasks", type=int, default=200)
     parser.add_argument("--num_attempts", type=int, default=1)
     parser.add_argument("--num_gpus", type=int, default=8)
+    parser.add_argument("--workers_per_gpu", type=int, default=1,
+                        help="Number of model instances per GPU (each ~16GB for 7B model)")
     parser.add_argument("--save_results", type=str, default="results/interactive_eval_multigpu.json")
     args = parser.parse_args()
-    
+
     # Load environment for task generation
     print("Loading environment...")
     env = GELabEnvironment(
@@ -308,12 +364,12 @@ def main():
         pages_dir=os.path.join(args.env_dir, "pages")
     )
     print(f"Loaded {len(env.pages)} pages")
-    
+
     # Generate test tasks
     print(f"Generating {args.num_tasks} test tasks...")
     random.seed(42)
     tasks = generate_test_tasks(env, args.test_subtree, args.num_tasks)
-    
+
     # Show distribution
     path_dist = defaultdict(int)
     for t in tasks:
@@ -321,41 +377,47 @@ def main():
     print("Task distribution:")
     for p in sorted(path_dist.keys()):
         print(f"  Path@{p}: {path_dist[p]}")
-    
+
     # Environment config for workers
     env_config = {
         'ui_structure_path': os.path.join(args.env_dir, "ui_structure.json"),
         'ui_layer_path': os.path.join(args.env_dir, "ui_structure_layer.json"),
         'pages_dir': os.path.join(args.env_dir, "pages")
     }
-    
-    # Split tasks across GPUs
-    tasks_per_gpu = len(tasks) // args.num_gpus
-    gpu_tasks = []
-    for i in range(args.num_gpus):
-        start_idx = i * tasks_per_gpu
-        end_idx = start_idx + tasks_per_gpu if i < args.num_gpus - 1 else len(tasks)
-        gpu_tasks.append(tasks[start_idx:end_idx])
-    
-    print(f"\nDistributing {len(tasks)} tasks across {args.num_gpus} GPUs...")
-    
+
+    # Split tasks across all workers (num_gpus * workers_per_gpu)
+    total_workers = args.num_gpus * args.workers_per_gpu
+    tasks_per_worker = len(tasks) // total_workers
+    worker_tasks = []
+    for i in range(total_workers):
+        start_idx = i * tasks_per_worker
+        end_idx = start_idx + tasks_per_worker if i < total_workers - 1 else len(tasks)
+        worker_tasks.append(tasks[start_idx:end_idx])
+
+    print(f"\nDistributing {len(tasks)} tasks across {args.num_gpus} GPUs x {args.workers_per_gpu} workers = {total_workers} workers...")
+    mem_estimate = args.workers_per_gpu * 16
+    print(f"Estimated GPU memory per GPU: ~{mem_estimate}GB / 80GB")
+
     # Use multiprocessing with spawn
     import torch.multiprocessing as mp
     mp.set_start_method('spawn', force=True)
-    
+
     manager = Manager()
     results_queue = manager.Queue()
-    
-    # Start workers
+
+    # Start workers: multiple workers per GPU
     processes = []
+    worker_id = 0
     for gpu_id in range(args.num_gpus):
-        p = mp.Process(
-            target=run_gpu_worker,
-            args=(gpu_id, gpu_tasks[gpu_id], env_config, args.model_path, 
-                  args.num_attempts, results_queue)
-        )
-        p.start()
-        processes.append(p)
+        for w in range(args.workers_per_gpu):
+            p = mp.Process(
+                target=run_gpu_worker,
+                args=(gpu_id, worker_id, worker_tasks[worker_id], env_config,
+                      args.model_path, args.num_attempts, results_queue)
+            )
+            p.start()
+            processes.append(p)
+            worker_id += 1
     
     # Wait for all workers
     for p in processes:

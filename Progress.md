@@ -19,16 +19,17 @@
 | Qwen2.5-VL-7B-SFT (paper)    | 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
 | **Qwen2.5-VL-7B-SFT (ours)** | **87.78** | **76.32** | -  | **66.67** | **67.75** | - | **14.20** | **21.80** |
 | Qwen2.5-VL-7B-ST-RL (paper)  | 97.48 | 97.08 | 97.63   | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
+| **Qwen2.5-VL-7B-ST-RL (ours)** | -   | -     | -       | -     | -     | -       | **14.52**   | **17.48** |
 | Qwen2.5-VL-7B-MT-RL (paper)  | 72.60 | 57.77 | 67.33   | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
 
 **Results Summary**:
-- ID Edge: 87.78% (paper: 94.82%) - 7% below paper
-- ID Path: 76.32% (paper: 99.76%) - see note below
-- OOD Edge: 66.67% (paper: 64.55%) - **2% above paper**
-- OOD Path: 67.75% (paper: 41.76%) - **26% above paper!**
-- Interactive: Pass@1=14.20%, Pass@5=21.80% - matches paper
+- SFT: ID Edge=87.78%, OOD Edge=66.67%, Interactive Pass@1=14.20%
+- **ST-RL: Interactive Pass@1=14.52%, Pass@5=17.48%** (paper: 17.22% / 22.34%)
+- **MT-RL**: Training in progress (see below)
 
-**Note on ID Path**: After fixing prompt format (from "Navigate from X to Y" to "Instruction: from X to Y"), ID Path improved from 64% to 76%. Remaining gap vs paper's 99.76% likely due to paper using per-step accuracy across trajectories. Our OOD Path significantly exceeds paper.
+**Note**: Previous ST-RL result (13.26%) had eval bugs that have been fixed:
+1. Missing `<image>` prefix in eval prompts
+2. Wrong coordinate system (1179×2556 vs 448×448) - all clicks were missing targets!
 
 ### Table 2: Performance Comparison of Methods across Tasks of Varying Difficulty
 
@@ -37,13 +38,18 @@
 | Pass@1 | SFT (paper)  | 99.71  | 51.16  | 19.55  | 8.52   | 3.13   | 2.15   | 0.31   |
 |        | **SFT (ours)** | **90.5** | **41.5** | **27.1** | **13.3** | **7.0** | **3.2** | **0.0** |
 |        | ST-RL (paper)| 99.71  | 59.73  | 27.57  | 14.01  | 4.59   | 3.38   | 0.83   |
+|        | **ST-RL (ours)** | **92.67** | **50.69** | **27.40** | **8.77** | **1.64** | **1.52** | **0.00** |
 |        | MT-RL (paper)| 98.10  | 52.93  | 26.31  | 13.64  | 6.63   | 4.17   | 2.92   |
 | Pass@5 | SFT (paper)  | 100.00 | 74.15  | 36.04  | 19.75  | 6.71   | 5.04   | 1.30   |
 |        | **SFT (ours)** | **95.2** | **68.3** | **50.0** | **24.1** | **8.8** | **5.3** | **2.0** |
 |        | ST-RL (paper)| 100.00 | 70.07  | 37.84  | 23.77  | 7.52   | 7.02   | 3.39   |
+|        | **ST-RL (ours)** | **96.67** | **63.89** | **38.36** | **10.71** | **3.29** | **1.74** | **0.00** |
 |        | MT-RL (paper)| 100.00 | 66.67  | 43.24  | 24.69  | 13.01  | 8.11   | 8.33   |
 
-Our SFT shows similar trends to paper: performance drops with path length. Some variations due to different test set sampling.
+**ST-RL Analysis**: After fixing eval bugs, ST-RL now slightly exceeds SFT on Pass@1 (14.52% vs 14.20%) and improves short paths (1-2). However:
+1. Pass@N (17.48%) is lower than SFT's Pass@5 (21.80%), suggesting less diversity in outputs
+2. Longer paths (4+) degrade compared to SFT — ST-RL may overfit to short-horizon rewards
+3. Still below paper's ST-RL (17.22% Pass@1, 22.34% Pass@5)
 
 ---
 
@@ -230,8 +236,12 @@ ICON_SIZE = (50, 50)      # was (200, 200)
 | `data_engine/generate_st_rl_data.py` | Generate ST-RL Path data |
 | `gui_scripts/sft_448.sh` | SFT training script |
 | `gui_scripts/st_rl_448.sh` | ST-RL training script |
+| `gui_scripts/mt_rl_448.sh` | MT-RL training script (Paper Table 8) |
 | `eval/evaluate_paper_style.py` | Paper Table 1 style evaluation |
 | `eval/interactive_benchmark.py` | Interactive Pass@1/Pass@5 evaluation |
+| `eval/interactive_eval_multigpu.py` | Multi-GPU interactive evaluation |
+| `swift/plugin/multi_turn.py` | Multi-turn environment for MT-RL |
+| `swift/plugin/orm.py` | Reward functions (A2B, A2B_wo) |
 
 ### Generated Data
 
@@ -243,6 +253,7 @@ ICON_SIZE = (50, 50)      # was (200, 200)
 | `datas/448_paper/test_ood_edge_fixed.json` | 45 OOD Edge test samples (corrected format) |
 | `datas/448_paper/test_id_path.json` | 435 ID Path test samples |
 | `datas/448_paper/test_ood_path.json` | 462 OOD Path test samples |
+| `datas/448_retrain/mt_rl_aligned.json` | 2,200 MT-RL training tasks (subtrees 2-3) |
 
 ### Model Checkpoint
 
@@ -294,13 +305,75 @@ python eval/evaluate_paper_style.py \
 - [x] Paper Table 1 style evaluation
 - [x] Interactive benchmark evaluation (Pass@1=14.20%, Pass@5=21.80%)
 - [x] Results match paper's SFT baseline
+- [x] ST-RL training on subtrees 2-3
+- [x] Fixed evaluation bugs (coordinate system, prompt format)
+- [x] ST-RL re-evaluation with fixes (Pass@1=14.52%, Pass@N=17.48%)
 
 ### In Progress
-- [ ] ST-RL training on subtrees 2-3
+- [ ] MT-RL training with interactive environment (currently running, step 56/1360)
 
 ### Future Work
-- [ ] MT-RL with interactive environment
-- [ ] Compare RL results to paper's Table 1
+- [ ] MT-RL evaluation on Interactive benchmark
+- [ ] Compare MT-RL results to paper's Table 1
+- [ ] Investigate ST-RL vs paper gap (14.52% vs 17.22%)
+
+---
+
+## MT-RL Training Details
+
+### Configuration (Paper Table 8 Aligned)
+
+| Parameter | Value | Paper Value |
+|-----------|-------|-------------|
+| Base Model | SFT checkpoint (retrained) | SFT checkpoint |
+| RL Algorithm | GRPO | GRPO |
+| GPUs | 3× A100 80GB | 2 nodes × 8 GPUs |
+| Effective Batch Size | 48 (4 × 3 GPUs × 4 grad_acc) | 128 (8 × 16 GPUs × 1) |
+| Learning Rate | 1e-6 | 1e-6 |
+| Epochs | 10 | 10 |
+| Num Generations | 3 | 8 |
+| Temperature | 1.2 | 1.2 |
+| Top-K | 8 | 8 |
+| Max Completion Length | 1024 | 1024 |
+| Max Length | 4096 | 4096 |
+| DeepSpeed | Zero Stage 3 | Zero Stage 3 |
+| Reward Function | A2B (sparse) | A2B (sparse) |
+| Multi-Turn Func | `gelab_multi_turn` | `gelab_multi_turn` |
+| Dataset | 2,200 tasks (subtrees 2-3) | 2,200 tasks |
+
+**SFT Base Model**: `checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850` (retrained on same UI tree used by MT-RL data)
+
+**Dataset**: `datas/448_retrain/mt_rl_aligned.json`
+
+**Training Script**: `gui_scripts/mt_rl_448.sh`
+
+### MT-RL Bug Fixes Applied
+
+1. **A2B reward function** (`swift/plugin/orm.py`): Fixed to skip system prompt when reading user message — `messages[0]` was the system prompt, not the instruction
+2. **Multi-turn environment** (`swift/plugin/multi_turn.py`): When model clicks to target page, now transitions to target page image with `finished=False` to give model one more turn to output "complete". Previously set `finished=True` immediately, so model never got to say "complete" and A2B reward was always 0
+3. **"complete" detection**: Added early check at top of multi-turn loop — if model outputs "complete", mark `finished=True` immediately
+
+### MT-RL Training Status
+
+**Current Run**: `v0-20260205_144218` (5th attempt)
+- Step 56/1360 (~4%), ~1 hour elapsed, ETA ~23h
+- Non-zero rewards confirmed: 0.02-0.14 (sparse, as expected for A2B)
+- Memory: 71.9 GiB per GPU
+- Save interval: every 400 steps (~109GB per zero3 checkpoint)
+
+**Previous Runs**:
+- Runs 1-3: Failed due to wrong reward function (`a2b_wo`), missing system prompt, wrong hyperparameters
+- Run 4: Crashed at step 200 — disk full during checkpoint save (NCCL timeout). Rewards were non-zero (fix confirmed)
+- Run 5 (current): Running with increased save interval (400 steps) and reduced save limit (3)
+
+---
+
+## Result Files
+
+| File | Description |
+|------|-------------|
+| `results/st_rl_interactive_fixed.json` | ST-RL interactive eval (2,162 tasks, Pass@1=14.52%, Pass@5=17.48%) |
+| `results/st_rl_balanced_eval_fixed.json` | ST-RL balanced eval (460 tasks, preliminary) |
 
 ---
 
@@ -310,8 +383,11 @@ python eval/evaluate_paper_style.py \
 2. **Aspect ratio matters**: Portrait vs square images break coordinate prediction entirely
 3. **Balanced test sets required**: OOD evaluation needs sufficient samples per subtree
 4. **Training accuracy ≠ evaluation accuracy**: 99.9% token accuracy meant nothing with wrong image size
+5. **System prompt handling**: GRPO trainer auto-injects system prompt as `messages[0]` — reward functions must iterate to find user message, not assume `messages[0]`
+6. **Multi-turn reward flow**: For A2B reward (requires "complete" action), the environment must give the model an extra turn after reaching the target page to output "complete"
+7. **Disk space for Zero3**: Each checkpoint is ~109GB. With 3× A100 80GB, budget disk carefully
 
 ---
 
-*Last updated: 2026-01-30 (Edge evaluation corrected: ID=87.78%, OOD=66.67%)*
+*Last updated: 2026-02-05 (MT-RL training in progress, step 56/1360)*
 

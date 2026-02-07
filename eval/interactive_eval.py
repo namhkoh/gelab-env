@@ -23,6 +23,21 @@ import torch
 from PIL import Image
 
 
+# System prompt matching ST-RL training (gui_scripts/st_rl_448.sh)
+SYSTEM_PROMPT = """You are a GUI Navigation Agent. Navigate to the target page by clicking icons.
+
+Input format:
+- Instruction: from <source> to <target>. History: <previous_steps>
+- Current screen image
+
+Output format:
+Explain: click <icon_name> icon on <page>.\tAction: click(start_box='<|box_start|>(x,y)<|box_end|>')
+OR
+Explain: this is target page.\tAction: complete
+
+Coordinates use (0,0) top-left to (1000,1000) bottom-right system."""
+
+
 class GELabEnvironment:
     """Interactive GE-Lab environment for evaluation."""
     
@@ -41,9 +56,9 @@ class GELabEnvironment:
         # Build navigation graph
         self.nav_graph = self._build_nav_graph()
         
-        # Coordinate normalization
-        self.CANVAS_WIDTH = 1179
-        self.CANVAS_HEIGHT = 2556
+        # Coordinate normalization - must match training data (448x448 canvas)
+        self.CANVAS_WIDTH = 448
+        self.CANVAS_HEIGHT = 448
         self.NORM_SIZE = 1000
         
     def _build_subtree_mapping(self) -> Dict[str, int]:
@@ -177,9 +192,30 @@ class InteractiveEvaluator:
     def build_prompt(self, task: str, current_page: str, history: List[str]) -> str:
         """Build prompt for the model."""
         history_str = " ".join(history) if history else "Null"
-        return f"Instruction: {task}. History: {history_str}"
+        return f"<image>Instruction: {task}. History: {history_str}"
     
-    def run_episode(self, start_page: str, target_page: str) -> Tuple[bool, int, List[str]]:
+    def _extract_icon_name(self, response: str) -> Optional[str]:
+        """Extract icon name from model response."""
+        match = re.search(r'click\s+(\S+)\s+icon', response, re.IGNORECASE)
+        if match:
+            return match.group(1)
+        return None
+
+    def _find_icon_at_coords(self, page_id: str, x: int, y: int) -> Optional[str]:
+        """Reverse-lookup: find which icon was clicked at normalized (x, y)."""
+        if page_id not in self.env.pages:
+            return None
+        layout = self.env.pages[page_id].get('layout', {})
+        for icon_name, icon_info in layout.items():
+            bbox = icon_info['bbox']
+            norm_bbox = self.env.normalize_bbox(bbox)
+            x_min, y_min, x_max, y_max = norm_bbox
+            if x_min <= x <= x_max and y_min <= y <= y_max:
+                return icon_name
+        return None
+
+    def run_episode(self, start_page: str, target_page: str,
+                    use_sampling: bool = False) -> Tuple[bool, int, List[str]]:
         """
         Run single episode.
         Returns: (success, steps_taken, trajectory)
@@ -188,50 +224,49 @@ class InteractiveEvaluator:
         task = f"from {start_page} to {target_page}"
         history = []
         trajectory = [current_page]
-        
+
         for step in range(self.max_steps):
-            # Get current page image
             img_path = self.env.get_page_image_path(current_page)
             if not os.path.exists(img_path):
                 return False, step + 1, trajectory
-            
-            # Build prompt
+
             prompt = self.build_prompt(task, current_page, history)
-            
-            # Get model prediction
-            response = self._get_model_response(img_path, prompt)
-            
-            # Parse action
+            response = self._get_model_response(img_path, prompt, use_sampling=use_sampling)
             action_type, coords = self.parse_action(response)
-            
+
             if action_type == 'complete':
-                # Check if we're at target
-                success = (current_page == target_page)
-                return success, step + 1, trajectory
-            
+                return current_page == target_page, step + 1, trajectory
+
             elif action_type == 'click' and coords:
                 x, y = coords
+                # Extract icon name from response, fall back to env lookup
+                icon_name = self._extract_icon_name(response)
+                if icon_name is None:
+                    icon_name = self._find_icon_at_coords(current_page, x, y)
+
                 new_page, valid = self.env.click(current_page, x, y)
-                
-                # Update history
-                history.append(f"step{step+1}: click at ({x},{y}) on {current_page}")
-                
+
+                if icon_name:
+                    history.append(f"step{step+1}: click {icon_name} icon on {current_page}")
+                else:
+                    history.append(f"step{step+1}: click icon on {current_page}")
+
                 if new_page != current_page:
                     trajectory.append(new_page)
-                
                 current_page = new_page
-            
+
             else:
-                # Invalid action - continue
                 history.append(f"step{step+1}: invalid action on {current_page}")
-        
-        # Max steps reached
+
         return current_page == target_page, self.max_steps, trajectory
     
-    def _get_model_response(self, img_path: str, prompt: str) -> str:
+    def _get_model_response(self, img_path: str, prompt: str, use_sampling: bool = False) -> str:
         """Get model response for given image and prompt."""
-        # Build messages
         messages = [
+            {
+                "role": "system",
+                "content": [{"type": "text", "text": SYSTEM_PROMPT}]
+            },
             {
                 "role": "user",
                 "content": [
@@ -240,38 +275,38 @@ class InteractiveEvaluator:
                 ]
             }
         ]
-        
-        # Apply chat template
+
         text = self.processor.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
-        
-        # Process image
+
         image = Image.open(img_path).convert('RGB')
-        
-        # Prepare inputs
+
         inputs = self.processor(
             text=[text],
             images=[image],
             padding=True,
             return_tensors="pt"
         ).to(self.device)
-        
-        # Generate
+
+        gen_kwargs = dict(
+            **inputs,
+            max_new_tokens=256,
+            pad_token_id=self.processor.tokenizer.pad_token_id
+        )
+        if use_sampling:
+            gen_kwargs.update(do_sample=True, temperature=0.7, top_p=0.9)
+        else:
+            gen_kwargs.update(do_sample=False)
+
         with torch.no_grad():
-            output_ids = self.model.generate(
-                **inputs,
-                max_new_tokens=256,
-                do_sample=False,
-                pad_token_id=self.processor.tokenizer.pad_token_id
-            )
-        
-        # Decode
+            output_ids = self.model.generate(**gen_kwargs)
+
         generated_ids = output_ids[:, inputs.input_ids.shape[1]:]
         response = self.processor.batch_decode(
             generated_ids, skip_special_tokens=True
         )[0]
-        
+
         return response
 
 
@@ -322,14 +357,17 @@ def evaluate_interactive(evaluator: InteractiveEvaluator, tasks: List[Dict],
         start = task['start']
         end = task['end']
         path_len = task['path_length']
-        
-        # Run multiple attempts for Pass@5
+
+        # Run multiple attempts: first greedy, rest with sampling
         successes = []
         for attempt in range(num_attempts):
-            success, steps, trajectory = evaluator.run_episode(start, end)
+            use_sampling = (attempt > 0)
+            success, steps, trajectory = evaluator.run_episode(
+                start, end, use_sampling=use_sampling
+            )
             successes.append(success)
-        
-        # Pass@1 = first attempt success
+
+        # Pass@1 = first attempt success (greedy)
         results_by_path[path_len]['pass1'].append(successes[0])
         # Pass@5 = any of 5 attempts succeeded
         results_by_path[path_len]['pass5'].append(any(successes))
@@ -378,15 +416,54 @@ def main():
     # Load model
     print(f"Loading model from {args.model_path}...")
     from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+    from peft import PeftModel
     
-    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        args.model_path,
-        torch_dtype=torch.bfloat16,
-        device_map="auto"
-    )
+    # Check if it's a LoRA adapter checkpoint
+    is_lora = os.path.exists(os.path.join(args.model_path, "adapter_config.json"))
+    
+    if is_lora:
+        # Load base SFT model first, then apply ST-RL LoRA
+        sft_base_path = "./checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850"
+        print(f"Loading SFT base model from {sft_base_path}...")
+        
+        # Check if SFT is also LoRA
+        sft_is_lora = os.path.exists(os.path.join(sft_base_path, "adapter_config.json"))
+        
+        if sft_is_lora:
+            # Load original Qwen model, apply SFT LoRA, then ST-RL LoRA
+            base_model_path = "Qwen/Qwen2.5-VL-7B-Instruct"
+            print(f"Loading base Qwen model from {base_model_path}...")
+            base_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+                base_model_path,
+                torch_dtype=torch.bfloat16,
+                device_map="auto"
+            )
+            print("Applying SFT LoRA...")
+            model = PeftModel.from_pretrained(base_model, sft_base_path)
+            model = model.merge_and_unload()  # Merge SFT LoRA
+            print("Applying ST-RL LoRA...")
+            model = PeftModel.from_pretrained(model, args.model_path)
+        else:
+            # SFT is full model, just load and apply ST-RL LoRA
+            base_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+                sft_base_path,
+                torch_dtype=torch.bfloat16,
+                device_map="auto"
+            )
+            model = PeftModel.from_pretrained(base_model, args.model_path)
+    else:
+        # Full model checkpoint
+        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+            args.model_path,
+            torch_dtype=torch.bfloat16,
+            device_map="auto"
+        )
+    
     model.eval()
     
-    processor = AutoProcessor.from_pretrained(args.model_path)
+    # Load processor from base Qwen model
+    base_model_path = "Qwen/Qwen2.5-VL-7B-Instruct"
+    processor = AutoProcessor.from_pretrained(base_model_path)
     
     # Create evaluator
     evaluator = InteractiveEvaluator(model, processor, env)
