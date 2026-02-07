@@ -21,6 +21,8 @@ data_engine/assets/
 
 # Generated images
 datas/images/
+environment/demo/pages/
+environment/demo/pages_old_*/
 
 # Backups
 datas_backup_*/

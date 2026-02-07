@@ -1,0 +1,22 @@
+{
+  "tree_depth": 7,
+  "nodes_per_level": [
+    5,
+    3,
+    2,
+    2,
+    1,
+    1
+  ],
+  "is_random_node": false,
+  "canvas_size": [
+    448,
+    448
+  ],
+  "icon_size": [
+    50,
+    50
+  ],
+  "margin": 20,
+  "top_margin": 50
+}
