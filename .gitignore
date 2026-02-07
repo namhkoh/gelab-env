@@ -30,6 +30,9 @@ datas_backup_*/
 # Generated docs
 gelab-md/
 
+# Symlinks to generated environments
+datas/448_retrain/pages
+
 # Debug & log files
 *.log
 debug_click_verification.png
