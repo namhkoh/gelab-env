@@ -1,0 +1,1172 @@
+[
+  {
+    "idx": 0,
+    "type": "edge",
+    "source_page": "page_5",
+    "target_page": "page_18",
+    "icon_name": "Business_137",
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_18. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_137 icon on page_5.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 1,
+    "type": "edge",
+    "source_page": "page_5",
+    "target_page": "page_19",
+    "icon_name": "Business_183",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_19. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_183 icon on page_5.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 2,
+    "type": "edge",
+    "source_page": "page_5",
+    "target_page": "page_20",
+    "icon_name": "Business_217",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_20. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_217 icon on page_5.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 3,
+    "type": "edge",
+    "source_page": "page_18",
+    "target_page": "page_45",
+    "icon_name": "Business_177",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_45. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_177 icon on page_18.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_18.png"
+    ]
+  },
+  {
+    "idx": 4,
+    "type": "edge",
+    "source_page": "page_18",
+    "target_page": "page_46",
+    "icon_name": "Animals_82",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_46. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_82 icon on page_18.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_18.png"
+    ]
+  },
+  {
+    "idx": 5,
+    "type": "edge",
+    "source_page": "page_45",
+    "target_page": "page_99",
+    "icon_name": "Animals_61",
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_99. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_61 icon on page_45.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_45.png"
+    ]
+  },
+  {
+    "idx": 6,
+    "type": "edge",
+    "source_page": "page_45",
+    "target_page": "page_100",
+    "icon_name": "Business_15",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_100. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_15 icon on page_45.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_45.png"
+    ]
+  },
+  {
+    "idx": 7,
+    "type": "edge",
+    "source_page": "page_99",
+    "target_page": "page_159",
+    "icon_name": "Business_198",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_159. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_198 icon on page_99.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_99.png"
+    ]
+  },
+  {
+    "idx": 8,
+    "type": "edge",
+    "source_page": "page_159",
+    "target_page": "page_219",
+    "icon_name": "Business_104",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_219. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_104 icon on page_159.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_159.png"
+    ]
+  },
+  {
+    "idx": 9,
+    "type": "edge",
+    "source_page": "page_100",
+    "target_page": "page_160",
+    "icon_name": "Animals_26",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_100 to page_160. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_26 icon on page_100.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_100.png"
+    ]
+  },
+  {
+    "idx": 10,
+    "type": "edge",
+    "source_page": "page_160",
+    "target_page": "page_220",
+    "icon_name": "Business_146",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_220. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_146 icon on page_160.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_160.png"
+    ]
+  },
+  {
+    "idx": 11,
+    "type": "edge",
+    "source_page": "page_46",
+    "target_page": "page_101",
+    "icon_name": "Business_231",
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_101. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_231 icon on page_46.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_46.png"
+    ]
+  },
+  {
+    "idx": 12,
+    "type": "edge",
+    "source_page": "page_46",
+    "target_page": "page_102",
+    "icon_name": "Animals_110",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_102. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_110 icon on page_46.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_46.png"
+    ]
+  },
+  {
+    "idx": 13,
+    "type": "edge",
+    "source_page": "page_101",
+    "target_page": "page_161",
+    "icon_name": "Business_118",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_101 to page_161. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_118 icon on page_101.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_101.png"
+    ]
+  },
+  {
+    "idx": 14,
+    "type": "edge",
+    "source_page": "page_161",
+    "target_page": "page_221",
+    "icon_name": "Animals_84",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_221. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_84 icon on page_161.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_161.png"
+    ]
+  },
+  {
+    "idx": 15,
+    "type": "edge",
+    "source_page": "page_102",
+    "target_page": "page_162",
+    "icon_name": "Business_134",
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_102 to page_162. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_134 icon on page_102.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_102.png"
+    ]
+  },
+  {
+    "idx": 16,
+    "type": "edge",
+    "source_page": "page_162",
+    "target_page": "page_222",
+    "icon_name": "Business_194",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_222. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_194 icon on page_162.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_162.png"
+    ]
+  },
+  {
+    "idx": 17,
+    "type": "edge",
+    "source_page": "page_19",
+    "target_page": "page_47",
+    "icon_name": "Animals_12",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_47. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_12 icon on page_19.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_19.png"
+    ]
+  },
+  {
+    "idx": 18,
+    "type": "edge",
+    "source_page": "page_19",
+    "target_page": "page_48",
+    "icon_name": "Business_213",
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_48. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_213 icon on page_19.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_19.png"
+    ]
+  },
+  {
+    "idx": 19,
+    "type": "edge",
+    "source_page": "page_47",
+    "target_page": "page_103",
+    "icon_name": "Business_105",
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_103. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_105 icon on page_47.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_47.png"
+    ]
+  },
+  {
+    "idx": 20,
+    "type": "edge",
+    "source_page": "page_47",
+    "target_page": "page_104",
+    "icon_name": "Business_190",
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_104. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_190 icon on page_47.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_47.png"
+    ]
+  },
+  {
+    "idx": 21,
+    "type": "edge",
+    "source_page": "page_103",
+    "target_page": "page_163",
+    "icon_name": "Animals_45",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_103 to page_163. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_45 icon on page_103.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_103.png"
+    ]
+  },
+  {
+    "idx": 22,
+    "type": "edge",
+    "source_page": "page_163",
+    "target_page": "page_223",
+    "icon_name": "Animals_56",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_223. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_56 icon on page_163.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_163.png"
+    ]
+  },
+  {
+    "idx": 23,
+    "type": "edge",
+    "source_page": "page_104",
+    "target_page": "page_164",
+    "icon_name": "Business_176",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_104 to page_164. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_176 icon on page_104.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_104.png"
+    ]
+  },
+  {
+    "idx": 24,
+    "type": "edge",
+    "source_page": "page_164",
+    "target_page": "page_224",
+    "icon_name": "Business_173",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_224. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_173 icon on page_164.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_164.png"
+    ]
+  },
+  {
+    "idx": 25,
+    "type": "edge",
+    "source_page": "page_48",
+    "target_page": "page_105",
+    "icon_name": "Animals_51",
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_105. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_51 icon on page_48.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_48.png"
+    ]
+  },
+  {
+    "idx": 26,
+    "type": "edge",
+    "source_page": "page_48",
+    "target_page": "page_106",
+    "icon_name": "Animals_104",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_106. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_104 icon on page_48.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_48.png"
+    ]
+  },
+  {
+    "idx": 27,
+    "type": "edge",
+    "source_page": "page_105",
+    "target_page": "page_165",
+    "icon_name": "Animals_91",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_165. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_91 icon on page_105.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_105.png"
+    ]
+  },
+  {
+    "idx": 28,
+    "type": "edge",
+    "source_page": "page_165",
+    "target_page": "page_225",
+    "icon_name": "Animals_47",
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_225. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_47 icon on page_165.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_165.png"
+    ]
+  },
+  {
+    "idx": 29,
+    "type": "edge",
+    "source_page": "page_106",
+    "target_page": "page_166",
+    "icon_name": "Business_182",
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_106 to page_166. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_182 icon on page_106.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_106.png"
+    ]
+  },
+  {
+    "idx": 30,
+    "type": "edge",
+    "source_page": "page_166",
+    "target_page": "page_226",
+    "icon_name": "Business_206",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_226. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_206 icon on page_166.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_166.png"
+    ]
+  },
+  {
+    "idx": 31,
+    "type": "edge",
+    "source_page": "page_20",
+    "target_page": "page_49",
+    "icon_name": "Animals_2",
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_49. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_2 icon on page_20.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_20.png"
+    ]
+  },
+  {
+    "idx": 32,
+    "type": "edge",
+    "source_page": "page_20",
+    "target_page": "page_50",
+    "icon_name": "Animals_7",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_50. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_7 icon on page_20.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_20.png"
+    ]
+  },
+  {
+    "idx": 33,
+    "type": "edge",
+    "source_page": "page_49",
+    "target_page": "page_107",
+    "icon_name": "Business_164",
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_107. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_164 icon on page_49.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_49.png"
+    ]
+  },
+  {
+    "idx": 34,
+    "type": "edge",
+    "source_page": "page_49",
+    "target_page": "page_108",
+    "icon_name": "Business_184",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_108. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_184 icon on page_49.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_49.png"
+    ]
+  },
+  {
+    "idx": 35,
+    "type": "edge",
+    "source_page": "page_107",
+    "target_page": "page_167",
+    "icon_name": "Animals_20",
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_107 to page_167. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_20 icon on page_107.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_107.png"
+    ]
+  },
+  {
+    "idx": 36,
+    "type": "edge",
+    "source_page": "page_167",
+    "target_page": "page_227",
+    "icon_name": "Business_132",
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_227. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_132 icon on page_167.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_167.png"
+    ]
+  },
+  {
+    "idx": 37,
+    "type": "edge",
+    "source_page": "page_108",
+    "target_page": "page_168",
+    "icon_name": "Business_216",
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_108 to page_168. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_216 icon on page_108.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_108.png"
+    ]
+  },
+  {
+    "idx": 38,
+    "type": "edge",
+    "source_page": "page_168",
+    "target_page": "page_228",
+    "icon_name": "Business_124",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_228. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_124 icon on page_168.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_168.png"
+    ]
+  },
+  {
+    "idx": 39,
+    "type": "edge",
+    "source_page": "page_50",
+    "target_page": "page_109",
+    "icon_name": "Animals_103",
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_109. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_103 icon on page_50.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_50.png"
+    ]
+  },
+  {
+    "idx": 40,
+    "type": "edge",
+    "source_page": "page_50",
+    "target_page": "page_110",
+    "icon_name": "Business_21",
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_110. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_21 icon on page_50.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_50.png"
+    ]
+  },
+  {
+    "idx": 41,
+    "type": "edge",
+    "source_page": "page_109",
+    "target_page": "page_169",
+    "icon_name": "Business_12",
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_109 to page_169. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_12 icon on page_109.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_109.png"
+    ]
+  },
+  {
+    "idx": 42,
+    "type": "edge",
+    "source_page": "page_169",
+    "target_page": "page_229",
+    "icon_name": "Animals_73",
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_229. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_73 icon on page_169.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_169.png"
+    ]
+  },
+  {
+    "idx": 43,
+    "type": "edge",
+    "source_page": "page_110",
+    "target_page": "page_170",
+    "icon_name": "Animals_5",
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_170. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_5 icon on page_110.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_110.png"
+    ]
+  },
+  {
+    "idx": 44,
+    "type": "edge",
+    "source_page": "page_170",
+    "target_page": "page_230",
+    "icon_name": "Animals_95",
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_230. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_95 icon on page_170.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "datas/pages/page_170.png"
+    ]
+  }
+]

@@ -7,13 +7,13 @@ Path@1-7 breakdown, and configurable multi-attempt interactive episodes.
 
 Usage:
     # Static evaluation only
-    python eval/evaluate.py --model_path <path> --mode static --env_dir datas/448_retrain
+    python eval/evaluate.py --model_path <path> --mode static --env_dir datas
 
     # Interactive evaluation only
-    python eval/evaluate.py --model_path <path> --mode interactive --env_dir datas/448_retrain
+    python eval/evaluate.py --model_path <path> --mode interactive --env_dir datas
 
     # Full evaluation (static + interactive)
-    python eval/evaluate.py --model_path <path> --mode all --env_dir datas/448_retrain
+    python eval/evaluate.py --model_path <path> --mode all --env_dir datas
 
     # With LoRA adapter
     python eval/evaluate.py --model_path Qwen/Qwen2.5-VL-7B-Instruct --lora_path <adapter_dir> ...
@@ -539,7 +539,7 @@ def main():
     parser = argparse.ArgumentParser(description="Unified GE-Lab Evaluation")
     parser.add_argument("--model_path", required=True, help="Path to model checkpoint")
     parser.add_argument("--lora_path", default=None, help="Path to LoRA adapter (optional)")
-    parser.add_argument("--env_dir", default="datas/448_retrain",
+    parser.add_argument("--env_dir", default="datas",
                         help="Environment directory with ui_structure.json, pages/, etc.")
     parser.add_argument("--mode", choices=["static", "interactive", "all"], default="all",
                         help="Evaluation mode")

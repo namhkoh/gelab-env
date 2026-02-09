@@ -99,7 +99,7 @@ def load_image_dimensions(image_path):
 
 def check_gelab_result_and_give_tips_multi_turn(inputs):
 
-    path = "environment/demo/ui_structure.json"
+    path = "datas/ui_structure.json"
 
     with open(path, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -107,7 +107,7 @@ def check_gelab_result_and_give_tips_multi_turn(inputs):
     pages = data['pages']
 
 
-    env_data = json.load(open('environment/demo/ui_structure_layer_fixed.json'))
+    env_data = json.load(open('datas/ui_structure_layer.json'))
 
     page_transitions = build_page_transitions(env_data)
     outputs = []
@@ -295,14 +295,14 @@ def check_gelab_result_and_give_tips_multi_turn(inputs):
 
 def gelab_multi_turn_wo_complete(inputs, num_turns):
 
-    path = "environment/demo/ui_structure.json"
+    path = "datas/ui_structure.json"
     with open(path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     pages = data['pages']
 
 
-    env_data = json.load(open('environment/demo/ui_structure_layer_fixed.json'))
+    env_data = json.load(open('datas/ui_structure_layer.json'))
     page_transitions = build_page_transitions(env_data)
     outputs = []
     for input in inputs:

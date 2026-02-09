@@ -660,7 +660,7 @@ class A2B(ORM):
     """
     def __init__(self):
 
-        self.path = "environment/demo/ui_structure.json"
+        self.path = "datas/ui_structure.json"
         with open(self.path, 'r', encoding='utf-8') as f:
             self.data = json.load(f)
 
@@ -718,7 +718,7 @@ class A2B_wo(ORM):
     """
     def __init__(self):
 
-        self.path = "environment/demo/ui_structure.json"
+        self.path = "datas/ui_structure.json"
         with open(self.path, 'r', encoding='utf-8') as f:
             self.data = json.load(f)
 
@@ -772,8 +772,8 @@ class SoftA2B(ORM):
     Jud
     """
     def __init__(self):
-        self.path = "environment/demo/ui_structure.json"
-        self.env_path = "environment/demo/ui_structure_layer_fixed.json"
+        self.path = "datas/ui_structure.json"
+        self.env_path = "datas/ui_structure_layer.json"
         with open(self.env_path, 'r', encoding='utf-8') as f:
             self.env_data = json.load(f)
         with open(self.path, 'r', encoding='utf-8') as f:

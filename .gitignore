@@ -19,16 +19,20 @@ Sequence/
 data_engine/ui_environment*/
 data_engine/assets/
 
-# Generated images
+# Generated images (regenerable from tree.py)
 datas/images/
+datas/pages/
 environment/demo/pages/
 environment/demo/pages_old_*/
 
 # Backups
 datas_backup_*/
 
-# Symlinks to generated environments
-datas/448_retrain/pages
+# Archived data (old datasets/environments, kept in git history)
+archive/data/
+
+# macOS
+.DS_Store
 
 # Debug & log files
 *.log

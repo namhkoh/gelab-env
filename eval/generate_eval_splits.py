@@ -208,10 +208,12 @@ def generate_path_samples(ui_structure, layer_structure, pages, env_path, max_sa
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env_path", default="data_engine/ui_environment_448/latest")
-    parser.add_argument("--output_dir", default="datas/448")
+    parser.add_argument("--env_path", default="datas")
+    parser.add_argument("--output_dir", default="datas")
     args = parser.parse_args()
     
+    random.seed(42)
+
     # Load structures
     with open(os.path.join(args.env_path, "ui_structure.json")) as f:
         ui_structure = json.load(f)

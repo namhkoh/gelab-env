@@ -29,7 +29,7 @@ export TORCH_NCCL_TRACE_BUFFER_SIZE=1000  # Enable flight recorder for debugging
 # Model and Data Paths
 export SAVE_NAME="mt_rl_448"
 export MODEL_PATH="./checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850"  # Retrain SFT, same UI tree as MT-RL data
-export DATASET_PATH="datas/448_retrain/mt_rl_aligned.json"  # 2200 tasks from sub2+sub3
+export DATASET_PATH="datas/mt_rl_aligned.json"  # 2200 tasks from sub2+sub3
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
 
