@@ -504,16 +504,24 @@ def print_static_report(results: dict):
             for pl, d in sorted(r["by_length"].items()):
                 print(f"    Path@{pl}: {d['accuracy']:.4f} ({d['correct']}/{d['total']})")
 
-    id_edge = results.get("id_edge", {}).get("accuracy", 0)
-    id_path = results.get("id_path", {}).get("accuracy", 0)
-    ood_edge = results.get("ood_edge", {}).get("accuracy", 0)
-    ood_path = results.get("ood_path", {}).get("accuracy", 0)
+    # Weighted overall: (correct_edge + correct_path) / (total_edge + total_path)
+    # This matches the paper's computation (sample-count-weighted, not simple average)
+    id_edge_c = results.get("id_edge", {}).get("correct", 0)
+    id_edge_t = results.get("id_edge", {}).get("total", 0)
+    id_path_c = results.get("id_path", {}).get("correct", 0)
+    id_path_t = results.get("id_path", {}).get("total", 0)
+    ood_edge_c = results.get("ood_edge", {}).get("correct", 0)
+    ood_edge_t = results.get("ood_edge", {}).get("total", 0)
+    ood_path_c = results.get("ood_path", {}).get("correct", 0)
+    ood_path_t = results.get("ood_path", {}).get("total", 0)
 
-    id_overall = (id_edge + id_path) / 2 if "id_edge" in results and "id_path" in results else 0
-    ood_overall = (ood_edge + ood_path) / 2 if "ood_edge" in results and "ood_path" in results else 0
+    id_total = id_edge_t + id_path_t
+    ood_total = ood_edge_t + ood_path_t
+    id_overall = (id_edge_c + id_path_c) / id_total if id_total > 0 else 0
+    ood_overall = (ood_edge_c + ood_path_c) / ood_total if ood_total > 0 else 0
 
-    print(f"\n  ID Overall:  {id_overall:.4f}")
-    print(f"  OOD Overall: {ood_overall:.4f}")
+    print(f"\n  ID Overall:  {id_overall:.4f} ({id_edge_c + id_path_c}/{id_total})")
+    print(f"  OOD Overall: {ood_overall:.4f} ({ood_edge_c + ood_path_c}/{ood_total})")
 
 
 def print_interactive_report(results: dict, num_attempts: int):
