@@ -198,7 +198,7 @@ def check_gelab_result_and_give_tips_multi_turn(inputs):
         history_match = re.search(r'History: (.*?)(?:\. State:|$)', prompt)
         history = history_match.group(1) if history_match else ""
         num_turns = len(re.findall(r'step\d+:', history))
-        if num_turns >= 8:
+        if num_turns >= 12:
             input['finished'] = True
             input['curr_page'] = input['images'][0]['path'].split('/')[-1].replace('.png', '')
             input['finish_reason'] = 'stop'
@@ -336,7 +336,7 @@ def gelab_multi_turn_wo_complete(inputs, num_turns):
             continue
 
         else:
-            if num_turns >= 8:
+            if num_turns >= 12:
                 input['finished'] = True
                 input['curr_page'] = input['images'][0]['path'].split('/')[-1].replace('.png', '')
                 input['finish_reason'] = 'stop'

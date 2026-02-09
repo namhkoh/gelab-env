@@ -70,9 +70,10 @@ export REWARD_WEIGHTS="1.0"
 export MULTI_TURN_FUNC="gelab_multi_turn"
 
 # Logging
-export EVAL_STEPS=200
-export SAVE_STEPS=200
-export SAVE_TOTAL_LIMIT=3  # ~109GB each with zero3, limit to 3 to fit disk
+export EVAL_STEPS=500
+export SAVE_STEPS=500
+export SAVE_TOTAL_LIMIT=2
+export SAVE_ONLY_MODEL="true"
 export LOGGING_STEPS=1
 export DATALOADER_NUM_WORKERS=4
 export DATASET_NUM_PROC=4
@@ -146,6 +147,7 @@ swift rlhf \
     --eval_steps "$EVAL_STEPS" \
     --save_steps "$SAVE_STEPS" \
     --save_total_limit "$SAVE_TOTAL_LIMIT" \
+    --save_only_model "$SAVE_ONLY_MODEL" \
     --logging_steps "$LOGGING_STEPS" \
     --max_length "$MAX_LENGTH" \
     --output_dir "$OUTPUT_DIR" \

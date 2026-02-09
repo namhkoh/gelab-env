@@ -32,7 +32,7 @@ export BASE_LOG_DIR="./logs/train"
 # =============================================================================
 export LEARNING_RATE=1e-6
 export NUM_TRAIN_EPOCHS=3
-export NUM_GENERATIONS=6
+export NUM_GENERATIONS=8
 export TEMPERATURE=1.2
 export TOP_P=1.0
 export TOP_K=8
@@ -40,11 +40,11 @@ export MAX_PIXELS=200704
 
 # GPU Adjustment for 3x A100 80GB
 # Paper: 16 GPUs × batch=8 × num_gen=8 = 128 effective batch
-# Ours: 3 GPUs × batch=8 × grad_acc=2 = 48 effective batch
-# num_gen=6 divides effective batch (3×8=24), maximizes GPU utilization
+# Ours: 3 GPUs × batch=16 × grad_acc=1 = 48 effective batch
+# num_gen=8 divides effective batch (3×16=48), matches paper exactly
 export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=8
-export GRADIENT_ACCUMULATION_STEPS=2
+export PER_DEVICE_TRAIN_BATCH_SIZE=16
+export GRADIENT_ACCUMULATION_STEPS=1
 
 # GRPO Configuration
 export RLHF_TYPE="grpo"
@@ -62,9 +62,10 @@ export REWARD_FUNCS="web_action_match web_coordinate_match_bbox web_intent_match
 export REWARD_WEIGHTS="0.25 0.25 0.25 0.25"
 
 # Logging
-export EVAL_STEPS=200
-export SAVE_STEPS=200
-export SAVE_TOTAL_LIMIT=3
+export EVAL_STEPS=500
+export SAVE_STEPS=500
+export SAVE_TOTAL_LIMIT=2
+export SAVE_ONLY_MODEL="true"
 export LOGGING_STEPS=5
 export DATALOADER_NUM_WORKERS=4
 export DATASET_NUM_PROC=4
@@ -138,6 +139,7 @@ swift rlhf \
     --eval_steps "$EVAL_STEPS" \
     --save_steps "$SAVE_STEPS" \
     --save_total_limit "$SAVE_TOTAL_LIMIT" \
+    --save_only_model "$SAVE_ONLY_MODEL" \
     --logging_steps "$LOGGING_STEPS" \
     --max_length "$MAX_LENGTH" \
     --output_dir "$OUTPUT_DIR" \

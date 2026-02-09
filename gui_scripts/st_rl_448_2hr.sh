@@ -17,8 +17,8 @@ export BASE_LOG_DIR="./logs/train"
 
 export MAX_PIXELS=200704
 export RLHF_TYPE="grpo"
-export REWARD_FUNCS="web_action_match web_coordinate_match_bbox web_intent_match"
-export REWARD_WEIGHTS="0.25 0.5 0.25"
+export REWARD_FUNCS="web_action_match web_coordinate_match_bbox web_intent_match format_constraint"
+export REWARD_WEIGHTS="0.25 0.25 0.25 0.25"
 export TRAIN_TYPE="full"
 export TORCH_DTYPE="bfloat16"
 export MAX_COMPLETION_LENGTH=128

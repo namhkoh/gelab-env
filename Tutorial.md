@@ -24,6 +24,7 @@ gelab-env/
 │   └── orm.py                      # Reward functions (A2B sparse reward)
 │
 ├── eval/                           # Evaluation scripts
+│   ├── evaluate.py                 # Unified evaluation (static + interactive, recommended)
 │   ├── evaluate_paper_style.py     # Table 1: ID/OOD Edge/Path accuracy
 │   ├── interactive_eval.py         # Table 2: Interactive Pass@1/Pass@5 (single GPU)
 │   ├── interactive_eval_multigpu.py# Table 2: Multi-GPU parallel evaluation
@@ -93,9 +94,9 @@ Fine-tunes the SFT checkpoint with GRPO on single-step navigation using subtrees
 | Dataset | 12,439 path-only samples | 12,439 | |
 | Learning Rate | 1e-6 | 1e-6 | |
 | Epochs | 3 | 5 | Reduced for faster iteration |
-| Per-device Batch Size | 8 | 8 | Matches paper exactly |
-| Num Generations | 6 | 8 | Closest divisor of effective batch (3x8=24) |
-| Gradient Accumulation | 2 | — | Effective batch: 3x8x2=48 (paper: 128) |
+| Per-device Batch Size | 16 | 8 | Doubled to maximize GPU utilization |
+| Num Generations | 8 | 8 | Matches paper exactly |
+| Gradient Accumulation | 1 | — | Effective batch: 3x16x1=48 (paper: 128) |
 | Temperature | 1.2 | 1.2 | |
 | DeepSpeed | ZeRO Stage 3 | — | Required for 80GB GPUs (ZeRO-2 OOMs) |
 | Gradient Checkpointing | true | — | Trades compute for memory |
@@ -157,15 +158,18 @@ The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A1
 | Gradient checkpointing | Reduces activation memory by recomputing during backward pass. ~20 GB savings per GPU. |
 | `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` | Reduces CUDA memory fragmentation. |
 | `per_device_eval_batch_size` set explicitly | Must match divisibility constraint with `num_generations`. |
-| `num_generations` reduced (8 -> 6 or 3) | Must evenly divide `per_device_batch_size x num_gpus`. With 3 GPUs, valid values are constrained. |
+| `num_generations` must divide effective batch | Must evenly divide `per_device_batch_size x num_gpus`. ST-RL achieves paper's 8; MT-RL uses 3 (conservative for long multi-turn seqs). |
 | Effective batch 48 (not 128) | 3 GPUs vs 16 — compensated with gradient accumulation. |
+| `save_only_model=true` | Reduces checkpoint size from 109 GB (with optimizer states) to ~15 GB (7x savings). |
 
-**Memory profiles (ST-RL):**
-- ZeRO-2, batch=2, gen=6: OOM (73/80 GB, needed 10 GB more for optimizer)
-- ZeRO-3, batch=1, gen=3: 63.6 GB (works, conservative)
-- ZeRO-3, batch=8, gen=6: **55.5 GB** (works, optimal — matches paper's per-device batch)
+**Memory profiles (ST-RL, ZeRO-3 + gradient checkpointing):**
+- batch=1, gen=3: 63.6 GB (conservative)
+- batch=8, gen=6: 55.5 GB (ZeRO-3 memory is flat across batch sizes)
+- batch=16, gen=8: **63.7 GB** (current optimal — matches paper's `num_generations=8`)
 
-**Impact on results:** Expect directionally similar results with some degradation (est. 2-5% on OOD metrics) from reduced `num_generations` (noisier GRPO advantage estimates). The relative ranking SFT < ST-RL < MT-RL should hold.
+**Note:** ZeRO-2 OOMs on 7B full fine-tune GRPO (73/80 GB, needed 10 GB more at optimizer step). ZeRO-3 is required.
+
+**Impact on results:** ST-RL now matches the paper's `num_generations=8` exactly. The only remaining deviation is effective batch size (48 vs 128). MT-RL uses `num_generations=3` (paper: 8) due to long multi-turn sequences, which may cause some degradation. The relative ranking SFT < ST-RL < MT-RL should hold.
 
 ---
 
@@ -240,12 +244,26 @@ python eval/interactive_benchmark.py \
 
 | Script | Metrics | Speed | Backend | Multi-GPU |
 |--------|---------|-------|---------|-----------|
+| **evaluate.py** | **Table 1 + Table 2 (unified)** | **Medium** | **HF** | **No** |
 | eval_sft_retrain.py | Table 1 (4 metrics) | Slow | HF | No |
 | eval_st_rl.py | Table 1 (LoRA) | Slow | HF | No |
 | evaluate_paper_style.py | Table 1 (merged) | Slow | HF | No |
 | interactive_eval.py | Pass@1/5 | Very slow | HF | No |
 | interactive_eval_multigpu.py | Pass@1/5 | Fast | HF | Yes |
 | interactive_benchmark.py | Pass@1/5 | Fast | vLLM | No |
+
+**Recommended:** Use `evaluate.py` for all evaluation. It combines static (Table 1) and interactive (Table 2) evaluation with strict bbox matching, consistent system prompt, and proper response extraction (`output_ids[:, input_len:]` slicing instead of fragile `split("assistant")`).
+
+```bash
+# Static evaluation (Table 1)
+python eval/evaluate.py --model_path <checkpoint> --mode static
+
+# Interactive evaluation (Table 2)
+python eval/evaluate.py --model_path <checkpoint> --mode interactive
+
+# Both
+python eval/evaluate.py --model_path <checkpoint> --mode all
+```
 
 ---
 
