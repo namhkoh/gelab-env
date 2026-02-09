@@ -223,7 +223,7 @@ class DynamicTopoEnv:
         plt.savefig(save_path, bbox_inches='tight', dpi=300, pad_inches=0.5)
         plt.close()
 
-    def save_environment_data(self, output_dir: str = "output"):
+    def save_environment_data(self, output_dir: str = "output", seed: int = None):
         """Save environment data, including page images, transition relationships, and configuration parameters"""
         os.makedirs(output_dir, exist_ok=True)
         
@@ -234,6 +234,7 @@ class DynamicTopoEnv:
         # Save configuration parameters
         config_path = os.path.join(output_dir, "config.json")
         config_data = {
+            "seed": seed,
             "tree_depth": self.topo_generator.max_depth,
             "nodes_per_level": self.topo_generator.nodes_per_level,
             "is_random_node": self.topo_generator.is_random_node,
@@ -944,10 +945,19 @@ def calculate_required_icons(tree_depth: int, nodes_per_level: List[int]) -> int
     return total_icons
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate UI environment tree")
+    parser.add_argument("--seed", type=int, default=42,
+                        help="Random seed for reproducibility (default: 42)")
+    args = parser.parse_args()
+
+    # Set random seed for reproducibility
+    random.seed(args.seed)
+
     # Paper-aligned configuration (GE-Lab paper Section 3.1)
     # Creates 5-subtree structure with 231 total pages
     # - Subtrees 0-1: SFT Path training
-    # - Subtrees 2-3: RL training  
+    # - Subtrees 2-3: RL training
     # - Subtree 4: OOD testing (held out)
     nodes_per_level = [5, 3, 2, 2, 1, 1]  # 5 subtrees, ~46 pages each = 231 total
     tree_depth = len(nodes_per_level) + 1  # depth = 7
@@ -989,7 +999,7 @@ if __name__ == "__main__":
     )
     
     # Save environment data to same directory
-    json_path = env.save_environment_data(output_dir)
+    json_path = env.save_environment_data(output_dir, seed=args.seed)
     print(f"Environment data saved to: {json_path}")
     
     # Visualize topology structure

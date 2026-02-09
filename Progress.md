@@ -77,15 +77,15 @@ Root (page_0)
 └── Subtree 4 (46 pages) → OOD Testing (held out)
 ```
 
-**Tree Parameters**: `nodes_per_level=[5,5,5,5,5]`, depth=5
+**Tree Parameters**: `nodes_per_level=[5,3,2,2,1,1]`, depth=7
 
-### Input: Training Configuration
+### Input: Training Configuration (SFT)
 
 | Parameter | Value |
 |-----------|-------|
 | Base Model | Qwen2.5-VL-7B-Instruct |
-| GPUs | 8× NVIDIA H200 (141GB each) |
-| Batch Size | 32 (2 × 8 GPUs × 2 grad_acc) |
+| GPUs | 3× NVIDIA A100 80GB |
+| Batch Size | 48 (16 × 3 GPUs × 1 grad_acc) |
 | Learning Rate | 1e-5 |
 | Epochs | 1 |
 | DeepSpeed | Zero Stage 2 |
@@ -104,10 +104,15 @@ Root (page_0)
 
 ---
 
-## Output: Model Checkpoint
+## Output: SFT Model Checkpoint
 
 ```
 checkpoint/gui_exp/sft_448/v1-20260130-013131/v0-20260130-013206/checkpoint-956
+```
+
+Also retrained on same UI tree as RL data:
+```
+checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850
 ```
 
 ### Training Metrics
@@ -237,9 +242,10 @@ ICON_SIZE = (50, 50)      # was (200, 200)
 | `gui_scripts/sft_448.sh` | SFT training script |
 | `gui_scripts/st_rl_448.sh` | ST-RL training script |
 | `gui_scripts/mt_rl_448.sh` | MT-RL training script (Paper Table 8) |
-| `eval/evaluate_paper_style.py` | Paper Table 1 style evaluation |
-| `eval/interactive_benchmark.py` | Interactive Pass@1/Pass@5 evaluation |
-| `eval/interactive_eval_multigpu.py` | Multi-GPU interactive evaluation |
+| `eval/evaluate.py` | Unified evaluation script (static + interactive) |
+| `eval/evaluate_paper_style.py` | Paper Table 1 style evaluation (legacy) |
+| `eval/interactive_benchmark.py` | Interactive Pass@1/Pass@5 evaluation (legacy) |
+| `eval/interactive_eval_multigpu.py` | Multi-GPU interactive evaluation (legacy) |
 | `swift/plugin/multi_turn.py` | Multi-turn environment for MT-RL |
 | `swift/plugin/orm.py` | Reward functions (A2B, A2B_wo) |
 
@@ -255,9 +261,9 @@ ICON_SIZE = (50, 50)      # was (200, 200)
 | `datas/448_paper/test_ood_path.json` | 462 OOD Path test samples |
 | `datas/448_retrain/mt_rl_aligned.json` | 2,200 MT-RL training tasks (subtrees 2-3) |
 
-### Model Checkpoint
+### Model Checkpoints
 
-**Hugging Face**: https://huggingface.co/namhokaist/gelab-sft-448
+**SFT (Hugging Face)**: https://huggingface.co/namhokaist/gelab-sft-448
 
 ```python
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
@@ -266,9 +272,19 @@ model = Qwen2_5_VLForConditionalGeneration.from_pretrained("namhokaist/gelab-sft
 processor = AutoProcessor.from_pretrained("namhokaist/gelab-sft-448")
 ```
 
-**Local path**:
+**Local paths**:
 ```
+# SFT (original, used for ST-RL base)
 checkpoint/gui_exp/sft_448/v1-20260130-013131/v0-20260130-013206/checkpoint-956
+
+# SFT (retrained, used for MT-RL base)
+checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850
+
+# ST-RL (previous run, Feb 2)
+checkpoint/gui_exp/st_rl_448_balanced/merged/
+
+# ST-RL (current retraining, in progress)
+checkpoint/gui_exp/st_rl_448/v0-20260207_211322/
 ```
 
 ---
@@ -277,7 +293,7 @@ checkpoint/gui_exp/sft_448/v1-20260130-013131/v0-20260130-013206/checkpoint-956
 
 ```bash
 # 1. Environment Setup
-source /opt/miniforge3/etc/profile.d/conda.sh && conda activate gelab
+source /home/nhkoh/miniconda3/etc/profile.d/conda.sh && conda activate gelab
 
 # 2. Generate Environment (448×448, balanced subtrees)
 cd data_engine && python tree.py
@@ -288,11 +304,18 @@ python data_engine/generate_paper_dataset.py
 # 4. SFT Training
 bash gui_scripts/sft_448.sh
 
-# 5. Evaluation (use vllm environment for speed)
-conda activate gelab-vllm
-python eval/evaluate_paper_style.py \
-    --model_path checkpoint/gui_exp/sft_448/v1-20260130-013131/v0-20260130-013206/checkpoint-956 \
-    --eval_all
+# 5. ST-RL Training
+bash gui_scripts/st_rl_448.sh
+# Quick validation: MAX_STEPS=20 bash gui_scripts/st_rl_448.sh
+
+# 6. MT-RL Training
+bash gui_scripts/mt_rl_448.sh
+
+# 7. Unified Evaluation
+python eval/evaluate.py \
+    --model_path <checkpoint_path> \
+    --eval_type all \
+    --env_dir environment/demo
 ```
 
 ---
@@ -305,17 +328,65 @@ python eval/evaluate_paper_style.py \
 - [x] Paper Table 1 style evaluation
 - [x] Interactive benchmark evaluation (Pass@1=14.20%, Pass@5=21.80%)
 - [x] Results match paper's SFT baseline
-- [x] ST-RL training on subtrees 2-3
+- [x] ST-RL training on subtrees 2-3 (first run, old eval)
 - [x] Fixed evaluation bugs (coordinate system, prompt format)
-- [x] ST-RL re-evaluation with fixes (Pass@1=14.52%, Pass@N=17.48%)
+- [x] ST-RL re-evaluation with fixes (Pass@1=14.52%, Pass@5=17.48%)
+- [x] Optimized training configs for 3× A100 80GB (ZeRO-3, batch tuning, disk management)
+- [x] Created unified evaluation script (`eval/evaluate.py`)
 
 ### In Progress
-- [ ] MT-RL training with interactive environment (currently running, step 56/1360)
+- [ ] ST-RL retraining with optimized config (step 6290/12315, 51%, ETA ~1.5 days)
 
-### Future Work
+### Next
+- [ ] Evaluate retrained ST-RL model on all benchmarks
+- [ ] Start MT-RL training with optimized config
 - [ ] MT-RL evaluation on Interactive benchmark
-- [ ] Compare MT-RL results to paper's Table 1
-- [ ] Investigate ST-RL vs paper gap (14.52% vs 17.22%)
+- [ ] Compare all results to paper's Tables 1 & 2
+
+---
+
+## ST-RL Training Details
+
+### Configuration (Paper Table 8 Aligned)
+
+| Parameter | Value | Paper Value |
+|-----------|-------|-------------|
+| Base Model | `namhokaist/gelab-sft-448` | SFT checkpoint |
+| RL Algorithm | GRPO | GRPO |
+| GPUs | 3× A100 80GB | 2 nodes × 8 GPUs |
+| Per-Device Batch Size | 16 | 8 |
+| Gradient Accumulation | 1 | 1 |
+| Effective Batch Size | 48 (16 × 3 GPUs × 1) | 128 (8 × 16 GPUs × 1) |
+| Learning Rate | 1e-6 | 1e-6 |
+| Epochs | 3 | 5 |
+| Num Generations | 8 | 8 |
+| Temperature | 1.2 | 1.2 |
+| Top-K | 8 | 8 |
+| Max Completion Length | 512 | 512 |
+| Max Length | 2048 | 2048 |
+| DeepSpeed | Zero Stage 3 | Zero Stage 2 |
+| Gradient Checkpointing | true | - |
+| Reward Functions | action_match + coord_bbox + intent + format (0.25 each) | Same 4 rewards |
+| Dataset | `datas/448_paper/st_rl_path_only.json` | Path data (subtrees 2-3) |
+
+**Training Script**: `gui_scripts/st_rl_448.sh`
+
+### ST-RL Training Status
+
+**Current Run**: `v0-20260207_211322`
+- Step 6290/12315 (51%), ~39h elapsed, ETA ~1.5 days remaining
+- Memory: 63.7 GiB per GPU (stable)
+- Speed: 21.2s/step (0.045 iter/s)
+- Checkpoints: checkpoint-5000, checkpoint-6000 (save_only_model=true, ~15 GB each)
+- **Rewards** (at step 6290):
+  - ActionMatch: 1.0, CoordinateBbox: 0.996, Format: 1.0, Intent: 0.596
+  - Combined reward: ~0.898
+  - KL divergence: 0.138
+
+**Key Deviations from Paper**:
+- Effective batch 48 vs 128 (3 GPUs vs 16)
+- Epochs 3 vs 5 (faster iteration)
+- ZeRO-3 instead of ZeRO-2 (required for 80GB GPUs)
 
 ---
 
@@ -328,7 +399,9 @@ python eval/evaluate_paper_style.py \
 | Base Model | SFT checkpoint (retrained) | SFT checkpoint |
 | RL Algorithm | GRPO | GRPO |
 | GPUs | 3× A100 80GB | 2 nodes × 8 GPUs |
-| Effective Batch Size | 48 (4 × 3 GPUs × 4 grad_acc) | 128 (8 × 16 GPUs × 1) |
+| Per-Device Batch Size | 1 | 8 |
+| Gradient Accumulation | 16 | 1 |
+| Effective Batch Size | 48 (1 × 3 GPUs × 16 grad_acc) | 128 (8 × 16 GPUs × 1) |
 | Learning Rate | 1e-6 | 1e-6 |
 | Epochs | 10 | 10 |
 | Num Generations | 3 | 8 |
@@ -337,6 +410,7 @@ python eval/evaluate_paper_style.py \
 | Max Completion Length | 1024 | 1024 |
 | Max Length | 4096 | 4096 |
 | DeepSpeed | Zero Stage 3 | Zero Stage 3 |
+| Gradient Checkpointing | true | - |
 | Reward Function | A2B (sparse) | A2B (sparse) |
 | Multi-Turn Func | `gelab_multi_turn` | `gelab_multi_turn` |
 | Dataset | 2,200 tasks (subtrees 2-3) | 2,200 tasks |
@@ -355,16 +429,14 @@ python eval/evaluate_paper_style.py \
 
 ### MT-RL Training Status
 
-**Current Run**: `v0-20260205_144218` (5th attempt)
-- Step 56/1360 (~4%), ~1 hour elapsed, ETA ~23h
-- Non-zero rewards confirmed: 0.02-0.14 (sparse, as expected for A2B)
-- Memory: 71.9 GiB per GPU
-- Save interval: every 400 steps (~109GB per zero3 checkpoint)
+**Status**: Not yet started with current config. Waiting for ST-RL retraining to complete.
 
-**Previous Runs**:
+**Previous Runs** (before config optimization):
 - Runs 1-3: Failed due to wrong reward function (`a2b_wo`), missing system prompt, wrong hyperparameters
 - Run 4: Crashed at step 200 — disk full during checkpoint save (NCCL timeout). Rewards were non-zero (fix confirmed)
-- Run 5 (current): Running with increased save interval (400 steps) and reduced save limit (3)
+- Run 5: Ran with old config (batch=4, gen=3, acc=4). Superseded by optimized config (batch=1, gen=3, acc=16)
+
+**Next**: Will start MT-RL after ST-RL completes and is evaluated.
 
 ---
 
@@ -385,9 +457,13 @@ python eval/evaluate_paper_style.py \
 4. **Training accuracy ≠ evaluation accuracy**: 99.9% token accuracy meant nothing with wrong image size
 5. **System prompt handling**: GRPO trainer auto-injects system prompt as `messages[0]` — reward functions must iterate to find user message, not assume `messages[0]`
 6. **Multi-turn reward flow**: For A2B reward (requires "complete" action), the environment must give the model an extra turn after reaching the target page to output "complete"
-7. **Disk space for Zero3**: Each checkpoint is ~109GB. With 3× A100 80GB, budget disk carefully
+7. **ZeRO-3 required for GRPO**: ZeRO-2 OOMs on 7B full fine-tune GRPO with 80GB GPUs. ZeRO-3 partitions params+gradients+optimizer states, keeping memory nearly flat across batch sizes
+8. **save_only_model=true**: Reduces checkpoint size from ~109 GB to ~15 GB (7× savings) by excluding optimizer/scheduler states
+9. **num_generations divisibility**: Must evenly divide `per_device_batch_size × num_gpus`
+10. **Disk management**: `save_steps=500`, `save_total_limit=2` prevents disk exhaustion during long training runs
+11. **PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True**: Reduces CUDA memory fragmentation
 
 ---
 
-*Last updated: 2026-02-05 (MT-RL training in progress, step 56/1360)*
+*Last updated: 2026-02-09 (ST-RL retraining in progress, step 6290/12315, 51%)*
 
