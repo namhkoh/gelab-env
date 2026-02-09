@@ -8,46 +8,45 @@
 
 ```
 gelab-env/
-├── data_engine/                    # UI environment generation pipeline
+├── data_engine/                    # UI environment & dataset generation
 │   ├── tree.py                     # Core: synthetic tree-structured UI generator
-│   ├── tree_v1.py                  # Extension: adds TEXT action (search bars)
-│   ├── tree_v1_expanded.py         # Extension: full actions (CLICK, TEXT, SCROLL, etc.)
-│   ├── generate_dataset_paper.py   # Dataset generation with paper's 2:2:1 subtree split
-│   ├── generate_dataset_v2.py      # Generic dataset generation (no partition)
-│   ├── build_gelab_real_icons.py   # Sim2Real: real app icon-based page templates
-│   ├── extract_real_ui.py          # Sim2Real: extract UI elements from real screenshots
-│   ├── render_templates_only.py    # Render page templates without real icons
+│   ├── env_utils.py                # Shared utilities (GELabEnvUtils base class)
+│   ├── generate_sft_data.py        # SFT dataset generation (path+edge+grounding+caption)
+│   ├── generate_st_rl_data.py      # ST-RL dataset generation (path-only, subtrees 2-3)
+│   ├── generate_mt_rl_data.py      # MT-RL task generation (balanced by path length)
 │   └── icons/                      # Icon pool (Animals/, Business/, etc.)
 │
 ├── swift/plugin/                   # Training plugins (modified ms-swift framework)
 │   ├── multi_turn.py               # Multi-turn environment for MT-RL rollouts
-│   └── orm.py                      # Reward functions (A2B sparse reward)
+│   └── orm.py                      # Reward functions (ST-RL 4-component + A2B sparse)
 │
 ├── eval/                           # Evaluation scripts
-│   ├── evaluate.py                 # Unified evaluation (static + interactive, recommended)
-│   ├── evaluate_paper_style.py     # Table 1: ID/OOD Edge/Path accuracy
-│   ├── interactive_eval.py         # Table 2: Interactive Pass@1/Pass@5 (single GPU)
-│   ├── interactive_eval_multigpu.py# Table 2: Multi-GPU parallel evaluation
-│   ├── interactive_benchmark.py    # Table 2: vLLM-accelerated evaluation
-│   ├── eval_sft_retrain.py         # Retrained SFT 4-metric evaluation
-│   ├── eval_st_rl.py               # ST-RL LoRA model evaluation
-│   ├── trajectory_eval.py          # Step-by-step trajectory validation
-│   └── inference_correct_prompt.py # Batch inference with correct system prompt
+│   ├── evaluate.py                 # Unified evaluation (static + interactive)
+│   └── generate_eval_splits.py     # Generate ID/OOD Edge/Path test splits
 │
-├── gui_scripts/                    # Training launch scripts
-│   ├── sft_448_3gpu.sh             # SFT training (3x A100)
-│   ├── st_rl_448.sh                # Single-Turn RL training
-│   ├── mt_rl_448.sh                # Multi-Turn RL training (Paper Table 8)
-│   └── ...                         # Additional variants
+├── gui_scripts/                    # Training launch scripts (3x A100 80GB)
+│   ├── sft_448.sh                  # SFT training (Paper Table 8)
+│   ├── st_rl_448.sh                # Single-Turn RL training (GRPO)
+│   └── mt_rl_448.sh                # Multi-Turn RL training (GRPO + A2B reward)
 │
-├── environment/demo/               # Runtime UI structure for multi-turn env
+├── datas/                          # Single source of truth for all data
+│   ├── config.json                 # Tree parameters, canvas/icon sizes
 │   ├── ui_structure.json           # 231 pages with transitions (flat)
-│   └── ui_structure_layer_fixed.json # Hierarchical tree structure
+│   ├── ui_structure_layer.json     # Hierarchical tree structure (nested subnodes)
+│   ├── pages/                      # 231 rendered page images (448x448, gitignored)
+│   ├── sft_aligned.json            # SFT training data (30,888 samples)
+│   ├── st_rl_path_only.json        # ST-RL training data (24,878 path samples)
+│   ├── mt_rl_aligned.json          # MT-RL training data (2,200 tasks)
+│   ├── test_id_edge.json           # ID edge test (90 samples, subtrees 0-1)
+│   ├── test_id_path.json           # ID path test (431 samples, subtrees 0-1)
+│   ├── test_ood_edge.json          # OOD edge test (45 samples, subtree 4)
+│   └── test_ood_path.json          # OOD path test (449 samples, subtree 4)
 │
-├── datas/
-│   ├── 448_paper/                  # Paper-aligned training/test datasets
-│   ├── 448_paper_new/              # Regenerated eval splits (ID/OOD Edge/Path)
-│   └── 448_retrain/                # Retrained model datasets + UI configs
+├── environment/demo -> datas/      # Symlink for runtime access
+│
+├── archive/                        # Legacy scripts (42 files, for reference)
+│   ├── scripts/                    # Old eval, training, data gen variants
+│   └── data/                       # Old datasets & UI environments (gitignored)
 │
 └── Progress.md                     # Reproduction results and analysis
 ```
@@ -56,29 +55,33 @@ gelab-env/
 
 ## 2. Training Scripts
 
-All training uses the [ms-swift](https://github.com/modelscope/swift) framework with DeepSpeed ZeRO-3.
+All training uses the [ms-swift](https://github.com/modelscope/swift) framework with DeepSpeed.
 Scripts require `WANDB_API_KEY` and `HF_TOKEN` set in your shell environment.
 
 ### 2.1 SFT (Supervised Fine-Tuning)
 
-**Script**: `gui_scripts/sft_448_3gpu.sh`
+**Script**: `gui_scripts/sft_448.sh`
 
-Trains the base Qwen2.5-VL-7B-Instruct model on multi-turn navigation trajectories from subtrees 0-1.
+Trains the base Qwen2.5-VL-7B-Instruct model on navigation trajectories from subtrees 0-1.
+SFT data includes edge transitions from ALL subtrees (including test subtree 4) to provide
+fundamental environment knowledge, plus grounding and captioning data for icon comprehension.
 
-| Parameter | Value |
-|-----------|-------|
-| Base Model | Qwen2.5-VL-7B-Instruct |
-| Dataset | ~30,888 multi-turn samples (Edge + Path + Grounding + Captioning) |
-| GPUs | 3x A100 80GB |
-| Learning Rate | 1e-5 |
-| Epochs | 1 |
-| DeepSpeed | ZeRO Stage 2 |
-| max_pixels | 200704 (448x448) |
+| Parameter | Our Value | Paper Value | Notes |
+|-----------|-----------|-------------|-------|
+| Base Model | Qwen2.5-VL-7B-Instruct | Qwen2.5-VL-7B-Instruct | |
+| Dataset | 30,888 samples | ~30,888 | Path + Edge + Grounding + Captioning |
+| Learning Rate | 1e-5 | 1e-5 | |
+| Epochs | 1 | 1 | |
+| Per-device Batch Size | 2 | 2 | |
+| Gradient Accumulation | 4 | 2 | Effective batch: 3x2x4=24 (paper: 32) |
+| DeepSpeed | ZeRO Stage 2 | — | |
+| max_pixels | 200704 (448x448) | 200704 | |
+| System Prompt | Paper Appendix A.10 | Paper Appendix A.10 | GUI Navigation Agent prompt |
 
 ```bash
 export WANDB_API_KEY="your_key"
 export HF_TOKEN="your_token"
-bash gui_scripts/sft_448_3gpu.sh
+bash gui_scripts/sft_448.sh
 ```
 
 ### 2.2 ST-RL (Single-Turn Reinforcement Learning)
@@ -89,9 +92,9 @@ Fine-tunes the SFT checkpoint with GRPO on single-step navigation using subtrees
 
 | Parameter | Our Value | Paper Value | Notes |
 |-----------|-----------|-------------|-------|
-| Base Model | `namhokaist/gelab-sft-448` | SFT checkpoint | HuggingFace hosted |
+| Base Model | SFT checkpoint | SFT checkpoint | |
 | Algorithm | GRPO | GRPO | |
-| Dataset | 12,439 path-only samples | 12,439 | |
+| Dataset | 24,878 path-only samples | — | 12,439 per subtree |
 | Learning Rate | 1e-6 | 1e-6 | |
 | Epochs | 3 | 5 | Reduced for faster iteration |
 | Per-device Batch Size | 16 | 8 | Doubled to maximize GPU utilization |
@@ -118,7 +121,7 @@ Fine-tunes the SFT checkpoint with GRPO on multi-turn navigation episodes (up to
 
 | Parameter | Our Value | Paper Value | Notes |
 |-----------|-----------|-------------|-------|
-| Base Model | SFT checkpoint (retrained) | SFT checkpoint | |
+| Base Model | SFT checkpoint | SFT checkpoint | |
 | Algorithm | GRPO | GRPO | |
 | Dataset | 2,200 multi-turn tasks | 2,200 tasks | |
 | Learning Rate | 1e-6 | 1e-6 | |
@@ -154,10 +157,9 @@ The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A1
 
 | Adaptation | Reason |
 |------------|--------|
-| ZeRO-3 (not ZeRO-2) | ZeRO-2 OOMs at optimizer step — it keeps full model params + gradients on each GPU. ZeRO-3 partitions everything. |
+| ZeRO-3 (not ZeRO-2) for RL | ZeRO-2 OOMs at optimizer step — it keeps full model params + gradients on each GPU. ZeRO-3 partitions everything. |
 | Gradient checkpointing | Reduces activation memory by recomputing during backward pass. ~20 GB savings per GPU. |
 | `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` | Reduces CUDA memory fragmentation. |
-| `per_device_eval_batch_size` set explicitly | Must match divisibility constraint with `num_generations`. |
 | `num_generations` must divide effective batch | Must evenly divide `per_device_batch_size x num_gpus`. ST-RL achieves paper's 8; MT-RL uses 3 (conservative for long multi-turn seqs). |
 | Effective batch 48 (not 128) | 3 GPUs vs 16 — compensated with gradient accumulation. |
 | `save_only_model=true` | Reduces checkpoint size from 109 GB (with optimizer states) to ~15 GB (7x savings). |
@@ -167,132 +169,106 @@ The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A1
 - batch=8, gen=6: 55.5 GB (ZeRO-3 memory is flat across batch sizes)
 - batch=16, gen=8: **63.7 GB** (current optimal — matches paper's `num_generations=8`)
 
-**Note:** ZeRO-2 OOMs on 7B full fine-tune GRPO (73/80 GB, needed 10 GB more at optimizer step). ZeRO-3 is required.
-
-**Impact on results:** ST-RL now matches the paper's `num_generations=8` exactly. The only remaining deviation is effective batch size (48 vs 128). MT-RL uses `num_generations=3` (paper: 8) due to long multi-turn sequences, which may cause some degradation. The relative ranking SFT < ST-RL < MT-RL should hold.
+**Impact on results:** ST-RL matches the paper's `num_generations=8` exactly. The only remaining deviation is effective batch size (48 vs 128). MT-RL uses `num_generations=3` (paper: 8) due to long multi-turn sequences. The relative ranking SFT < ST-RL < MT-RL should hold.
 
 ---
 
-## 3. Evaluation Scripts
+## 3. Evaluation
 
-### 3.1 Table 1: Static Evaluation (ID/OOD Edge/Path)
+All evaluation uses the unified `eval/evaluate.py` script, which combines static (Table 1) and interactive (Table 2) evaluation with strict bbox matching, consistent system prompt, and proper response extraction.
 
-Evaluates single-step accuracy on Edge (1-hop) and Path (multi-hop) test sets across in-distribution (subtrees 0-1) and out-of-distribution (subtree 4).
-
-**For SFT models:**
-```bash
-python eval/eval_sft_retrain.py \
-    --model_path checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850 \
-    --test_dir datas/448_paper \
-    --verbose
-```
-
-**For ST-RL LoRA models:**
-```bash
-python eval/eval_st_rl.py \
-    --base_model checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850 \
-    --lora_path checkpoint/gui_exp/st_rl_448_lora/v0-XXXXXXXX/checkpoint-576 \
-    --test_dir datas/448_paper \
-    --verbose
-```
-
-**For merged models (evaluate_paper_style.py):**
-```bash
-python eval/evaluate_paper_style.py \
-    --model_path checkpoint/gui_exp/st_rl_448_balanced/merged \
-    --eval_all
-```
-
-### 3.2 Table 2: Interactive Benchmark (Pass@1 / Pass@5)
-
-Evaluates multi-step interactive navigation where the model controls an agent through the UI environment.
-
-- **Pass@1**: Success with greedy decoding (temperature=0)
-- **Pass@5**: Success with any of 5 attempts (1 greedy + 4 sampled at temperature=0.7)
-
-**Single GPU (HuggingFace inference):**
-```bash
-python eval/interactive_eval.py \
-    --model_path checkpoint/gui_exp/st_rl_448_balanced/merged \
-    --env_dir data_engine/ui_environment_448/latest \
-    --num_tasks 2162 \
-    --num_attempts 5 \
-    --save_results results/interactive_eval.json
-```
-
-**Multi-GPU (parallel workers):**
-```bash
-python eval/interactive_eval_multigpu.py \
-    --model_path checkpoint/gui_exp/st_rl_448_balanced/merged \
-    --env_dir data_engine/ui_environment_448/latest \
-    --num_tasks 2162 \
-    --num_gpus 3 \
-    --save_results results/interactive_multigpu.json
-```
-
-**vLLM-accelerated (fastest single GPU):**
-```bash
-python eval/interactive_benchmark.py \
-    --model_path checkpoint/gui_exp/st_rl_448_balanced/merged \
-    --subtree 4 \
-    --num_tasks 500 \
-    --num_attempts 5 \
-    --output results/interactive_vllm.json
-```
-
-### 3.3 Eval Script Summary
-
-| Script | Metrics | Speed | Backend | Multi-GPU |
-|--------|---------|-------|---------|-----------|
-| **evaluate.py** | **Table 1 + Table 2 (unified)** | **Medium** | **HF** | **No** |
-| eval_sft_retrain.py | Table 1 (4 metrics) | Slow | HF | No |
-| eval_st_rl.py | Table 1 (LoRA) | Slow | HF | No |
-| evaluate_paper_style.py | Table 1 (merged) | Slow | HF | No |
-| interactive_eval.py | Pass@1/5 | Very slow | HF | No |
-| interactive_eval_multigpu.py | Pass@1/5 | Fast | HF | Yes |
-| interactive_benchmark.py | Pass@1/5 | Fast | vLLM | No |
-
-**Recommended:** Use `evaluate.py` for all evaluation. It combines static (Table 1) and interactive (Table 2) evaluation with strict bbox matching, consistent system prompt, and proper response extraction (`output_ids[:, input_len:]` slicing instead of fragile `split("assistant")`).
+### 3.1 Usage
 
 ```bash
-# Static evaluation (Table 1)
+# Static evaluation only (Table 1: ID/OOD Edge/Path accuracy)
 python eval/evaluate.py --model_path <checkpoint> --mode static
 
-# Interactive evaluation (Table 2)
+# Interactive evaluation only (Table 2: Pass@1/Pass@5)
 python eval/evaluate.py --model_path <checkpoint> --mode interactive
 
-# Both
+# Full evaluation (both)
 python eval/evaluate.py --model_path <checkpoint> --mode all
+
+# With LoRA adapter
+python eval/evaluate.py --model_path Qwen/Qwen2.5-VL-7B-Instruct --lora_path <adapter_dir> --mode all
 ```
 
----
+The default `--env_dir` is `datas`, which contains the UI structure, page images, and test splits.
 
-## 4. GUI Emulator: Sim2Real Augmentation
+### 3.2 Metrics
 
-The GE-Lab simulator generates synthetic UI environments for training GUI navigation agents. The sim2real pipeline extends this with real app screenshots.
+**Table 1 — Static Benchmark (ID/OOD):**
+- Edge accuracy: single-step transition correctness
+- Path accuracy: multi-step navigation sequence correctness
+- Evaluated on ID (subtrees 0-1) and OOD (subtree 4) splits
 
-### Synthetic Environment (Core)
-
-The core simulator (`data_engine/tree.py`) generates a tree-structured UI with:
-- **Pages**: 448x448 pixel images with icons arranged in a grid
-- **Navigation**: Each icon click transitions to a child page; back/home buttons navigate up
-- **Structure**: A balanced tree with configurable depth and branching factor
-
-This produces a fully deterministic, controllable environment where every page, icon, and transition is known -- enabling automated reward computation.
-
-### Sim2Real Augmentation
-
-Two scripts extend the synthetic environment toward realistic UIs:
-
-1. **extract_real_ui.py**: Takes real app screenshots (e.g., from a Pixel device at 1344x2992) with OmniParser-generated bounding box annotations, extracts individual icon crops, and builds a transition graph from recorded interaction sequences.
-
-2. **build_gelab_real_icons.py**: Constructs 6 realistic page templates mimicking an Amazon shopping flow (home screen -> search -> results -> product -> cart). It extracts real app icons (TikTok, Amazon, eBay, etc.) and arranges them in structured mobile-style layouts (336x748).
-
-The sim2real approach preserves the GE-Lab training paradigm (known transitions, automated rewards) while using visually realistic page renders.
+**Table 2 — Interactive Benchmark:**
+- Pass@1: success rate with greedy decoding (temperature=0)
+- Pass@5: success rate with any of 5 attempts (1 greedy + 4 sampled at temperature=0.7)
 
 ---
 
-## 5. How the GeLab Simulator Works
+## 4. Data Generation Pipeline
+
+### 4.1 Shared Utilities (`data_engine/env_utils.py`)
+
+All data generation scripts inherit from `GELabEnvUtils`, which provides:
+- UI structure loading (`ui_structure.json` + `ui_structure_layer.json`)
+- Page-to-subtree mapping (using layer hierarchy)
+- Navigation graph + NetworkX graph construction
+- Bbox normalization (448px -> 0-1000 range)
+- Shortest path finding with action/bbox metadata
+- Action string formatting (`click(...)` and `complete`)
+
+### 4.2 Generate a New UI Environment
+
+```bash
+python data_engine/tree.py --seed 42
+```
+
+This creates a timestamped directory under `data_engine/ui_environment_448/` with:
+- `config.json`, `ui_structure.json`, `ui_structure_layer.json`
+- `pages/` directory with 231 PNG files
+
+Copy outputs to `datas/` to use as the active environment:
+```bash
+cp data_engine/ui_environment_448/<TIMESTAMP>/{config,ui_structure,ui_structure_layer}.json datas/
+cp -r data_engine/ui_environment_448/<TIMESTAMP>/pages datas/
+```
+
+### 4.3 Generate Training Datasets
+
+Each dataset type has its own generator. All read from `datas/` by default:
+
+```bash
+# SFT data: 30,888 samples (path + edge + grounding + captioning)
+python data_engine/generate_sft_data.py --env_dir datas --output datas/sft_aligned.json
+
+# ST-RL data: 24,878 path-only samples from subtrees 2-3
+python data_engine/generate_st_rl_data.py --env_dir datas --output datas/st_rl_path_only.json
+
+# MT-RL data: 2,200 tasks balanced by path length from subtrees 2-3
+python data_engine/generate_mt_rl_data.py --env_dir datas --output datas/mt_rl_aligned.json
+
+# Test splits: ID/OOD Edge/Path
+python eval/generate_eval_splits.py --env_path datas --output_dir datas
+```
+
+### 4.4 Dataset Sizes (seed=42)
+
+| Dataset | File | Samples | Source |
+|---------|------|---------|--------|
+| SFT | `sft_aligned.json` | 30,888 | Subtrees 0-1 (path+edge+grounding+caption) |
+| ST-RL | `st_rl_path_only.json` | 24,878 | Subtrees 2-3 (path-only) |
+| MT-RL | `mt_rl_aligned.json` | 2,200 | Subtrees 2-3 (balanced by path length) |
+| Test ID Edge | `test_id_edge.json` | 90 | Subtrees 0-1 |
+| Test ID Path | `test_id_path.json` | 431 | Subtrees 0-1 |
+| Test OOD Edge | `test_ood_edge.json` | 45 | Subtree 4 |
+| Test OOD Path | `test_ood_path.json` | 449 | Subtree 4 |
+
+---
+
+## 5. How the GE-Lab Simulator Works
 
 ### 5.1 Architecture
 
@@ -345,19 +321,9 @@ Key parameters:
 - `icon_size`: (50, 50)
 - Total pages: 231 (1 root + 230 tree nodes)
 
-### 5.4 Dataset Generation
+### 5.4 Coordinate System
 
-`generate_dataset_paper.py` partitions the tree into subtrees and generates:
-
-| Dataset | Source Subtrees | Samples | Format |
-|---------|----------------|---------|--------|
-| SFT | 0, 1 | ~30,888 | Multi-turn trajectories (all steps of all paths) |
-| ST-RL | 2, 3 | 3,000 | Single-step edges with bbox coordinates |
-| MT-RL | 2, 3 | 2,200 | Multi-turn first-steps, balanced by path length |
-| Test ID | 0, 1 | 525 | Edge (90) + Path (435) |
-| Test OOD | 4 | 507 | Edge (45) + Path (462) |
-
-**Coordinate system**: All bounding boxes are normalized to 0-1000 range (canvas-agnostic).
+All bounding boxes are normalized to 0-1000 range (canvas-agnostic).
 
 **Prompt format** (training):
 ```
@@ -377,137 +343,63 @@ The simulator produces:
 |------|----------|
 | `config.json` | Tree parameters, canvas/icon sizes |
 | `ui_structure.json` | Flat page definitions with transitions and layout bboxes |
-| `ui_structure_layer.json` | Hierarchical tree structure (nested subnodes) |
+| `ui_structure_layer.json` | Hierarchical tree structure (nested `subnodes`) |
 | `pages/page_N.png` | 448x448 rendered page images |
 
 ---
 
-## 6. Running the Simulator
+## 6. Environment Setup
 
-### 6.1 Generate a New UI Environment
-
-```bash
-cd /ext_hdd2/nhkoh/gelab-env
-python data_engine/tree.py
-```
-
-This creates a new timestamped directory under `data_engine/ui_environment_448/` with:
-- `config.json`, `ui_structure.json`, `ui_structure_layer.json`
-- `pages/` directory with 231 PNG files
-
-To use the generated environment, create a symlink:
-```bash
-ln -sfn data_engine/ui_environment_448/<TIMESTAMP> data_engine/ui_environment_448/latest
-```
-
-### 6.2 Generate Training Datasets
-
-After generating the environment:
-
-```bash
-python data_engine/generate_dataset_paper.py
-```
-
-This reads from `environment/demo/ui_structure.json` and produces the paper-aligned datasets (SFT, ST-RL, MT-RL, test splits) into the `datas/` directory.
-
-### 6.3 Copy Environment for Runtime Use
-
-The multi-turn RL environment reads from `environment/demo/` at runtime. Copy your generated environment there:
-
-```bash
-cp data_engine/ui_environment_448/latest/ui_structure.json environment/demo/
-cp data_engine/ui_environment_448/latest/ui_structure_layer.json environment/demo/ui_structure_layer_fixed.json
-cp -r data_engine/ui_environment_448/latest/pages environment/demo/
-```
-
-### 6.4 Sim2Real Template Rendering
-
-To render the real-app-style page templates (without real icons):
-
-```bash
-python data_engine/render_templates_only.py
-```
-
-This produces template PNGs and a horizontal strip showing all 6 pages in sequence.
-
----
-
-## 7. Environment Setup
-
-### 7.1 Prerequisites
+### 6.1 Prerequisites
 
 - NVIDIA GPU with 80GB+ VRAM (A100 or H100 recommended)
 - CUDA 12.x
 - Miniconda or Anaconda
 
-### 7.2 Create the Conda Environment
+### 6.2 Create the Conda Environment
 
 ```bash
 conda create -n gelab python=3.10 -y
 conda activate gelab
 ```
 
-### 7.3 Install PyTorch
+### 6.3 Install PyTorch
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-### 7.4 Install ms-swift (Training Framework)
-
-```bash
-pip install git+https://github.com/modelscope/swift.git
-```
-
-Or install from the local repo:
+### 6.4 Install ms-swift (Training Framework)
 
 ```bash
 cd /path/to/gelab-env
 pip install -e .
 ```
 
-### 7.5 Install Framework Dependencies
+### 6.5 Install Framework Dependencies
 
 ```bash
 pip install -r requirements/framework.txt
 ```
 
-Key packages this installs:
+Key packages:
 - `transformers>=4.33,<4.53`
 - `peft>=0.11,<0.16`
 - `trl>=0.15,<0.18`
-- `accelerate`
+- `accelerate`, `deepspeed`
 - `datasets>=3.0,<3.4`
 - `pillow`, `numpy<2.0`, `scipy`
 - `wandb` (experiment tracking)
 
-### 7.6 Install DeepSpeed
+### 6.6 Install Optional Packages
 
 ```bash
-pip install deepspeed
+pip install vllm                        # Fast evaluation
+pip install flash-attn --no-build-isolation  # Flash Attention
+pip install qwen-vl-utils qwen-omni-utils    # Qwen VL utilities
 ```
 
-### 7.7 Install vLLM (Optional, for Fast Evaluation)
-
-```bash
-pip install vllm
-```
-
-### 7.8 Install Flash Attention (Optional, Recommended)
-
-Download the appropriate wheel from [flash-attention releases](https://github.com/Dao-AILab/flash-attention/releases) for your CUDA/PyTorch version:
-
-```bash
-pip install flash-attn --no-build-isolation
-```
-
-### 7.9 Install Qwen VL Utilities
-
-```bash
-pip install qwen-vl-utils qwen-omni-utils
-```
-
-### 7.10 Set Environment Variables
+### 6.7 Set Environment Variables
 
 Add to your `~/.bashrc` or run before training:
 
@@ -518,7 +410,7 @@ export HF_HOME="/path/to/cache/huggingface"
 export CUDA_HOME=/path/to/cuda-12.x
 ```
 
-### 7.11 Verify Installation
+### 6.8 Verify Installation
 
 ```bash
 conda activate gelab
@@ -537,27 +429,28 @@ conda activate gelab
 export WANDB_API_KEY="your_key"
 export HF_TOKEN="your_token"
 
-# 2. Generate UI environment
-python data_engine/tree.py
+# 2. Generate UI environment (with reproducible seed)
+python data_engine/tree.py --seed 42
 
-# 3. Generate training datasets
-python data_engine/generate_dataset_paper.py
+# 3. Copy environment to datas/
+cp data_engine/ui_environment_448/<TIMESTAMP>/{config,ui_structure,ui_structure_layer}.json datas/
+cp -r data_engine/ui_environment_448/<TIMESTAMP>/pages datas/
 
-# 4. SFT training
-bash gui_scripts/sft_448_3gpu.sh
+# 4. Generate training datasets
+python data_engine/generate_sft_data.py
+python data_engine/generate_st_rl_data.py
+python data_engine/generate_mt_rl_data.py
+python eval/generate_eval_splits.py
 
-# 5. ST-RL training (after SFT completes)
+# 5. SFT training
+bash gui_scripts/sft_448.sh
+
+# 6. ST-RL training (after SFT completes)
 bash gui_scripts/st_rl_448.sh
 
-# 6. MT-RL training (after SFT completes)
+# 7. MT-RL training (after SFT completes)
 bash gui_scripts/mt_rl_448.sh
 
-# 7. Evaluate (Table 1)
-python eval/eval_sft_retrain.py --model_path <checkpoint> --test_dir datas/448_paper
-
-# 8. Evaluate (Table 2 - Interactive)
-python eval/interactive_eval_multigpu.py \
-    --model_path <checkpoint> \
-    --env_dir data_engine/ui_environment_448/latest \
-    --num_tasks 2162 --num_gpus 3
+# 8. Evaluate
+python eval/evaluate.py --model_path <checkpoint> --mode all
 ```
