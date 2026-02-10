@@ -38,9 +38,9 @@ gelab-env/
 │   ├── st_rl_path_only.json        # ST-RL training data (24,878 path samples)
 │   ├── mt_rl_aligned.json          # MT-RL training data (2,200 tasks)
 │   ├── test_id_edge.json           # ID edge test (90 samples, subtrees 0-1)
-│   ├── test_id_path.json           # ID path test (431 samples, subtrees 0-1)
+│   ├── test_id_path.json           # ID path test (4,851 all-step samples, subtrees 0-1)
 │   ├── test_ood_edge.json          # OOD edge test (45 samples, subtree 4)
-│   └── test_ood_path.json          # OOD path test (449 samples, subtree 4)
+│   └── test_ood_path.json          # OOD path test (2,433 all-step samples, subtree 4)
 │
 ├── environment/demo -> datas/      # Symlink for runtime access
 │
@@ -83,6 +83,8 @@ export WANDB_API_KEY="your_key"
 export HF_TOKEN="your_token"
 bash gui_scripts/sft_448.sh
 ```
+
+**Pre-trained checkpoint**: [`namhokaist/gelab-sft-448-seed42`](https://huggingface.co/namhokaist/gelab-sft-448-seed42) on HuggingFace Hub.
 
 ### 2.2 ST-RL (Single-Turn Reinforcement Learning)
 
@@ -191,15 +193,24 @@ python eval/evaluate.py --model_path <checkpoint> --mode all
 
 # With LoRA adapter
 python eval/evaluate.py --model_path Qwen/Qwen2.5-VL-7B-Instruct --lora_path <adapter_dir> --mode all
+
+# Multi-GPU evaluation (3x speedup)
+python eval/evaluate.py --model_path <checkpoint> --mode static --num_gpus 3
+
+# Multi-GPU with multiple workers per GPU (overlaps CPU/GPU work for interactive eval)
+python eval/evaluate.py --model_path <checkpoint> --mode all --num_gpus 3 --workers_per_gpu 2
 ```
 
 The default `--env_dir` is `datas`, which contains the UI structure, page images, and test splits.
+
+**Multi-GPU details:** When `--num_gpus > 1`, samples/tasks are split round-robin across workers. Each worker loads its own model on the assigned GPU via `torch.multiprocessing` with `spawn`. Use `--workers_per_gpu 2` on A100 80GB (each 7B bf16 model copy uses ~14GB).
 
 ### 3.2 Metrics
 
 **Table 1 — Static Benchmark (ID/OOD):**
 - Edge accuracy: single-step transition correctness
-- Path accuracy: multi-step navigation sequence correctness
+- Path accuracy: per-step accuracy across all steps of multi-step navigation paths (matching paper methodology — includes intermediate steps with history context and final `complete` action)
+- ID paths are generated per-subtree independently (subtrees 0 and 1 separately) to avoid cross-subtree contamination
 - Evaluated on ID (subtrees 0-1) and OOD (subtree 4) splits
 
 **Table 2 — Interactive Benchmark:**
@@ -262,9 +273,9 @@ python eval/generate_eval_splits.py --env_path datas --output_dir datas
 | ST-RL | `st_rl_path_only.json` | 24,878 | Subtrees 2-3 (path-only) |
 | MT-RL | `mt_rl_aligned.json` | 2,200 | Subtrees 2-3 (balanced by path length) |
 | Test ID Edge | `test_id_edge.json` | 90 | Subtrees 0-1 |
-| Test ID Path | `test_id_path.json` | 431 | Subtrees 0-1 |
+| Test ID Path | `test_id_path.json` | 4,851 | Subtrees 0-1 (all steps, per-subtree independent) |
 | Test OOD Edge | `test_ood_edge.json` | 45 | Subtree 4 |
-| Test OOD Path | `test_ood_path.json` | 449 | Subtree 4 |
+| Test OOD Path | `test_ood_path.json` | 2,433 | Subtree 4 (all steps) |
 
 ---
 
@@ -451,6 +462,9 @@ bash gui_scripts/st_rl_448.sh
 # 7. MT-RL training (after SFT completes)
 bash gui_scripts/mt_rl_448.sh
 
-# 8. Evaluate
+# 8. Evaluate (single GPU)
 python eval/evaluate.py --model_path <checkpoint> --mode all
+
+# 8b. Evaluate (multi-GPU, ~3x faster)
+python eval/evaluate.py --model_path <checkpoint> --mode all --num_gpus 3
 ```
