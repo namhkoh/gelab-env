@@ -22,7 +22,7 @@ export REPORT_TO="wandb"
 
 # Model and Data Paths
 export SAVE_NAME="st_rl_448"
-export MODEL_PATH="namhokaist/gelab-sft-448"
+export MODEL_PATH="checkpoint/gui_exp/sft_448/v0-20260209_210621/checkpoint-1275"
 export DATASET_PATH="datas/st_rl_path_only.json"
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"

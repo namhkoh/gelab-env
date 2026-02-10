@@ -30,6 +30,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import torch
+import torch.multiprocessing as mp
 import numpy as np
 from PIL import Image
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
@@ -541,6 +542,281 @@ def print_interactive_report(results: dict, num_attempts: int):
 
 
 # ---------------------------------------------------------------------------
+# Multi-GPU workers
+# ---------------------------------------------------------------------------
+def _static_worker(gpu_id, samples, model_path, lora_path, label, verbose, result_queue):
+    """Worker process: evaluate a chunk of static samples on one GPU."""
+    device = f"cuda:{gpu_id}"
+    model = ModelWrapper(model_path, lora_path, device)
+
+    correct = 0
+    total = 0
+    by_length = defaultdict(lambda: {"correct": 0, "total": 0})
+
+    for i, sample in enumerate(samples):
+        msgs = sample.get("messages", [])
+        if len(msgs) < 2:
+            continue
+
+        user_content = msgs[0]["content"]
+        gt_response = msgs[1]["content"]
+        image_list = sample.get("images", [])
+        bbox_norm = sample.get("bbox_norm", None)
+        path_length = sample.get("path_length", sample.get("path", 1))
+
+        if not image_list:
+            continue
+        image_path = image_list[0]
+        if not os.path.isabs(image_path):
+            image_path = os.path.join(os.getcwd(), image_path)
+
+        text = user_content.replace("<image>", "").strip()
+        response = model.predict(image_path, text)
+
+        action_type, coord = parse_action(response)
+        gt_action_type, gt_coord = parse_action(gt_response)
+
+        is_correct = False
+        if gt_action_type == "complete" and action_type == "complete":
+            is_correct = True
+        elif gt_action_type == "click" and action_type == "click" and coord:
+            if bbox_norm and len(bbox_norm) == 4:
+                is_correct = is_coord_in_bbox(coord[0], coord[1], bbox_norm)
+            elif gt_coord:
+                fallback_bbox = [
+                    gt_coord[0] - 50, gt_coord[1] - 50,
+                    gt_coord[0] + 50, gt_coord[1] + 50,
+                ]
+                is_correct = is_coord_in_bbox(coord[0], coord[1], fallback_bbox)
+
+        if is_correct:
+            correct += 1
+            by_length[path_length]["correct"] += 1
+        total += 1
+        by_length[path_length]["total"] += 1
+
+        if verbose and not is_correct:
+            print(f"  [GPU{gpu_id}][{label}] Sample {i}: WRONG | pred={response[:80]}")
+
+        if (i + 1) % 50 == 0:
+            acc = correct / total if total else 0
+            print(f"  [GPU{gpu_id}][{label}] {i+1}/{len(samples)} evaluated, running acc: {acc:.4f}")
+
+    result_queue.put(("static", label, {"correct": correct, "total": total, "by_length": dict(by_length)}))
+
+
+def _interactive_worker(gpu_id, tasks, model_path, lora_path, env_dir,
+                        num_attempts, max_steps, result_queue):
+    """Worker process: evaluate a chunk of interactive tasks on one GPU."""
+    device = f"cuda:{gpu_id}"
+    model = ModelWrapper(model_path, lora_path, device)
+    env = GELabEnvironment(env_dir)
+
+    for i, task in enumerate(tasks):
+        start, end = task["start"], task["end"]
+        path_len = task["path_length"]
+        attempt_results = []
+
+        for attempt in range(num_attempts):
+            do_sample = attempt > 0
+            success, steps, traj = run_episode(
+                model, env, start, end, max_steps=max_steps,
+                do_sample=do_sample,
+            )
+            attempt_results.append(success)
+
+        pass1 = attempt_results[0]
+        passK = any(attempt_results)
+        result_queue.put(("interactive", None, {
+            "pass1": pass1, "passK": passK, "path_length": path_len,
+        }))
+
+        if (i + 1) % 20 == 0:
+            print(f"  [GPU{gpu_id}] {i+1}/{len(tasks)} interactive tasks done")
+
+
+def _merge_static_results(partial_results):
+    """Merge static results from multiple workers into a single result dict."""
+    correct = 0
+    total = 0
+    by_length = defaultdict(lambda: {"correct": 0, "total": 0})
+
+    for pr in partial_results:
+        correct += pr["correct"]
+        total += pr["total"]
+        for pl, d in pr["by_length"].items():
+            by_length[pl]["correct"] += d["correct"]
+            by_length[pl]["total"] += d["total"]
+
+    accuracy = correct / total if total > 0 else 0.0
+    length_breakdown = {}
+    for pl in sorted(by_length.keys()):
+        d = by_length[pl]
+        acc = d["correct"] / d["total"] if d["total"] > 0 else 0.0
+        length_breakdown[pl] = {"accuracy": acc, "correct": d["correct"], "total": d["total"]}
+
+    return {"accuracy": accuracy, "correct": correct, "total": total, "by_length": length_breakdown}
+
+
+def _merge_interactive_results(per_task_results, num_attempts):
+    """Merge interactive results from multiple workers."""
+    results_by_length = defaultdict(lambda: {"pass1": 0, "passK": 0, "total": 0})
+    total_pass1 = 0
+    total_passK = 0
+
+    for r in per_task_results:
+        pl = r["path_length"]
+        results_by_length[pl]["total"] += 1
+        if r["pass1"]:
+            results_by_length[pl]["pass1"] += 1
+            total_pass1 += 1
+        if r["passK"]:
+            results_by_length[pl]["passK"] += 1
+            total_passK += 1
+
+    total = len(per_task_results)
+    return {
+        "pass1": total_pass1 / total if total else 0.0,
+        f"pass{num_attempts}": total_passK / total if total else 0.0,
+        "total_tasks": total,
+        "by_length": {
+            pl: {
+                "pass1": d["pass1"] / d["total"] if d["total"] else 0.0,
+                f"pass{num_attempts}": d["passK"] / d["total"] if d["total"] else 0.0,
+                "total": d["total"],
+            }
+            for pl, d in sorted(results_by_length.items())
+        },
+    }
+
+
+def run_multigpu(args, num_gpus, workers_per_gpu=1):
+    """Run evaluation distributed across multiple GPUs.
+
+    Args:
+        workers_per_gpu: Number of model instances per GPU. Each 7B bf16 model
+            uses ~14GB, so 2 per A100 80GB is safe. Mainly helps interactive
+            eval by overlapping CPU env-stepping with GPU inference.
+    """
+    test_dir = args.test_dir or args.env_dir
+    all_results = {}
+    total_workers = num_gpus * workers_per_gpu
+
+    # We must use 'spawn' for CUDA multiprocessing
+    try:
+        mp.set_start_method("spawn", force=True)
+    except RuntimeError:
+        pass  # already set
+
+    if workers_per_gpu > 1:
+        mem_est = workers_per_gpu * 14
+        print(f"  Workers per GPU: {workers_per_gpu} (~{mem_est}GB / 80GB VRAM)")
+
+    # --- Static evaluation (multi-GPU) ---
+    if args.mode in ("static", "all"):
+        print(f"\n--- Static Evaluation ({total_workers} workers on {num_gpus} GPUs) ---")
+        for label, filename in [
+            ("id_edge", args.id_edge_file),
+            ("id_path", args.id_path_file),
+            ("ood_edge", args.ood_edge_file),
+            ("ood_path", args.ood_path_file),
+        ]:
+            filepath = os.path.join(test_dir, filename)
+            if not os.path.exists(filepath):
+                print(f"  Skipping {label}: {filepath} not found")
+                continue
+
+            with open(filepath) as f:
+                data = json.load(f)
+            if args.num_samples > 0:
+                data = data[:args.num_samples]
+
+            print(f"\n  Evaluating {label}: {len(data)} samples across {total_workers} workers")
+
+            # Split samples round-robin across all workers
+            chunks = [[] for _ in range(total_workers)]
+            for i, sample in enumerate(data):
+                chunks[i % total_workers].append(sample)
+
+            result_queue = mp.Queue()
+            processes = []
+            for gpu_id in range(num_gpus):
+                for w in range(workers_per_gpu):
+                    worker_idx = gpu_id * workers_per_gpu + w
+                    if not chunks[worker_idx]:
+                        continue
+                    p = mp.Process(
+                        target=_static_worker,
+                        args=(gpu_id, chunks[worker_idx], args.model_path, args.lora_path,
+                              label, args.verbose, result_queue),
+                    )
+                    p.start()
+                    processes.append(p)
+
+            for p in processes:
+                p.join()
+
+            # Collect and merge
+            partial = []
+            while not result_queue.empty():
+                msg_type, msg_label, msg_data = result_queue.get()
+                if msg_type == "static" and msg_label == label:
+                    partial.append(msg_data)
+
+            all_results[label] = _merge_static_results(partial)
+
+        print_static_report(all_results)
+
+    # --- Interactive evaluation (multi-GPU) ---
+    if args.mode in ("interactive", "all"):
+        print(f"\n--- Interactive Evaluation ({total_workers} workers on {num_gpus} GPUs) ---")
+        env = GELabEnvironment(args.env_dir)
+        tasks = generate_test_tasks(env, args.test_subtree, args.num_tasks)
+        print(f"Generated {len(tasks)} interactive tasks")
+
+        length_dist = defaultdict(int)
+        for t in tasks:
+            length_dist[t["path_length"]] += 1
+        print(f"Task distribution by path length: {dict(sorted(length_dist.items()))}")
+
+        # Split tasks round-robin across all workers
+        chunks = [[] for _ in range(total_workers)]
+        for i, task in enumerate(tasks):
+            chunks[i % total_workers].append(task)
+
+        result_queue = mp.Queue()
+        processes = []
+        for gpu_id in range(num_gpus):
+            for w in range(workers_per_gpu):
+                worker_idx = gpu_id * workers_per_gpu + w
+                if not chunks[worker_idx]:
+                    continue
+                p = mp.Process(
+                    target=_interactive_worker,
+                    args=(gpu_id, chunks[worker_idx], args.model_path, args.lora_path,
+                          args.env_dir, args.num_attempts, args.max_steps, result_queue),
+                )
+                p.start()
+                processes.append(p)
+
+        for p in processes:
+            p.join()
+
+        # Collect and merge
+        per_task = []
+        while not result_queue.empty():
+            msg_type, _, msg_data = result_queue.get()
+            if msg_type == "interactive":
+                per_task.append(msg_data)
+
+        interactive_results = _merge_interactive_results(per_task, args.num_attempts)
+        all_results["interactive"] = interactive_results
+        print_interactive_report(interactive_results, args.num_attempts)
+
+    return all_results
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main():
@@ -551,7 +827,12 @@ def main():
                         help="Environment directory with ui_structure.json, pages/, etc.")
     parser.add_argument("--mode", choices=["static", "interactive", "all"], default="all",
                         help="Evaluation mode")
-    parser.add_argument("--device", default="cuda:0", help="Device for inference")
+    parser.add_argument("--device", default="cuda:0", help="Device for inference (single-GPU)")
+    parser.add_argument("--num_gpus", type=int, default=1,
+                        help="Number of GPUs for parallel evaluation (default: 1)")
+    parser.add_argument("--workers_per_gpu", type=int, default=1,
+                        help="Model instances per GPU (default: 1). "
+                             "Each 7B bf16 copy uses ~14GB. Use 2 for A100 80GB.")
 
     # Static eval options
     parser.add_argument("--test_dir", default=None,
@@ -588,52 +869,58 @@ def main():
         print(f"LoRA:  {args.lora_path}")
     print(f"Env:   {args.env_dir}")
     print(f"Mode:  {args.mode}")
-    print(f"Device: {args.device}")
+    print(f"GPUs:  {args.num_gpus}")
     print()
 
-    model = ModelWrapper(args.model_path, args.lora_path, args.device)
-    all_results = {}
+    # --- Multi-GPU path ---
+    if args.num_gpus > 1:
+        all_results = run_multigpu(args, args.num_gpus, args.workers_per_gpu)
+    else:
+        # --- Single-GPU path (original) ---
+        print(f"Device: {args.device}")
+        model = ModelWrapper(args.model_path, args.lora_path, args.device)
+        all_results = {}
 
-    # --- Static evaluation ---
-    if args.mode in ("static", "all"):
-        print("\n--- Static Evaluation ---")
-        for label, filename in [
-            ("id_edge", args.id_edge_file),
-            ("id_path", args.id_path_file),
-            ("ood_edge", args.ood_edge_file),
-            ("ood_path", args.ood_path_file),
-        ]:
-            filepath = os.path.join(test_dir, filename)
-            if not os.path.exists(filepath):
-                print(f"  Skipping {label}: {filepath} not found")
-                continue
-            print(f"\n  Evaluating {label} from {filepath}")
+        # --- Static evaluation ---
+        if args.mode in ("static", "all"):
+            print("\n--- Static Evaluation ---")
+            for label, filename in [
+                ("id_edge", args.id_edge_file),
+                ("id_path", args.id_path_file),
+                ("ood_edge", args.ood_edge_file),
+                ("ood_path", args.ood_path_file),
+            ]:
+                filepath = os.path.join(test_dir, filename)
+                if not os.path.exists(filepath):
+                    print(f"  Skipping {label}: {filepath} not found")
+                    continue
+                print(f"\n  Evaluating {label} from {filepath}")
 
-            if args.num_samples > 0:
-                with open(filepath) as f:
-                    data = json.load(f)
-                tmp_path = filepath + ".subset.json"
-                with open(tmp_path, "w") as f:
-                    json.dump(data[:args.num_samples], f)
-                result = evaluate_static(model, tmp_path, label, args.verbose)
-                os.remove(tmp_path)
-            else:
-                result = evaluate_static(model, filepath, label, args.verbose)
-            all_results[label] = result
+                if args.num_samples > 0:
+                    with open(filepath) as f:
+                        data = json.load(f)
+                    tmp_path = filepath + ".subset.json"
+                    with open(tmp_path, "w") as f:
+                        json.dump(data[:args.num_samples], f)
+                    result = evaluate_static(model, tmp_path, label, args.verbose)
+                    os.remove(tmp_path)
+                else:
+                    result = evaluate_static(model, filepath, label, args.verbose)
+                all_results[label] = result
 
-        print_static_report(all_results)
+            print_static_report(all_results)
 
-    # --- Interactive evaluation ---
-    if args.mode in ("interactive", "all"):
-        print("\n--- Interactive Evaluation ---")
-        env = GELabEnvironment(args.env_dir)
-        interactive_results = evaluate_interactive(
-            model, env, args.test_subtree,
-            args.num_tasks, args.num_attempts, args.verbose,
-            max_steps=args.max_steps,
-        )
-        all_results["interactive"] = interactive_results
-        print_interactive_report(interactive_results, args.num_attempts)
+        # --- Interactive evaluation ---
+        if args.mode in ("interactive", "all"):
+            print("\n--- Interactive Evaluation ---")
+            env = GELabEnvironment(args.env_dir)
+            interactive_results = evaluate_interactive(
+                model, env, args.test_subtree,
+                args.num_tasks, args.num_attempts, args.verbose,
+                max_steps=args.max_steps,
+            )
+            all_results["interactive"] = interactive_results
+            print_interactive_report(interactive_results, args.num_attempts)
 
     # --- Save results ---
     if args.output_file:
