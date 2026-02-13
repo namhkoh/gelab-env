@@ -1,0 +1,4218 @@
+[
+  {
+    "idx": 0,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_100 to page_160",
+    "bbox": [
+      384,
+      224,
+      434,
+      274
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_100 to page_160. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_26 icon on page_100.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_100.png"
+    ]
+  },
+  {
+    "idx": 1,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_100 to page_45",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_100 to page_45. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_100.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_100.png"
+    ]
+  },
+  {
+    "idx": 2,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_100 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_100 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_100.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_100.png"
+    ]
+  },
+  {
+    "idx": 3,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_101 to page_161",
+    "bbox": [
+      64,
+      224,
+      114,
+      274
+    ],
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_101 to page_161. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_118 icon on page_101.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_101.png"
+    ]
+  },
+  {
+    "idx": 4,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_101 to page_46",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_101 to page_46. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_101.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_101.png"
+    ]
+  },
+  {
+    "idx": 5,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_101 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_101 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_101.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_101.png"
+    ]
+  },
+  {
+    "idx": 6,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_102 to page_162",
+    "bbox": [
+      144,
+      224,
+      194,
+      274
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_102 to page_162. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_134 icon on page_102.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_102.png"
+    ]
+  },
+  {
+    "idx": 7,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_102 to page_46",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_102 to page_46. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_102.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_102.png"
+    ]
+  },
+  {
+    "idx": 8,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_102 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_102 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_102.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_102.png"
+    ]
+  },
+  {
+    "idx": 9,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_103 to page_163",
+    "bbox": [
+      144,
+      304,
+      194,
+      354
+    ],
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_103 to page_163. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_45 icon on page_103.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_103.png"
+    ]
+  },
+  {
+    "idx": 10,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_103 to page_47",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_103 to page_47. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_103.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_103.png"
+    ]
+  },
+  {
+    "idx": 11,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_103 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_103 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_103.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_103.png"
+    ]
+  },
+  {
+    "idx": 12,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_104 to page_164",
+    "bbox": [
+      384,
+      224,
+      434,
+      274
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_104 to page_164. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_176 icon on page_104.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_104.png"
+    ]
+  },
+  {
+    "idx": 13,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_104 to page_47",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_104 to page_47. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_104.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_104.png"
+    ]
+  },
+  {
+    "idx": 14,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_104 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_104 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_104.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_104.png"
+    ]
+  },
+  {
+    "idx": 15,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_105 to page_165",
+    "bbox": [
+      64,
+      224,
+      114,
+      274
+    ],
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_165. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_91 icon on page_105.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_105.png"
+    ]
+  },
+  {
+    "idx": 16,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_105 to page_48",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_48. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_105.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_105.png"
+    ]
+  },
+  {
+    "idx": 17,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_105 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_105.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_105.png"
+    ]
+  },
+  {
+    "idx": 18,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_106 to page_166",
+    "bbox": [
+      64,
+      224,
+      114,
+      274
+    ],
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_106 to page_166. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_182 icon on page_106.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_106.png"
+    ]
+  },
+  {
+    "idx": 19,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_106 to page_48",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_106 to page_48. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_106.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_106.png"
+    ]
+  },
+  {
+    "idx": 20,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_106 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_106 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_106.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_106.png"
+    ]
+  },
+  {
+    "idx": 21,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_107 to page_167",
+    "bbox": [
+      64,
+      304,
+      114,
+      354
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_107 to page_167. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_20 icon on page_107.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_107.png"
+    ]
+  },
+  {
+    "idx": 22,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_107 to page_49",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_107 to page_49. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_107.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_107.png"
+    ]
+  },
+  {
+    "idx": 23,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_107 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_107 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_107.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_107.png"
+    ]
+  },
+  {
+    "idx": 24,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_108 to page_168",
+    "bbox": [
+      224,
+      224,
+      274,
+      274
+    ],
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_108 to page_168. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_216 icon on page_108.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_108.png"
+    ]
+  },
+  {
+    "idx": 25,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_108 to page_49",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_108 to page_49. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_108.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_108.png"
+    ]
+  },
+  {
+    "idx": 26,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_108 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_108 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_108.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_108.png"
+    ]
+  },
+  {
+    "idx": 27,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_109 to page_169",
+    "bbox": [
+      384,
+      224,
+      434,
+      274
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_109 to page_169. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_12 icon on page_109.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_109.png"
+    ]
+  },
+  {
+    "idx": 28,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_109 to page_50",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_109 to page_50. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_109.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_109.png"
+    ]
+  },
+  {
+    "idx": 29,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_109 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_109 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_109.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_109.png"
+    ]
+  },
+  {
+    "idx": 30,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_110 to page_170",
+    "bbox": [
+      224,
+      224,
+      274,
+      274
+    ],
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_170. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_5 icon on page_110.\tAction: click(start_box='<|box_start|>(555,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_110.png"
+    ]
+  },
+  {
+    "idx": 31,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_110 to page_50",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_50. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_110.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_110.png"
+    ]
+  },
+  {
+    "idx": 32,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_110 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_110.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_110.png"
+    ]
+  },
+  {
+    "idx": 33,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_159 to page_219",
+    "bbox": [
+      384,
+      224,
+      434,
+      274
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_219. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_104 icon on page_159.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_159.png"
+    ]
+  },
+  {
+    "idx": 34,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_159 to page_99",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_99. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_159.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_159.png"
+    ]
+  },
+  {
+    "idx": 35,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_159 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_159.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_159.png"
+    ]
+  },
+  {
+    "idx": 36,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_160 to page_220",
+    "bbox": [
+      304,
+      224,
+      354,
+      274
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_220. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_146 icon on page_160.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_160.png"
+    ]
+  },
+  {
+    "idx": 37,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_160 to page_100",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_100. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_160.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_160.png"
+    ]
+  },
+  {
+    "idx": 38,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_160 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_160.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_160.png"
+    ]
+  },
+  {
+    "idx": 39,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_161 to page_221",
+    "bbox": [
+      304,
+      224,
+      354,
+      274
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_221. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_84 icon on page_161.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_161.png"
+    ]
+  },
+  {
+    "idx": 40,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_161 to page_101",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_101. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_161.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_161.png"
+    ]
+  },
+  {
+    "idx": 41,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_161 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_161.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_161.png"
+    ]
+  },
+  {
+    "idx": 42,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_162 to page_222",
+    "bbox": [
+      64,
+      224,
+      114,
+      274
+    ],
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_222. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_194 icon on page_162.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_162.png"
+    ]
+  },
+  {
+    "idx": 43,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_162 to page_102",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_102. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_162.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_162.png"
+    ]
+  },
+  {
+    "idx": 44,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_162 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_162.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_162.png"
+    ]
+  },
+  {
+    "idx": 45,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_163 to page_223",
+    "bbox": [
+      304,
+      224,
+      354,
+      274
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_223. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_56 icon on page_163.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_163.png"
+    ]
+  },
+  {
+    "idx": 46,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_163 to page_103",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_103. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_163.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_163.png"
+    ]
+  },
+  {
+    "idx": 47,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_163 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_163.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_163.png"
+    ]
+  },
+  {
+    "idx": 48,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_164 to page_224",
+    "bbox": [
+      144,
+      304,
+      194,
+      354
+    ],
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_224. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_173 icon on page_164.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_164.png"
+    ]
+  },
+  {
+    "idx": 49,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_164 to page_104",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_104. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_164.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_164.png"
+    ]
+  },
+  {
+    "idx": 50,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_164 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_164.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_164.png"
+    ]
+  },
+  {
+    "idx": 51,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_165 to page_225",
+    "bbox": [
+      64,
+      304,
+      114,
+      354
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_225. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_47 icon on page_165.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_165.png"
+    ]
+  },
+  {
+    "idx": 52,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_165 to page_105",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_105. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_165.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_165.png"
+    ]
+  },
+  {
+    "idx": 53,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_165 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_165.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_165.png"
+    ]
+  },
+  {
+    "idx": 54,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_166 to page_226",
+    "bbox": [
+      384,
+      224,
+      434,
+      274
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_226. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_206 icon on page_166.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_166.png"
+    ]
+  },
+  {
+    "idx": 55,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_166 to page_106",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_106. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_166.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_166.png"
+    ]
+  },
+  {
+    "idx": 56,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_166 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_166.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_166.png"
+    ]
+  },
+  {
+    "idx": 57,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_167 to page_227",
+    "bbox": [
+      144,
+      224,
+      194,
+      274
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_227. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_132 icon on page_167.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_167.png"
+    ]
+  },
+  {
+    "idx": 58,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_167 to page_107",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_107. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_167.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_167.png"
+    ]
+  },
+  {
+    "idx": 59,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_167 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_167.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_167.png"
+    ]
+  },
+  {
+    "idx": 60,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_168 to page_228",
+    "bbox": [
+      384,
+      224,
+      434,
+      274
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_228. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_124 icon on page_168.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_168.png"
+    ]
+  },
+  {
+    "idx": 61,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_168 to page_108",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_108. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_168.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_168.png"
+    ]
+  },
+  {
+    "idx": 62,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_168 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_168.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_168.png"
+    ]
+  },
+  {
+    "idx": 63,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_169 to page_229",
+    "bbox": [
+      64,
+      304,
+      114,
+      354
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_229. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_73 icon on page_169.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_169.png"
+    ]
+  },
+  {
+    "idx": 64,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_169 to page_109",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_109. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_169.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_169.png"
+    ]
+  },
+  {
+    "idx": 65,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_169 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_169.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_169.png"
+    ]
+  },
+  {
+    "idx": 66,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_170 to page_230",
+    "bbox": [
+      304,
+      304,
+      354,
+      354
+    ],
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_230. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_95 icon on page_170.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_170.png"
+    ]
+  },
+  {
+    "idx": 67,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_170 to page_110",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_110. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_170.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_170.png"
+    ]
+  },
+  {
+    "idx": 68,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_170 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_170.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_170.png"
+    ]
+  },
+  {
+    "idx": 69,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_18 to page_45",
+    "bbox": [
+      384,
+      224,
+      434,
+      274
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_45. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_177 icon on page_18.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_18.png"
+    ]
+  },
+  {
+    "idx": 70,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_18 to page_46",
+    "bbox": [
+      224,
+      304,
+      274,
+      354
+    ],
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_46. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_82 icon on page_18.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_18.png"
+    ]
+  },
+  {
+    "idx": 71,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_18 to page_5",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_5. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_18.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_18.png"
+    ]
+  },
+  {
+    "idx": 72,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_18 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_18.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_18.png"
+    ]
+  },
+  {
+    "idx": 73,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_19 to page_47",
+    "bbox": [
+      304,
+      224,
+      354,
+      274
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_47. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_12 icon on page_19.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_19.png"
+    ]
+  },
+  {
+    "idx": 74,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_19 to page_48",
+    "bbox": [
+      144,
+      224,
+      194,
+      274
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_48. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_213 icon on page_19.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_19.png"
+    ]
+  },
+  {
+    "idx": 75,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_19 to page_5",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_5. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_19.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_19.png"
+    ]
+  },
+  {
+    "idx": 76,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_19 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_19.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_19.png"
+    ]
+  },
+  {
+    "idx": 77,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_20 to page_49",
+    "bbox": [
+      224,
+      304,
+      274,
+      354
+    ],
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_49. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_2 icon on page_20.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_20.png"
+    ]
+  },
+  {
+    "idx": 78,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_20 to page_50",
+    "bbox": [
+      304,
+      304,
+      354,
+      354
+    ],
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_50. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_7 icon on page_20.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_20.png"
+    ]
+  },
+  {
+    "idx": 79,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_20 to page_5",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_5. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_20.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_20.png"
+    ]
+  },
+  {
+    "idx": 80,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_20 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_20.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_20.png"
+    ]
+  },
+  {
+    "idx": 81,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_219 to page_159",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_219 to page_159. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_219.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_219.png"
+    ]
+  },
+  {
+    "idx": 82,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_219 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_219 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_219.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_219.png"
+    ]
+  },
+  {
+    "idx": 83,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_220 to page_160",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_220 to page_160. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_220.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_220.png"
+    ]
+  },
+  {
+    "idx": 84,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_220 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_220 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_220.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_220.png"
+    ]
+  },
+  {
+    "idx": 85,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_221 to page_161",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_221 to page_161. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_221.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_221.png"
+    ]
+  },
+  {
+    "idx": 86,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_221 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_221 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_221.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_221.png"
+    ]
+  },
+  {
+    "idx": 87,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_222 to page_162",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_222 to page_162. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_222.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_222.png"
+    ]
+  },
+  {
+    "idx": 88,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_222 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_222 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_222.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_222.png"
+    ]
+  },
+  {
+    "idx": 89,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_223 to page_163",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_223 to page_163. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_223.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_223.png"
+    ]
+  },
+  {
+    "idx": 90,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_223 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_223 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_223.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_223.png"
+    ]
+  },
+  {
+    "idx": 91,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_224 to page_164",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_224 to page_164. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_224.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_224.png"
+    ]
+  },
+  {
+    "idx": 92,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_224 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_224 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_224.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_224.png"
+    ]
+  },
+  {
+    "idx": 93,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_225 to page_165",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_225 to page_165. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_225.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_225.png"
+    ]
+  },
+  {
+    "idx": 94,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_225 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_225 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_225.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_225.png"
+    ]
+  },
+  {
+    "idx": 95,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_226 to page_166",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_226 to page_166. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_226.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_226.png"
+    ]
+  },
+  {
+    "idx": 96,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_226 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_226 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_226.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_226.png"
+    ]
+  },
+  {
+    "idx": 97,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_227 to page_167",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_227 to page_167. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_227.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_227.png"
+    ]
+  },
+  {
+    "idx": 98,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_227 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_227 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_227.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_227.png"
+    ]
+  },
+  {
+    "idx": 99,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_228 to page_168",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_228 to page_168. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_228.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_228.png"
+    ]
+  },
+  {
+    "idx": 100,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_228 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_228 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_228.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_228.png"
+    ]
+  },
+  {
+    "idx": 101,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_229 to page_169",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_229 to page_169. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_229.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_229.png"
+    ]
+  },
+  {
+    "idx": 102,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_229 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_229 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_229.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_229.png"
+    ]
+  },
+  {
+    "idx": 103,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_230 to page_170",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_230 to page_170. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_230.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_230.png"
+    ]
+  },
+  {
+    "idx": 104,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_230 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_230 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_230.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_230.png"
+    ]
+  },
+  {
+    "idx": 105,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_45 to page_99",
+    "bbox": [
+      144,
+      224,
+      194,
+      274
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_99. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_61 icon on page_45.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_45.png"
+    ]
+  },
+  {
+    "idx": 106,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_45 to page_100",
+    "bbox": [
+      304,
+      224,
+      354,
+      274
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_100. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_15 icon on page_45.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_45.png"
+    ]
+  },
+  {
+    "idx": 107,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_45 to page_18",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_18. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_45.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_45.png"
+    ]
+  },
+  {
+    "idx": 108,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_45 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_45.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_45.png"
+    ]
+  },
+  {
+    "idx": 109,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_46 to page_101",
+    "bbox": [
+      384,
+      304,
+      434,
+      354
+    ],
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_101. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_231 icon on page_46.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_46.png"
+    ]
+  },
+  {
+    "idx": 110,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_46 to page_102",
+    "bbox": [
+      64,
+      224,
+      114,
+      274
+    ],
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_102. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_110 icon on page_46.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_46.png"
+    ]
+  },
+  {
+    "idx": 111,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_46 to page_18",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_18. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_46.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_46.png"
+    ]
+  },
+  {
+    "idx": 112,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_46 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_46.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_46.png"
+    ]
+  },
+  {
+    "idx": 113,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_47 to page_103",
+    "bbox": [
+      384,
+      304,
+      434,
+      354
+    ],
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_103. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_105 icon on page_47.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_47.png"
+    ]
+  },
+  {
+    "idx": 114,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_47 to page_104",
+    "bbox": [
+      144,
+      224,
+      194,
+      274
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_104. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_190 icon on page_47.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_47.png"
+    ]
+  },
+  {
+    "idx": 115,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_47 to page_19",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_19. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_47.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_47.png"
+    ]
+  },
+  {
+    "idx": 116,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_47 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_47.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_47.png"
+    ]
+  },
+  {
+    "idx": 117,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_48 to page_105",
+    "bbox": [
+      144,
+      304,
+      194,
+      354
+    ],
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_105. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_51 icon on page_48.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_48.png"
+    ]
+  },
+  {
+    "idx": 118,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_48 to page_106",
+    "bbox": [
+      304,
+      304,
+      354,
+      354
+    ],
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_106. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_104 icon on page_48.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_48.png"
+    ]
+  },
+  {
+    "idx": 119,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_48 to page_19",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_19. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_48.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_48.png"
+    ]
+  },
+  {
+    "idx": 120,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_48 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_48.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_48.png"
+    ]
+  },
+  {
+    "idx": 121,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_49 to page_107",
+    "bbox": [
+      64,
+      304,
+      114,
+      354
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_107. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_164 icon on page_49.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_49.png"
+    ]
+  },
+  {
+    "idx": 122,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_49 to page_108",
+    "bbox": [
+      384,
+      224,
+      434,
+      274
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_108. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_184 icon on page_49.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_49.png"
+    ]
+  },
+  {
+    "idx": 123,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_49 to page_20",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_20. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_49.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_49.png"
+    ]
+  },
+  {
+    "idx": 124,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_49 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_49.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_49.png"
+    ]
+  },
+  {
+    "idx": 125,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_5 to page_18",
+    "bbox": [
+      384,
+      304,
+      434,
+      354
+    ],
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_18. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_137 icon on page_5.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 126,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_5 to page_19",
+    "bbox": [
+      224,
+      304,
+      274,
+      354
+    ],
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_19. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_183 icon on page_5.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 127,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_5 to page_20",
+    "bbox": [
+      304,
+      224,
+      354,
+      274
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_20. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_217 icon on page_5.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 128,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_5 to page_0",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_5.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_5.png"
+    ]
+  },
+  {
+    "idx": 129,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_50 to page_109",
+    "bbox": [
+      304,
+      224,
+      354,
+      274
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_109. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Animals_103 icon on page_50.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_50.png"
+    ]
+  },
+  {
+    "idx": 130,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_50 to page_110",
+    "bbox": [
+      64,
+      304,
+      114,
+      354
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_110. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_21 icon on page_50.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_50.png"
+    ]
+  },
+  {
+    "idx": 131,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_50 to page_20",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_20. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_50.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_50.png"
+    ]
+  },
+  {
+    "idx": 132,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_50 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_50.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_50.png"
+    ]
+  },
+  {
+    "idx": 133,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_99 to page_159",
+    "bbox": [
+      224,
+      304,
+      274,
+      354
+    ],
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_159. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click Business_198 icon on page_99.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_99.png"
+    ]
+  },
+  {
+    "idx": 134,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_99 to page_45",
+    "bbox": [
+      20,
+      20,
+      70,
+      70
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_45. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click back icon on page_99.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_99.png"
+    ]
+  },
+  {
+    "idx": 135,
+    "type": "edge",
+    "path": 1,
+    "task": "From page_99 to page_0",
+    "bbox": [
+      378,
+      20,
+      428,
+      70
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain:click home icon on page_99.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "ui_environment_448_ood/20260212_181922/Env-Base/pages/page_99.png"
+    ]
+  }
+]
