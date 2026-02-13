@@ -22,11 +22,6 @@ python generate_dataset_ood.py \
 
 이후 eval
 
-python eval/inference_qwen2p5_mixed_vllm.py \
-    --model_path gelab-sft-448-seed42 \
-    --test_file data_engine/datas/ood_test_Base.json \
-    --save_file result_Base.json
-
 python eval/eval_ood.py \
   --model_path gelab-sft-448-seed42 \
   --data_dir datas/ood \
