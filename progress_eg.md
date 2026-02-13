@@ -20,7 +20,7 @@ python generate_dataset_ood.py \
   --seed 42\
   --include_system_actions
 
-이후 eval
+이후 eval(pending)
 
 python eval/eval_ood.py \
   --model_path gelab-sft-448-seed42 \
@@ -29,6 +29,6 @@ python eval/eval_ood.py \
   --infer_script eval/inference_qwen2p5_mixed_vllm.py \
   --out_dir results_ood
 
-이후 score 계산
+이후 score 계산 (pending)
 
 python eval/calculate_score_refine.py --file results_ood/result_ood_test_Base_path.jsonl
