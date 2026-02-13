@@ -33,3 +33,7 @@ python eval/eval_ood.py \
   --env_dir data_engine \
   --infer_script eval/inference_qwen2p5_mixed_vllm.py \
   --out_dir results_ood
+
+이후 score 계산
+
+python eval/calculate_score_refine.py --file results_ood/result_ood_test_Base_path.jsonl
