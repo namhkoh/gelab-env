@@ -267,15 +267,52 @@ def is_coord_in_bbox(x: int, y: int, bbox: list) -> bool:
 # ---------------------------------------------------------------------------
 # Static evaluation
 # ---------------------------------------------------------------------------
+def _compute_task_metrics(step_results):
+    """Compute task-level accuracy from per-step results.
+
+    A task (source->target path) is correct only if ALL its steps are correct.
+    Returns dict with overall task accuracy and per-path-length breakdown.
+    step_results: list of (source_page, target_page, path_length, is_correct).
+    """
+    # Group steps by task (source_page, target_page)
+    tasks = defaultdict(lambda: {"path_length": 0, "all_correct": True})
+    for src, tgt, pl, ok in step_results:
+        key = (src, tgt)
+        tasks[key]["path_length"] = pl
+        if not ok:
+            tasks[key]["all_correct"] = False
+
+    by_length = defaultdict(lambda: {"correct": 0, "total": 0})
+    task_correct = 0
+    for info in tasks.values():
+        pl = info["path_length"]
+        by_length[pl]["total"] += 1
+        if info["all_correct"]:
+            task_correct += 1
+            by_length[pl]["correct"] += 1
+
+    total_tasks = len(tasks)
+    accuracy = task_correct / total_tasks if total_tasks > 0 else 0.0
+    length_breakdown = {}
+    for pl in sorted(by_length.keys()):
+        d = by_length[pl]
+        acc = d["correct"] / d["total"] if d["total"] > 0 else 0.0
+        length_breakdown[pl] = {"accuracy": acc, "correct": d["correct"], "total": d["total"]}
+
+    return {"accuracy": accuracy, "correct": task_correct, "total": total_tasks,
+            "by_length": length_breakdown}
+
+
 def evaluate_static(model: ModelWrapper, test_file: str, label: str, verbose: bool = False):
-    """Evaluate static (edge or path first-step) accuracy.
-    Returns dict with overall accuracy and per-path-length breakdown."""
+    """Evaluate static accuracy with both step-level and task-level metrics.
+    Returns dict with overall accuracy, per-path-length breakdown, and task metrics."""
     with open(test_file, "r") as f:
         data = json.load(f)
 
     correct = 0
     total = 0
     by_length = defaultdict(lambda: {"correct": 0, "total": 0})
+    step_results = []  # (source_page, target_page, path_length, is_correct)
 
     for i, sample in enumerate(data):
         msgs = sample.get("messages", [])
@@ -319,6 +356,10 @@ def evaluate_static(model: ModelWrapper, test_file: str, label: str, verbose: bo
         total += 1
         by_length[path_length]["total"] += 1
 
+        src = sample.get("source_page", "")
+        tgt = sample.get("target_page", "")
+        step_results.append((src, tgt, path_length, is_correct))
+
         if verbose and not is_correct:
             print(f"  [{label}] Sample {i}: WRONG | pred={response[:80]} | gt={gt_response[:80]}")
 
@@ -332,7 +373,10 @@ def evaluate_static(model: ModelWrapper, test_file: str, label: str, verbose: bo
         acc = d["correct"] / d["total"] if d["total"] > 0 else 0.0
         length_breakdown[pl] = {"accuracy": acc, "correct": d["correct"], "total": d["total"]}
 
-    return {"accuracy": accuracy, "correct": correct, "total": total, "by_length": length_breakdown}
+    task_metrics = _compute_task_metrics(step_results)
+
+    return {"accuracy": accuracy, "correct": correct, "total": total,
+            "by_length": length_breakdown, "task": task_metrics}
 
 
 # ---------------------------------------------------------------------------
@@ -500,10 +544,16 @@ def print_static_report(results: dict):
         if label not in results:
             continue
         r = results[label]
-        print(f"\n  {label.upper()}: {r['accuracy']:.4f} ({r['correct']}/{r['total']})")
+        print(f"\n  {label.upper()} (Step): {r['accuracy']:.4f} ({r['correct']}/{r['total']})")
         if r.get("by_length"):
             for pl, d in sorted(r["by_length"].items()):
                 print(f"    Path@{pl}: {d['accuracy']:.4f} ({d['correct']}/{d['total']})")
+        if r.get("task"):
+            t = r["task"]
+            print(f"  {label.upper()} (Task): {t['accuracy']:.4f} ({t['correct']}/{t['total']})")
+            if t.get("by_length"):
+                for pl, d in sorted(t["by_length"].items()):
+                    print(f"    Path@{pl}: {d['accuracy']:.4f} ({d['correct']}/{d['total']})")
 
     # Weighted overall: (correct_edge + correct_path) / (total_edge + total_path)
     # This matches the paper's computation (sample-count-weighted, not simple average)
@@ -521,8 +571,8 @@ def print_static_report(results: dict):
     id_overall = (id_edge_c + id_path_c) / id_total if id_total > 0 else 0
     ood_overall = (ood_edge_c + ood_path_c) / ood_total if ood_total > 0 else 0
 
-    print(f"\n  ID Overall:  {id_overall:.4f} ({id_edge_c + id_path_c}/{id_total})")
-    print(f"  OOD Overall: {ood_overall:.4f} ({ood_edge_c + ood_path_c}/{ood_total})")
+    print(f"\n  ID Overall (Step):  {id_overall:.4f} ({id_edge_c + id_path_c}/{id_total})")
+    print(f"  OOD Overall (Step): {ood_overall:.4f} ({ood_edge_c + ood_path_c}/{ood_total})")
 
 
 def print_interactive_report(results: dict, num_attempts: int):
@@ -546,93 +596,113 @@ def print_interactive_report(results: dict, num_attempts: int):
 # ---------------------------------------------------------------------------
 def _static_worker(gpu_id, samples, model_path, lora_path, label, verbose, result_queue):
     """Worker process: evaluate a chunk of static samples on one GPU."""
-    device = f"cuda:{gpu_id}"
-    model = ModelWrapper(model_path, lora_path, device)
+    try:
+        device = f"cuda:{gpu_id}"
+        model = ModelWrapper(model_path, lora_path, device)
 
-    correct = 0
-    total = 0
-    by_length = defaultdict(lambda: {"correct": 0, "total": 0})
+        correct = 0
+        total = 0
+        by_length = defaultdict(lambda: {"correct": 0, "total": 0})
+        step_results = []  # (source_page, target_page, path_length, is_correct)
 
-    for i, sample in enumerate(samples):
-        msgs = sample.get("messages", [])
-        if len(msgs) < 2:
-            continue
+        for i, sample in enumerate(samples):
+            msgs = sample.get("messages", [])
+            if len(msgs) < 2:
+                continue
 
-        user_content = msgs[0]["content"]
-        gt_response = msgs[1]["content"]
-        image_list = sample.get("images", [])
-        bbox_norm = sample.get("bbox_norm", None)
-        path_length = sample.get("path_length", sample.get("path", 1))
+            user_content = msgs[0]["content"]
+            gt_response = msgs[1]["content"]
+            image_list = sample.get("images", [])
+            bbox_norm = sample.get("bbox_norm", None)
+            path_length = sample.get("path_length", sample.get("path", 1))
 
-        if not image_list:
-            continue
-        image_path = image_list[0]
-        if not os.path.isabs(image_path):
-            image_path = os.path.join(os.getcwd(), image_path)
+            if not image_list:
+                continue
+            image_path = image_list[0]
+            if not os.path.isabs(image_path):
+                image_path = os.path.join(os.getcwd(), image_path)
 
-        text = user_content.replace("<image>", "").strip()
-        response = model.predict(image_path, text)
+            text = user_content.replace("<image>", "").strip()
+            response = model.predict(image_path, text)
 
-        action_type, coord = parse_action(response)
-        gt_action_type, gt_coord = parse_action(gt_response)
+            action_type, coord = parse_action(response)
+            gt_action_type, gt_coord = parse_action(gt_response)
 
-        is_correct = False
-        if gt_action_type == "complete" and action_type == "complete":
-            is_correct = True
-        elif gt_action_type == "click" and action_type == "click" and coord:
-            if bbox_norm and len(bbox_norm) == 4:
-                is_correct = is_coord_in_bbox(coord[0], coord[1], bbox_norm)
-            elif gt_coord:
-                fallback_bbox = [
-                    gt_coord[0] - 50, gt_coord[1] - 50,
-                    gt_coord[0] + 50, gt_coord[1] + 50,
-                ]
-                is_correct = is_coord_in_bbox(coord[0], coord[1], fallback_bbox)
+            is_correct = False
+            if gt_action_type == "complete" and action_type == "complete":
+                is_correct = True
+            elif gt_action_type == "click" and action_type == "click" and coord:
+                if bbox_norm and len(bbox_norm) == 4:
+                    is_correct = is_coord_in_bbox(coord[0], coord[1], bbox_norm)
+                elif gt_coord:
+                    fallback_bbox = [
+                        gt_coord[0] - 50, gt_coord[1] - 50,
+                        gt_coord[0] + 50, gt_coord[1] + 50,
+                    ]
+                    is_correct = is_coord_in_bbox(coord[0], coord[1], fallback_bbox)
 
-        if is_correct:
-            correct += 1
-            by_length[path_length]["correct"] += 1
-        total += 1
-        by_length[path_length]["total"] += 1
+            if is_correct:
+                correct += 1
+                by_length[path_length]["correct"] += 1
+            total += 1
+            by_length[path_length]["total"] += 1
 
-        if verbose and not is_correct:
-            print(f"  [GPU{gpu_id}][{label}] Sample {i}: WRONG | pred={response[:80]}")
+            src = sample.get("source_page", "")
+            tgt = sample.get("target_page", "")
+            step_results.append((src, tgt, path_length, is_correct))
 
-        if (i + 1) % 50 == 0:
-            acc = correct / total if total else 0
-            print(f"  [GPU{gpu_id}][{label}] {i+1}/{len(samples)} evaluated, running acc: {acc:.4f}")
+            if verbose and not is_correct:
+                print(f"  [GPU{gpu_id}][{label}] Sample {i}: WRONG | pred={response[:80]}")
 
-    result_queue.put(("static", label, {"correct": correct, "total": total, "by_length": dict(by_length)}))
+            if (i + 1) % 50 == 0:
+                acc = correct / total if total else 0
+                print(f"  [GPU{gpu_id}][{label}] {i+1}/{len(samples)} evaluated, running acc: {acc:.4f}")
+
+        result_queue.put(("static", label, {
+            "correct": correct, "total": total,
+            "by_length": dict(by_length), "step_results": step_results,
+        }))
+    except Exception as e:
+        import traceback
+        print(f"  [GPU{gpu_id}][{label}] WORKER CRASHED: {e}", flush=True)
+        traceback.print_exc()
+        raise
 
 
 def _interactive_worker(gpu_id, tasks, model_path, lora_path, env_dir,
                         num_attempts, max_steps, result_queue):
     """Worker process: evaluate a chunk of interactive tasks on one GPU."""
-    device = f"cuda:{gpu_id}"
-    model = ModelWrapper(model_path, lora_path, device)
-    env = GELabEnvironment(env_dir)
+    try:
+        device = f"cuda:{gpu_id}"
+        model = ModelWrapper(model_path, lora_path, device)
+        env = GELabEnvironment(env_dir)
 
-    for i, task in enumerate(tasks):
-        start, end = task["start"], task["end"]
-        path_len = task["path_length"]
-        attempt_results = []
+        for i, task in enumerate(tasks):
+            start, end = task["start"], task["end"]
+            path_len = task["path_length"]
+            attempt_results = []
 
-        for attempt in range(num_attempts):
-            do_sample = attempt > 0
-            success, steps, traj = run_episode(
-                model, env, start, end, max_steps=max_steps,
-                do_sample=do_sample,
-            )
-            attempt_results.append(success)
+            for attempt in range(num_attempts):
+                do_sample = attempt > 0
+                success, steps, traj = run_episode(
+                    model, env, start, end, max_steps=max_steps,
+                    do_sample=do_sample,
+                )
+                attempt_results.append(success)
 
-        pass1 = attempt_results[0]
-        passK = any(attempt_results)
-        result_queue.put(("interactive", None, {
-            "pass1": pass1, "passK": passK, "path_length": path_len,
-        }))
+            pass1 = attempt_results[0]
+            passK = any(attempt_results)
+            result_queue.put(("interactive", None, {
+                "pass1": pass1, "passK": passK, "path_length": path_len,
+            }))
 
-        if (i + 1) % 20 == 0:
-            print(f"  [GPU{gpu_id}] {i+1}/{len(tasks)} interactive tasks done")
+            if (i + 1) % 20 == 0:
+                print(f"  [GPU{gpu_id}] {i+1}/{len(tasks)} interactive tasks done")
+    except Exception as e:
+        import traceback
+        print(f"  [GPU{gpu_id}] INTERACTIVE WORKER CRASHED: {e}", flush=True)
+        traceback.print_exc()
+        raise
 
 
 def _merge_static_results(partial_results):
@@ -640,6 +710,7 @@ def _merge_static_results(partial_results):
     correct = 0
     total = 0
     by_length = defaultdict(lambda: {"correct": 0, "total": 0})
+    all_step_results = []
 
     for pr in partial_results:
         correct += pr["correct"]
@@ -647,6 +718,7 @@ def _merge_static_results(partial_results):
         for pl, d in pr["by_length"].items():
             by_length[pl]["correct"] += d["correct"]
             by_length[pl]["total"] += d["total"]
+        all_step_results.extend(pr.get("step_results", []))
 
     accuracy = correct / total if total > 0 else 0.0
     length_breakdown = {}
@@ -655,7 +727,10 @@ def _merge_static_results(partial_results):
         acc = d["correct"] / d["total"] if d["total"] > 0 else 0.0
         length_breakdown[pl] = {"accuracy": acc, "correct": d["correct"], "total": d["total"]}
 
-    return {"accuracy": accuracy, "correct": correct, "total": total, "by_length": length_breakdown}
+    task_metrics = _compute_task_metrics(all_step_results) if all_step_results else None
+
+    return {"accuracy": accuracy, "correct": correct, "total": total,
+            "by_length": length_breakdown, "task": task_metrics}
 
 
 def _merge_interactive_results(per_task_results, num_attempts):
@@ -688,6 +763,31 @@ def _merge_interactive_results(per_task_results, num_attempts):
             for pl, d in sorted(results_by_length.items())
         },
     }
+
+
+def _join_workers(processes, label=""):
+    """Join worker processes with crash detection.
+
+    Polls workers instead of blocking on join(), so if any worker dies
+    we detect it immediately and raise instead of deadlocking.
+    """
+    alive = set(range(len(processes)))
+    while alive:
+        for i in list(alive):
+            p = processes[i]
+            p.join(timeout=5)
+            if not p.is_alive():
+                alive.discard(i)
+                if p.exitcode != 0:
+                    # Kill remaining workers
+                    for j in alive:
+                        processes[j].kill()
+                    for j in alive:
+                        processes[j].join(timeout=10)
+                    raise RuntimeError(
+                        f"[{label}] Worker {i} (PID {p.pid}) crashed with exit code {p.exitcode}. "
+                        f"Check GPU memory or worker logs."
+                    )
 
 
 def run_multigpu(args, num_gpus, workers_per_gpu=1):
@@ -753,8 +853,7 @@ def run_multigpu(args, num_gpus, workers_per_gpu=1):
                     p.start()
                     processes.append(p)
 
-            for p in processes:
-                p.join()
+            _join_workers(processes, label=label)
 
             # Collect and merge
             partial = []
@@ -799,8 +898,7 @@ def run_multigpu(args, num_gpus, workers_per_gpu=1):
                 p.start()
                 processes.append(p)
 
-        for p in processes:
-            p.join()
+        _join_workers(processes, label="interactive")
 
         # Collect and merge
         per_task = []

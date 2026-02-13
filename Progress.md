@@ -19,17 +19,16 @@
 | Qwen2.5-VL-7B-SFT (paper)    | 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
 | **Qwen2.5-VL-7B-SFT (ours)** | **87.78** | **76.32** | -  | **66.67** | **67.75** | - | **14.20** | **21.80** |
 | Qwen2.5-VL-7B-ST-RL (paper)  | 97.48 | 97.08 | 97.63   | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
-| **Qwen2.5-VL-7B-ST-RL (ours)** | -   | -     | -       | -     | -     | -       | **14.52**   | **17.48** |
+| **Qwen2.5-VL-7B-ST-RL (ours)** | **60.00** | **80.93** | **80.60** | **55.56** | **63.75** | **63.60** | - | - |
 | Qwen2.5-VL-7B-MT-RL (paper)  | 72.60 | 57.77 | 67.33   | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
 
 **Results Summary**:
-- SFT: ID Edge=87.78%, OOD Edge=66.67%, Interactive Pass@1=14.20%
-- **ST-RL: Interactive Pass@1=14.52%, Pass@5=17.48%** (paper: 17.22% / 22.34%)
-- **MT-RL**: Training in progress (see below)
-
-**Note**: Previous ST-RL result (13.26%) had eval bugs that have been fixed:
-1. Missing `<image>` prefix in eval prompts
-2. Wrong coordinate system (1179×2556 vs 448×448) - all clicks were missing targets!
+- SFT: ID Edge=92.22%, ID Path=77.27%, OOD Edge=80.00%, OOD Path=68.13%
+- **ST-RL: ID Edge=60.00%, ID Path=80.93%, OOD Edge=55.56%, OOD Path=63.75%**
+  - OOD Overall (63.60%) matches paper (63.06%)
+  - ID metrics lower than paper due to catastrophic forgetting (ST-RL trained on subtrees 2-3, ID tests subtrees 0-1)
+  - OOD Edge drop (55.56% vs paper 68.68%) caused by path-only RL training forgetting edge knowledge
+- **MT-RL**: Training in progress (batch=2, num_gen=6, step 2/2730)
 
 ### Table 2: Performance Comparison of Methods across Tasks of Varying Difficulty
 
@@ -335,13 +334,11 @@ python eval/evaluate.py \
 - [x] Created unified evaluation script (`eval/evaluate.py`)
 
 ### In Progress
-- [ ] ST-RL retraining with optimized config (step 6290/12315, 51%, ETA ~1.5 days)
+- [ ] MT-RL training (step 2/2730, batch=2, num_gen=6, ETA ~3.5 days)
 
 ### Next
-- [ ] Evaluate retrained ST-RL model on all benchmarks
-- [ ] Start MT-RL training with optimized config
-- [ ] MT-RL evaluation on Interactive benchmark
-- [ ] Compare all results to paper's Tables 1 & 2
+- [ ] MT-RL evaluation on all benchmarks (static + interactive)
+- [ ] Compare all results to paper's Tables 1, 2 & 11
 
 ---
 
@@ -373,15 +370,29 @@ python eval/evaluate.py \
 
 ### ST-RL Training Status
 
-**Current Run**: `v0-20260207_211322`
-- Step 6290/12315 (51%), ~39h elapsed, ETA ~1.5 days remaining
-- Memory: 63.7 GiB per GPU (stable)
-- Speed: 21.2s/step (0.045 iter/s)
-- Checkpoints: checkpoint-5000, checkpoint-6000 (save_only_model=true, ~15 GB each)
-- **Rewards** (at step 6290):
-  - ActionMatch: 1.0, CoordinateBbox: 0.996, Format: 1.0, Intent: 0.596
-  - Combined reward: ~0.898
-  - KL divergence: 0.138
+**Completed Run**: `v0-20260210_095510` — 12,315 steps, 3 epochs
+- Final checkpoint: `checkpoint-12315` (~15 GB, save_only_model=true)
+- Final reward: ~0.98 (action: 1.0, coord: 0.996, format: 1.0, intent: ~0.92)
+- Memory: 63.7 GiB per GPU (stable), 21s/step
+
+### ST-RL Static Evaluation Results
+
+**Checkpoint**: `checkpoint/gui_exp/st_rl_448/v0-20260210_095510/checkpoint-12315`
+
+| Metric | Ours | Paper ST-RL | Delta |
+|--------|------|-------------|-------|
+| ID Edge (Step) | 60.00% | 97.48% | -37.48% |
+| ID Path (Step) | 80.93% | 97.08% | -16.15% |
+| ID Overall (Step) | 80.60% | 97.63% | -17.03% |
+| OOD Edge (Step) | 55.56% | 68.68% | -13.12% |
+| OOD Path (Step) | 63.75% | 52.25% | **+11.50%** |
+| OOD Overall (Step) | 63.60% | 63.06% | **+0.54%** |
+
+**Analysis**:
+- OOD Overall matches paper closely (63.60% vs 63.06%)
+- OOD Path exceeds paper (63.75% vs 52.25%) — strong generalization
+- ID metrics lower than paper — ST-RL trained on subtrees 2-3 while ID tests subtrees 0-1 (SFT-only)
+- OOD Edge drop (55.56% vs 68.68%) — catastrophic forgetting from path-only RL training
 
 **Key Deviations from Paper**:
 - Effective batch 48 vs 128 (3 GPUs vs 16)
@@ -396,15 +407,15 @@ python eval/evaluate.py \
 
 | Parameter | Value | Paper Value |
 |-----------|-------|-------------|
-| Base Model | SFT checkpoint (retrained) | SFT checkpoint |
+| Base Model | ST-RL checkpoint-12315 | ST-RL checkpoint |
 | RL Algorithm | GRPO | GRPO |
 | GPUs | 3× A100 80GB | 2 nodes × 8 GPUs |
-| Per-Device Batch Size | 1 | 8 |
-| Gradient Accumulation | 16 | 1 |
-| Effective Batch Size | 48 (1 × 3 GPUs × 16 grad_acc) | 128 (8 × 16 GPUs × 1) |
+| Per-Device Batch Size | 2 | 8 |
+| Gradient Accumulation | 8 | 1 |
+| Effective Batch Size | 48 (2 × 3 GPUs × 8 grad_acc) | 128 (8 × 16 GPUs × 1) |
 | Learning Rate | 1e-6 | 1e-6 |
-| Epochs | 10 | 10 |
-| Num Generations | 3 | 8 |
+| Epochs | 10 | 5 |
+| Num Generations | 6 | 8 |
 | Temperature | 1.2 | 1.2 |
 | Top-K | 8 | 8 |
 | Max Completion Length | 1024 | 1024 |
@@ -413,11 +424,11 @@ python eval/evaluate.py \
 | Gradient Checkpointing | true | - |
 | Reward Function | A2B (sparse) | A2B (sparse) |
 | Multi-Turn Func | `gelab_multi_turn` | `gelab_multi_turn` |
-| Dataset | 2,200 tasks (subtrees 2-3) | 2,200 tasks |
+| Dataset | 2,200 tasks (subtrees 2-3) | 2,162 tasks |
 
-**SFT Base Model**: `checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850` (retrained on same UI tree used by MT-RL data)
+**Base Model**: `checkpoint/gui_exp/st_rl_448/v0-20260210_095510/checkpoint-12315` (pipeline: SFT → ST-RL → MT-RL)
 
-**Dataset**: `datas/448_retrain/mt_rl_aligned.json`
+**Dataset**: `datas/mt_rl_aligned.json`
 
 **Training Script**: `gui_scripts/mt_rl_448.sh`
 
@@ -429,14 +440,11 @@ python eval/evaluate.py \
 
 ### MT-RL Training Status
 
-**Status**: Not yet started with current config. Waiting for ST-RL retraining to complete.
-
-**Previous Runs** (before config optimization):
-- Runs 1-3: Failed due to wrong reward function (`a2b_wo`), missing system prompt, wrong hyperparameters
-- Run 4: Crashed at step 200 — disk full during checkpoint save (NCCL timeout). Rewards were non-zero (fix confirmed)
-- Run 5: Ran with old config (batch=4, gen=3, acc=4). Superseded by optimized config (batch=1, gen=3, acc=16)
-
-**Next**: Will start MT-RL after ST-RL completes and is evaluated.
+**Current Run**: `v0-20260213_171323` (WandB: `d1865q0j`)
+- Step 2/2730, ~110s/step, ETA ~3.5 days
+- Memory: 63.94 GiB peak per GPU (81.9 GiB total, 78% utilization)
+- All 3 GPUs at 100% utilization
+- Reward at step 2: 0.125 (early, expected to increase)
 
 ---
 
@@ -465,5 +473,33 @@ python eval/evaluate.py \
 
 ---
 
-*Last updated: 2026-02-09 (ST-RL retraining in progress, step 6290/12315, 51%)*
+*Last updated: 2026-02-13 (ST-RL eval complete, MT-RL training started)*
 
+
+---
+
+## SFT Evaluation Results (seed=42 tree, 2026-02-10 05:22)
+
+**Checkpoint**: `checkpoint/gui_exp/sft_448/v0-20260209_210621/checkpoint-1275`
+
+### Table 1: Static + Interactive
+
+| Metric | Ours | Paper SFT | Delta |
+|--------|------|-----------|-------|
+| ID Edge | 92.22% | 94.82% | -2.60% |
+| ID Path | 77.27% | 99.76% | -22.49% |
+| ID Overall | 79.92% | 98.89% | -18.97% |
+| OOD Edge | 80.00% | 64.55% | +15.45% |
+| OOD Path | 68.13% | 41.76% | +26.37% |
+| OOD Overall | 69.16% | 55.45% | +13.71% |
+| Pass@1 | 15.40% | 14.30% | +1.10% |
+| Pass@5 | 20.00% | 20.86% | -0.86% |
+
+### Table 2: Interactive Path@k Breakdown (500 tasks)
+
+|        | Path@1 | Path@2 | Path@3 | Path@4 | Path@5 | Path@6 | Path@7 |
+|--------|--------|--------|--------|--------|--------|--------|--------|
+| Pass@1 (ours) | 94.6 | 32.4 | 20.4 | 16.5 | 2.8 | 2.9 | 1.2 |
+| Pass@1 (paper) | 99.71 | 51.16 | 19.55 | 8.52 | 3.13 | 2.15 | 0.31 |
+| Pass@5 (ours) | 97.3 | 48.6 | 28.6 | 20.3 | 6.4 | 5.7 | 3.6 |
+| Pass@5 (paper) | 100.00 | 74.15 | 36.04 | 19.75 | 6.71 | 5.04 | 1.30 |

@@ -28,7 +28,7 @@ export TORCH_NCCL_TRACE_BUFFER_SIZE=1000  # Enable flight recorder for debugging
 
 # Model and Data Paths
 export SAVE_NAME="mt_rl_448"
-export MODEL_PATH="./checkpoint/gui_exp/sft_448_retrain/v0-20260201_054616/checkpoint-850"  # Retrain SFT, same UI tree as MT-RL data
+export MODEL_PATH="./checkpoint/gui_exp/st_rl_448/v0-20260210_095510/checkpoint-12315"  # ST-RL checkpoint (pipeline: SFT -> ST-RL -> MT-RL)
 export DATASET_PATH="datas/mt_rl_aligned.json"  # 2200 tasks from sub2+sub3
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
@@ -37,8 +37,8 @@ export BASE_LOG_DIR="./logs/train"
 # Paper Table 8 - RL Hyperparameters (EXACT)
 # =============================================================================
 export LEARNING_RATE=1e-6
-export NUM_TRAIN_EPOCHS=10  # Original authors use 10
-export NUM_GENERATIONS=3  # Must divide total batch (3 GPUs x 1 = 3). Conservative for multi-turn (longer sequences).
+export NUM_TRAIN_EPOCHS=10  # Paper uses 5; doubled to compensate for smaller effective batch
+export NUM_GENERATIONS=6  # Paper: 8. Must divide total batch (3 GPUs x 2 = 6). Improved from 3 for better GRPO variance reduction.
 export TEMPERATURE=1.2
 export TOP_P=1.0
 export TOP_K=8
@@ -46,11 +46,11 @@ export MAX_PIXELS=200704
 
 # GPU Adjustment for 3x A100 80GB (80GB each)
 # Each generation runs up to 12 multi-turn steps of inference
-# batch=1, num_gen=3 to fit multi-turn's longer sequences in 80GB
-# 3 GPUs × batch=1 × grad_acc=16 = 48 effective batch
+# batch=2, num_gen=6: better GRPO quality (6 vs 3 generations per group)
+# 3 GPUs × batch=2 × grad_acc=8 = 48 effective batch
 export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=1
-export GRADIENT_ACCUMULATION_STEPS=16
+export PER_DEVICE_TRAIN_BATCH_SIZE=2
+export GRADIENT_ACCUMULATION_STEPS=8
 
 # GRPO Configuration 
 export RLHF_TYPE="grpo"

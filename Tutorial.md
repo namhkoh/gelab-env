@@ -109,28 +109,32 @@ Fine-tunes the SFT checkpoint with GRPO on single-step navigation using subtrees
 
 Supports optional `MAX_STEPS` env var for quick validation runs (e.g., `export MAX_STEPS=20`).
 
+Supports optional `MAX_STEPS` env var for quick validation runs (e.g., `export MAX_STEPS=20`).
+
 ```bash
 export WANDB_API_KEY="your_key"
 export HF_TOKEN="your_token"
 bash gui_scripts/st_rl_448.sh
 ```
 
+**Pre-trained checkpoint**: [`namhokaist/gelab-st-rl-448-seed42`](https://huggingface.co/namhokaist/gelab-st-rl-448-seed42) on HuggingFace Hub.
+
 ### 2.3 MT-RL (Multi-Turn Reinforcement Learning)
 
 **Script**: `gui_scripts/mt_rl_448.sh`
 
-Fine-tunes the SFT checkpoint with GRPO on multi-turn navigation episodes (up to 12 steps) using subtrees 2-3.
+Fine-tunes the ST-RL checkpoint with GRPO on multi-turn navigation episodes (up to 12 steps) using subtrees 2-3. Following the paper's three-stage pipeline: SFT → ST-RL → MT-RL.
 
 | Parameter | Our Value | Paper Value | Notes |
 |-----------|-----------|-------------|-------|
-| Base Model | SFT checkpoint | SFT checkpoint | |
+| Base Model | ST-RL checkpoint | ST-RL checkpoint | Pipeline: SFT → ST-RL → MT-RL |
 | Algorithm | GRPO | GRPO | |
-| Dataset | 2,200 multi-turn tasks | 2,200 tasks | |
+| Dataset | 2,200 multi-turn tasks | 2,162 tasks | |
 | Learning Rate | 1e-6 | 1e-6 | |
-| Epochs | 10 | 10 | |
-| Per-device Batch Size | 1 | 8 | Conservative: multi-turn seqs are long |
-| Num Generations | 3 | 8 | Must divide effective batch (3x1=3) |
-| Gradient Accumulation | 16 | — | Effective batch: 3x1x16=48 (paper: 128) |
+| Epochs | 10 | 5 | Doubled to compensate for smaller effective batch |
+| Per-device Batch Size | 2 | 8 | Conservative: multi-turn seqs are long |
+| Num Generations | 6 | 8 | Must divide effective batch (3x2=6) |
+| Gradient Accumulation | 8 | — | Effective batch: 3x2x8=48 (paper: 128) |
 | Temperature | 1.2 | 1.2 | |
 | Max Completion Length | 1024 | 1024 | |
 | Max Turns | 12 | 12 | Allows backtracking on Path@7 tasks |
@@ -162,7 +166,7 @@ The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A1
 | ZeRO-3 (not ZeRO-2) for RL | ZeRO-2 OOMs at optimizer step — it keeps full model params + gradients on each GPU. ZeRO-3 partitions everything. |
 | Gradient checkpointing | Reduces activation memory by recomputing during backward pass. ~20 GB savings per GPU. |
 | `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` | Reduces CUDA memory fragmentation. |
-| `num_generations` must divide effective batch | Must evenly divide `per_device_batch_size x num_gpus`. ST-RL achieves paper's 8; MT-RL uses 3 (conservative for long multi-turn seqs). |
+| `num_generations` must divide effective batch | Must evenly divide `per_device_batch_size x num_gpus`. ST-RL achieves paper's 8; MT-RL uses 6 (paper: 8). |
 | Effective batch 48 (not 128) | 3 GPUs vs 16 — compensated with gradient accumulation. |
 | `save_only_model=true` | Reduces checkpoint size from 109 GB (with optimizer states) to ~15 GB (7x savings). |
 
@@ -171,7 +175,7 @@ The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A1
 - batch=8, gen=6: 55.5 GB (ZeRO-3 memory is flat across batch sizes)
 - batch=16, gen=8: **63.7 GB** (current optimal — matches paper's `num_generations=8`)
 
-**Impact on results:** ST-RL matches the paper's `num_generations=8` exactly. The only remaining deviation is effective batch size (48 vs 128). MT-RL uses `num_generations=3` (paper: 8) due to long multi-turn sequences. The relative ranking SFT < ST-RL < MT-RL should hold.
+**Impact on results:** ST-RL matches the paper's `num_generations=8` exactly. MT-RL uses `num_generations=6` (paper: 8). The only remaining deviation is effective batch size (48 vs 128). The relative ranking SFT < ST-RL < MT-RL should hold.
 
 ---
 
@@ -459,7 +463,7 @@ bash gui_scripts/sft_448.sh
 # 6. ST-RL training (after SFT completes)
 bash gui_scripts/st_rl_448.sh
 
-# 7. MT-RL training (after SFT completes)
+# 7. MT-RL training (after ST-RL completes)
 bash gui_scripts/mt_rl_448.sh
 
 # 8. Evaluate (single GPU)
