@@ -208,9 +208,25 @@ python eval/evaluate.py --model_path <checkpoint> --mode all --num_gpus 3 --work
 
 The default `--env_dir` is `datas`, which contains the UI structure, page images, and test splits.
 
+**Note:** All checkpoints (SFT, ST-RL, MT-RL) are full fine-tuned models, NOT LoRA adapters. Use `--model_path` directly — do not use `--lora_path`.
+
 **Multi-GPU details:** When `--num_gpus > 1`, samples/tasks are split round-robin across workers. Each worker loads its own model on the assigned GPU via `torch.multiprocessing` with `spawn`. Use `--workers_per_gpu 2` on A100 80GB (each 7B bf16 model copy uses ~14GB).
 
-### 3.2 Metrics
+### 3.2 OOD Environment Evaluation
+
+To evaluate on OOD environment variants (Env-Base, Env-Image, Env-Name, etc.), use `--env_dir` for the environment and `--test_dir` for the test splits:
+
+```bash
+python eval/evaluate.py \
+  --model_path namhokaist/gelab-sft-448-seed42 \
+  --mode static \
+  --env_dir <path_to_ood_environment> \
+  --test_dir <path_to_test_splits>
+```
+
+`--env_dir` must contain `ui_structure.json`, `ui_structure_layer.json`, and `pages/`. `--test_dir` must contain the test JSON files (`test_id_edge.json`, `test_ood_edge.json`, etc.).
+
+### 3.3 Metrics
 
 **Table 1 — Static Benchmark (ID/OOD):**
 - Edge accuracy: single-step transition correctness
