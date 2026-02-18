@@ -652,11 +652,11 @@ def _static_worker(gpu_id, samples, model_path, lora_path, label, verbose, resul
             step_results.append((src, tgt, path_length, is_correct))
 
             if verbose and not is_correct:
-                print(f"  [GPU{gpu_id}][{label}] Sample {i}: WRONG | pred={response[:80]}")
+                print(f"  [GPU{gpu_id}][{label}] Sample {i}: WRONG | pred={response[:80]}", flush=True)
 
             if (i + 1) % 50 == 0:
                 acc = correct / total if total else 0
-                print(f"  [GPU{gpu_id}][{label}] {i+1}/{len(samples)} evaluated, running acc: {acc:.4f}")
+                print(f"  [GPU{gpu_id}][{label}] {i+1}/{len(samples)} evaluated, running acc: {acc:.4f}", flush=True)
 
         result_queue.put(("static", label, {
             "correct": correct, "total": total,
@@ -664,7 +664,7 @@ def _static_worker(gpu_id, samples, model_path, lora_path, label, verbose, resul
         }))
     except Exception as e:
         import traceback
-        print(f"  [GPU{gpu_id}][{label}] WORKER CRASHED: {e}", flush=True)
+        print(f"  [GPU{gpu_id}][{label}] STATIC WORKER CRASHED: {e}", flush=True)
         traceback.print_exc()
         raise
 
@@ -697,10 +697,11 @@ def _interactive_worker(gpu_id, tasks, model_path, lora_path, env_dir,
             }))
 
             if (i + 1) % 20 == 0:
-                print(f"  [GPU{gpu_id}] {i+1}/{len(tasks)} interactive tasks done")
+                print(f"  [GPU{gpu_id}] {i+1}/{len(tasks)} interactive tasks done", flush=True)
     except Exception as e:
         import traceback
         print(f"  [GPU{gpu_id}] INTERACTIVE WORKER CRASHED: {e}", flush=True)
+
         traceback.print_exc()
         raise
 
@@ -765,17 +766,25 @@ def _merge_interactive_results(per_task_results, num_attempts):
     }
 
 
-def _join_workers(processes, label=""):
+def _join_workers(processes, label="", result_queue=None):
     """Join worker processes with crash detection.
 
-    Polls workers instead of blocking on join(), so if any worker dies
-    we detect it immediately and raise instead of deadlocking.
+    Polls workers instead of blocking on join(), and drains result_queue
+    to prevent deadlock when workers block on queue.put().
     """
+    collected = []
     alive = set(range(len(processes)))
     while alive:
+        # Drain queue to prevent workers blocking on put()
+        if result_queue is not None:
+            while not result_queue.empty():
+                try:
+                    collected.append(result_queue.get_nowait())
+                except Exception:
+                    break
         for i in list(alive):
             p = processes[i]
-            p.join(timeout=5)
+            p.join(timeout=2)
             if not p.is_alive():
                 alive.discard(i)
                 if p.exitcode != 0:
@@ -788,6 +797,14 @@ def _join_workers(processes, label=""):
                         f"[{label}] Worker {i} (PID {p.pid}) crashed with exit code {p.exitcode}. "
                         f"Check GPU memory or worker logs."
                     )
+    # Final drain after all workers exit
+    if result_queue is not None:
+        while not result_queue.empty():
+            try:
+                collected.append(result_queue.get_nowait())
+            except Exception:
+                break
+    return collected
 
 
 def run_multigpu(args, num_gpus, workers_per_gpu=1):
@@ -853,12 +870,11 @@ def run_multigpu(args, num_gpus, workers_per_gpu=1):
                     p.start()
                     processes.append(p)
 
-            _join_workers(processes, label=label)
+            collected = _join_workers(processes, label=label, result_queue=result_queue)
 
-            # Collect and merge
+            # Merge results
             partial = []
-            while not result_queue.empty():
-                msg_type, msg_label, msg_data = result_queue.get()
+            for msg_type, msg_label, msg_data in collected:
                 if msg_type == "static" and msg_label == label:
                     partial.append(msg_data)
 
@@ -898,12 +914,11 @@ def run_multigpu(args, num_gpus, workers_per_gpu=1):
                 p.start()
                 processes.append(p)
 
-        _join_workers(processes, label="interactive")
+        collected = _join_workers(processes, label="interactive", result_queue=result_queue)
 
-        # Collect and merge
+        # Merge results
         per_task = []
-        while not result_queue.empty():
-            msg_type, _, msg_data = result_queue.get()
+        for msg_type, _, msg_data in collected:
             if msg_type == "interactive":
                 per_task.append(msg_data)
 

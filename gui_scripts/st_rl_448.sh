@@ -23,7 +23,7 @@ export REPORT_TO="wandb"
 # Model and Data Paths
 export SAVE_NAME="st_rl_448"
 export MODEL_PATH="checkpoint/gui_exp/sft_448/v0-20260209_210621/checkpoint-1275"
-export DATASET_PATH="datas/st_rl_path_only.json"
+export DATASET_PATH="datas/st_rl_path_sub2.json"
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
 
@@ -31,7 +31,7 @@ export BASE_LOG_DIR="./logs/train"
 # Paper Table 8 - RL Hyperparameters (EXACT)
 # =============================================================================
 export LEARNING_RATE=1e-6
-export NUM_TRAIN_EPOCHS=3
+export NUM_TRAIN_EPOCHS=5
 export NUM_GENERATIONS=8
 export TEMPERATURE=1.2
 export TOP_P=1.0
@@ -40,11 +40,11 @@ export MAX_PIXELS=200704
 
 # GPU Adjustment for 3x A100 80GB
 # Paper: 16 GPUs × batch=8 × num_gen=8 = 128 effective batch
-# Ours: 3 GPUs × batch=16 × grad_acc=1 = 48 effective batch
-# num_gen=8 divides effective batch (3×16=48), matches paper exactly
+# Ours: 3 GPUs × batch=16 × grad_acc=3 = 144 effective batch (close to 128)
+# num_gen=8 divides micro-batch (3×16=48), 48/8=6 unique prompts per micro-batch
 export NPROC_PER_NODE=3
 export PER_DEVICE_TRAIN_BATCH_SIZE=16
-export GRADIENT_ACCUMULATION_STEPS=1
+export GRADIENT_ACCUMULATION_STEPS=3
 
 # GRPO Configuration
 export RLHF_TYPE="grpo"
@@ -62,9 +62,10 @@ export REWARD_FUNCS="web_action_match web_coordinate_match_bbox web_intent_match
 export REWARD_WEIGHTS="0.25 0.25 0.25 0.25"
 
 # Logging
-export EVAL_STEPS=500
-export SAVE_STEPS=500
-export SAVE_TOTAL_LIMIT=2
+# Save per epoch: 12,439 samples / (16×3/8) prompts per micro-batch / 3 grad_acc ≈ 691 steps/epoch
+export EVAL_STEPS=691
+export SAVE_STEPS=691
+export SAVE_TOTAL_LIMIT=5
 export SAVE_ONLY_MODEL="true"
 export LOGGING_STEPS=5
 export DATALOADER_NUM_WORKERS=4

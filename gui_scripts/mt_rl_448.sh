@@ -38,7 +38,7 @@ export BASE_LOG_DIR="./logs/train"
 # =============================================================================
 export LEARNING_RATE=1e-6
 export NUM_TRAIN_EPOCHS=10  # Paper uses 5; doubled to compensate for smaller effective batch
-export NUM_GENERATIONS=6  # Paper: 8. Must divide total batch (3 GPUs x 2 = 6). Improved from 3 for better GRPO variance reduction.
+export NUM_GENERATIONS=3  # Paper: 8. Must divide total batch (3 GPUs x 1 = 3). Reduced from 6 to prevent multi-turn OOM.
 export TEMPERATURE=1.2
 export TOP_P=1.0
 export TOP_K=8
@@ -46,11 +46,11 @@ export MAX_PIXELS=200704
 
 # GPU Adjustment for 3x A100 80GB (80GB each)
 # Each generation runs up to 12 multi-turn steps of inference
-# batch=2, num_gen=6: better GRPO quality (6 vs 3 generations per group)
-# 3 GPUs × batch=2 × grad_acc=8 = 48 effective batch
+# batch=1, num_gen=3: 1 episode/GPU, proven stable at ~55 GiB (25 GiB headroom)
+# 3 GPUs × batch=1 × grad_acc=16 = 48 effective batch
 export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=2
-export GRADIENT_ACCUMULATION_STEPS=8
+export PER_DEVICE_TRAIN_BATCH_SIZE=1
+export GRADIENT_ACCUMULATION_STEPS=16
 
 # GRPO Configuration 
 export RLHF_TYPE="grpo"
@@ -71,7 +71,7 @@ export MULTI_TURN_FUNC="gelab_multi_turn"
 
 # Logging
 export EVAL_STEPS=500
-export SAVE_STEPS=500
+export SAVE_STEPS=100
 export SAVE_TOTAL_LIMIT=2
 export SAVE_ONLY_MODEL="true"
 export LOGGING_STEPS=1

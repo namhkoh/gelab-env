@@ -35,7 +35,8 @@ gelab-env/
 │   ├── ui_structure_layer.json     # Hierarchical tree structure (nested subnodes)
 │   ├── pages/                      # 231 rendered page images (448x448, gitignored)
 │   ├── sft_aligned.json            # SFT training data (30,888 samples)
-│   ├── st_rl_path_only.json        # ST-RL training data (24,878 path samples)
+│   ├── st_rl_path_only.json        # ST-RL training data (24,878 path samples, both subtrees)
+│   ├── st_rl_path_sub2.json        # ST-RL training data (12,439 path samples, subtree 2 only)
 │   ├── mt_rl_aligned.json          # MT-RL training data (2,200 tasks)
 │   ├── test_id_edge.json           # ID edge test (90 samples, subtrees 0-1)
 │   ├── test_id_path.json           # ID path test (4,851 all-step samples, subtrees 0-1)
@@ -90,24 +91,22 @@ bash gui_scripts/sft_448.sh
 
 **Script**: `gui_scripts/st_rl_448.sh`
 
-Fine-tunes the SFT checkpoint with GRPO on single-step navigation using subtrees 2-3.
+Fine-tunes the SFT checkpoint with GRPO on single-step navigation. Uses subtree 2 only (12,439 samples) to reduce catastrophic forgetting — the paper reports 99,512 total interactions (= 12,439 × 8 generations), consistent with single-subtree training.
 
 | Parameter | Our Value | Paper Value | Notes |
 |-----------|-----------|-------------|-------|
 | Base Model | SFT checkpoint | SFT checkpoint | |
 | Algorithm | GRPO | GRPO | |
-| Dataset | 24,878 path-only samples | — | 12,439 per subtree |
+| Dataset | 12,439 path-only samples | 12,439* | Single subtree (subtree 2) |
 | Learning Rate | 1e-6 | 1e-6 | |
-| Epochs | 3 | 5 | Reduced for faster iteration |
-| Per-device Batch Size | 16 | 8 | Doubled to maximize GPU utilization |
-| Num Generations | 8 | 8 | Matches paper exactly |
-| Gradient Accumulation | 1 | — | Effective batch: 3x16x1=48 (paper: 128) |
+| Epochs | 5 | 5 | |
+| Per-device Batch Size | 16 | 8 | Adjusted for 3 GPUs |
+| Num Generations | 8 | 8 | |
+| Gradient Accumulation | 3 | — | Effective batch: 3x16x3=144 (paper: 128) |
 | Temperature | 1.2 | 1.2 | |
 | DeepSpeed | ZeRO Stage 3 | — | Required for 80GB GPUs (ZeRO-2 OOMs) |
 | Gradient Checkpointing | true | — | Trades compute for memory |
 | Reward Functions | 4 equally-weighted (0.25x4) | 4 equally-weighted | r_type + r_coord + r_intent + r_format |
-
-Supports optional `MAX_STEPS` env var for quick validation runs (e.g., `export MAX_STEPS=20`).
 
 Supports optional `MAX_STEPS` env var for quick validation runs (e.g., `export MAX_STEPS=20`).
 
@@ -117,7 +116,7 @@ export HF_TOKEN="your_token"
 bash gui_scripts/st_rl_448.sh
 ```
 
-**Pre-trained checkpoint**: [`namhokaist/gelab-st-rl-448-seed42`](https://huggingface.co/namhokaist/gelab-st-rl-448-seed42) on HuggingFace Hub.
+**Pre-trained checkpoint**: [`namhokaist/gelab-st-rl-448-seed42`](https://huggingface.co/namhokaist/gelab-st-rl-448-seed42) on HuggingFace Hub (old 2-subtree, 3-epoch run — will be updated after retraining).
 
 ### 2.3 MT-RL (Multi-Turn Reinforcement Learning)
 
@@ -132,9 +131,9 @@ Fine-tunes the ST-RL checkpoint with GRPO on multi-turn navigation episodes (up 
 | Dataset | 2,200 multi-turn tasks | 2,162 tasks | |
 | Learning Rate | 1e-6 | 1e-6 | |
 | Epochs | 10 | 5 | Doubled to compensate for smaller effective batch |
-| Per-device Batch Size | 2 | 8 | Conservative: multi-turn seqs are long |
-| Num Generations | 6 | 8 | Must divide effective batch (3x2=6) |
-| Gradient Accumulation | 8 | — | Effective batch: 3x2x8=48 (paper: 128) |
+| Per-device Batch Size | 1 | 8 | Conservative: multi-turn rollouts have variable memory |
+| Num Generations | 3 | 8 | Must divide effective batch (3x1=3). Reduced from 6 to prevent OOM. |
+| Gradient Accumulation | 16 | — | Effective batch: 3x1x16=48 (paper: 128) |
 | Temperature | 1.2 | 1.2 | |
 | Max Completion Length | 1024 | 1024 | |
 | Max Turns | 12 | 12 | Allows backtracking on Path@7 tasks |
@@ -142,6 +141,8 @@ Fine-tunes the ST-RL checkpoint with GRPO on multi-turn navigation episodes (up 
 | Multi-Turn Env | `gelab_multi_turn` | `gelab_multi_turn` | |
 | DeepSpeed | ZeRO Stage 3 | ZeRO Stage 3 | |
 | Gradient Checkpointing | true | — | Required for memory |
+
+**Pre-trained checkpoint**: [`namhokaist/gelab-mt-rl-448-seed42`](https://huggingface.co/namhokaist/gelab-mt-rl-448-seed42) on HuggingFace Hub (trained from old ST-RL checkpoint — will be updated after ST-RL retraining).
 
 The multi-turn environment (`swift/plugin/multi_turn.py`) simulates interactive episodes:
 1. Model outputs `click(x,y)` -> environment checks if click hits a valid icon bbox
@@ -166,8 +167,8 @@ The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A1
 | ZeRO-3 (not ZeRO-2) for RL | ZeRO-2 OOMs at optimizer step — it keeps full model params + gradients on each GPU. ZeRO-3 partitions everything. |
 | Gradient checkpointing | Reduces activation memory by recomputing during backward pass. ~20 GB savings per GPU. |
 | `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` | Reduces CUDA memory fragmentation. |
-| `num_generations` must divide effective batch | Must evenly divide `per_device_batch_size x num_gpus`. ST-RL achieves paper's 8; MT-RL uses 6 (paper: 8). |
-| Effective batch 48 (not 128) | 3 GPUs vs 16 — compensated with gradient accumulation. |
+| `num_generations` must divide effective batch | Must evenly divide `per_device_batch_size x num_gpus`. ST-RL achieves paper's 8; MT-RL uses 3 (paper: 8) due to multi-turn memory constraints. |
+| Effective batch ~48-144 (paper: 128) | 3 GPUs vs 16 — compensated with gradient accumulation. ST-RL: 144, MT-RL: 48. |
 | `save_only_model=true` | Reduces checkpoint size from 109 GB (with optimizer states) to ~15 GB (7x savings). |
 
 **Memory profiles (ST-RL, ZeRO-3 + gradient checkpointing):**
@@ -175,7 +176,7 @@ The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A1
 - batch=8, gen=6: 55.5 GB (ZeRO-3 memory is flat across batch sizes)
 - batch=16, gen=8: **63.7 GB** (current optimal — matches paper's `num_generations=8`)
 
-**Impact on results:** ST-RL matches the paper's `num_generations=8` exactly. MT-RL uses `num_generations=6` (paper: 8). The only remaining deviation is effective batch size (48 vs 128). The relative ranking SFT < ST-RL < MT-RL should hold.
+**Key lesson learned:** Using 2 subtrees (24,878 samples) for ST-RL with only 3 epochs caused severe catastrophic forgetting — interactive Pass@1 dropped from 15% (SFT) to 7.35% (ST-RL). The paper's 99,512 total interactions (= 12,439 × 8 gen) implies single-subtree training. Switching to 1 subtree with 5 epochs and grad_acc=3 (effective batch 144, close to paper's 128) reduced total gradient updates from 12,439 to 3,420, matching the paper's scale.
 
 ---
 
@@ -472,3 +473,9 @@ python eval/evaluate.py --model_path <checkpoint> --mode all
 # 8b. Evaluate (multi-GPU, ~3x faster)
 python eval/evaluate.py --model_path <checkpoint> --mode all --num_gpus 3
 ```
+
+---
+
+## Current Workings
+
+ST-RL is being retrained with a corrected configuration: 1 subtree (12,439 samples), 5 epochs, grad_acc=3 (effective batch 144). The previous 2-subtree, 3-epoch config caused catastrophic forgetting (interactive Pass@1 dropped from 15% to 7.35%); the new config reduces total gradient updates from 12,439 to 3,420, closely matching the paper's training scale. After ST-RL retraining completes and is validated, MT-RL will be retrained on top of the new ST-RL checkpoint.

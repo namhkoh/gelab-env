@@ -880,8 +880,8 @@ def load_icons_from_directory(dirname: str, required_count: int, output_dir: str
     """
     # Use os.path to get all PNG file paths
     pattern = os.path.join(dirname, "*/PNG/*.png")
-    all_icon_paths = glob.glob(pattern)
-    
+    all_icon_paths = sorted(glob.glob(pattern))
+
     if len(all_icon_paths) < required_count:
         raise ValueError(f"Insufficient number of icons! Need {required_count}, but directory only has {len(all_icon_paths)}")
     
