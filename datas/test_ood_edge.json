@@ -1,250 +1,8 @@
 [
   {
     "idx": 0,
-    "type": "edge",
-    "source_page": "page_5",
-    "target_page": "page_18",
-    "icon_name": "Business_137",
-    "bbox_norm": [
-      857,
-      678,
-      968,
-      790
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_5 to page_18. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_137 icon on page_5.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_5.png"
-    ]
-  },
-  {
-    "idx": 1,
-    "type": "edge",
-    "source_page": "page_5",
-    "target_page": "page_19",
-    "icon_name": "Business_183",
-    "bbox_norm": [
-      500,
-      678,
-      611,
-      790
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_5 to page_19. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_183 icon on page_5.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_5.png"
-    ]
-  },
-  {
-    "idx": 2,
-    "type": "edge",
-    "source_page": "page_5",
-    "target_page": "page_20",
-    "icon_name": "Business_217",
-    "bbox_norm": [
-      678,
-      500,
-      790,
-      611
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_5 to page_20. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_217 icon on page_5.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_5.png"
-    ]
-  },
-  {
-    "idx": 3,
-    "type": "edge",
-    "source_page": "page_18",
-    "target_page": "page_45",
-    "icon_name": "Business_177",
-    "bbox_norm": [
-      857,
-      500,
-      968,
-      611
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_18 to page_45. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_177 icon on page_18.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_18.png"
-    ]
-  },
-  {
-    "idx": 4,
-    "type": "edge",
-    "source_page": "page_18",
-    "target_page": "page_46",
-    "icon_name": "Animals_82",
-    "bbox_norm": [
-      500,
-      678,
-      611,
-      790
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_18 to page_46. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Animals_82 icon on page_18.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_18.png"
-    ]
-  },
-  {
-    "idx": 5,
-    "type": "edge",
-    "source_page": "page_45",
-    "target_page": "page_99",
-    "icon_name": "Animals_61",
-    "bbox_norm": [
-      321,
-      500,
-      433,
-      611
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_45 to page_99. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Animals_61 icon on page_45.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_45.png"
-    ]
-  },
-  {
-    "idx": 6,
-    "type": "edge",
-    "source_page": "page_45",
-    "target_page": "page_100",
-    "icon_name": "Business_15",
-    "bbox_norm": [
-      678,
-      500,
-      790,
-      611
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_45 to page_100. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_15 icon on page_45.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_45.png"
-    ]
-  },
-  {
-    "idx": 7,
-    "type": "edge",
-    "source_page": "page_99",
-    "target_page": "page_159",
-    "icon_name": "Business_198",
-    "bbox_norm": [
-      500,
-      678,
-      611,
-      790
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_99 to page_159. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_198 icon on page_99.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_99.png"
-    ]
-  },
-  {
-    "idx": 8,
-    "type": "edge",
-    "source_page": "page_159",
-    "target_page": "page_219",
-    "icon_name": "Business_104",
-    "bbox_norm": [
-      857,
-      500,
-      968,
-      611
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_159 to page_219. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_104 icon on page_159.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_159.png"
-    ]
-  },
-  {
-    "idx": 9,
-    "type": "edge",
-    "source_page": "page_100",
-    "target_page": "page_160",
-    "icon_name": "Animals_26",
-    "bbox_norm": [
-      857,
-      500,
-      968,
-      611
-    ],
+    "path": 1,
+    "task": "From page_100 to page_160",
     "messages": [
       {
         "role": "user",
@@ -256,99 +14,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_100.png"
-    ]
-  },
-  {
-    "idx": 10,
-    "type": "edge",
-    "source_page": "page_160",
-    "target_page": "page_220",
-    "icon_name": "Business_146",
-    "bbox_norm": [
-      678,
-      500,
-      790,
-      611
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_100.png"
     ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_160 to page_220. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_146 icon on page_160.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_160.png"
-    ]
-  },
-  {
-    "idx": 11,
-    "type": "edge",
-    "source_page": "page_46",
-    "target_page": "page_101",
-    "icon_name": "Business_231",
     "bbox_norm": [
       857,
-      678,
+      500,
       968,
-      790
+      611
     ],
+    "source": "sub4_edge",
+    "source_page": "page_100",
+    "target_page": "page_160",
+    "path_length": 1
+  },
+  {
+    "idx": 1,
+    "path": 1,
+    "task": "From page_100 to page_160",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_46 to page_101. History: Null"
+        "content": "<image>Instruction: from page_100 to page_160. History: step1: click Animals_26 icon on page_100"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Business_231 icon on page_46.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_46.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_160.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_100",
+    "target_page": "page_160",
+    "path_length": 1
   },
   {
-    "idx": 12,
-    "type": "edge",
-    "source_page": "page_46",
-    "target_page": "page_102",
-    "icon_name": "Animals_110",
-    "bbox_norm": [
-      142,
-      500,
-      254,
-      611
-    ],
+    "idx": 2,
+    "path": 1,
+    "task": "From page_100 to page_45",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_46 to page_102. History: Null"
+        "content": "<image>Instruction: from page_100 to page_45. History: Null"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Animals_110 icon on page_46.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+        "content": "Explain: click back icon on page_100.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
       }
     ],
     "images": [
-      "datas/pages/page_46.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_100.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_100",
+    "target_page": "page_45",
+    "path_length": 1
   },
   {
-    "idx": 13,
-    "type": "edge",
-    "source_page": "page_101",
-    "target_page": "page_161",
-    "icon_name": "Business_118",
-    "bbox_norm": [
-      142,
-      500,
-      254,
-      611
+    "idx": 3,
+    "path": 1,
+    "task": "From page_100 to page_45",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_100 to page_45. History: step1: click back icon on page_100"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
     ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_45.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_100",
+    "target_page": "page_45",
+    "path_length": 1
+  },
+  {
+    "idx": 4,
+    "path": 1,
+    "task": "From page_100 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_100 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_100.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_100.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_100",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 5,
+    "path": 1,
+    "task": "From page_100 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_100 to page_0. History: step1: click home icon on page_100"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_100",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 6,
+    "path": 1,
+    "task": "From page_101 to page_161",
     "messages": [
       {
         "role": "user",
@@ -360,47 +182,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_101.png"
-    ]
-  },
-  {
-    "idx": 14,
-    "type": "edge",
-    "source_page": "page_161",
-    "target_page": "page_221",
-    "icon_name": "Animals_84",
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_101.png"
+    ],
     "bbox_norm": [
-      678,
+      142,
       500,
-      790,
+      254,
       611
     ],
+    "source": "sub4_edge",
+    "source_page": "page_101",
+    "target_page": "page_161",
+    "path_length": 1
+  },
+  {
+    "idx": 7,
+    "path": 1,
+    "task": "From page_101 to page_161",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_161 to page_221. History: Null"
+        "content": "<image>Instruction: from page_101 to page_161. History: step1: click Business_118 icon on page_101"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Animals_84 icon on page_161.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_161.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_161.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_101",
+    "target_page": "page_161",
+    "path_length": 1
   },
   {
-    "idx": 15,
-    "type": "edge",
-    "source_page": "page_102",
-    "target_page": "page_162",
-    "icon_name": "Business_134",
-    "bbox_norm": [
-      321,
-      500,
-      433,
-      611
+    "idx": 8,
+    "path": 1,
+    "task": "From page_101 to page_46",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_101 to page_46. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_101.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
     ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_101.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_101",
+    "target_page": "page_46",
+    "path_length": 1
+  },
+  {
+    "idx": 9,
+    "path": 1,
+    "task": "From page_101 to page_46",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_101 to page_46. History: step1: click back icon on page_101"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_46.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_101",
+    "target_page": "page_46",
+    "path_length": 1
+  },
+  {
+    "idx": 10,
+    "path": 1,
+    "task": "From page_101 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_101 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_101.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_101.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_101",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 11,
+    "path": 1,
+    "task": "From page_101 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_101 to page_0. History: step1: click home icon on page_101"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_101",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 12,
+    "path": 1,
+    "task": "From page_102 to page_162",
     "messages": [
       {
         "role": "user",
@@ -412,151 +350,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_102.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_102.png"
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_102",
+    "target_page": "page_162",
+    "path_length": 1
+  },
+  {
+    "idx": 13,
+    "path": 1,
+    "task": "From page_102 to page_162",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_102 to page_162. History: step1: click Business_134 icon on page_102"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_162.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_102",
+    "target_page": "page_162",
+    "path_length": 1
+  },
+  {
+    "idx": 14,
+    "path": 1,
+    "task": "From page_102 to page_46",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_102 to page_46. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_102.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_102.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_102",
+    "target_page": "page_46",
+    "path_length": 1
+  },
+  {
+    "idx": 15,
+    "path": 1,
+    "task": "From page_102 to page_46",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_102 to page_46. History: step1: click back icon on page_102"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_46.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_102",
+    "target_page": "page_46",
+    "path_length": 1
   },
   {
     "idx": 16,
-    "type": "edge",
-    "source_page": "page_162",
-    "target_page": "page_222",
-    "icon_name": "Business_194",
-    "bbox_norm": [
-      142,
-      500,
-      254,
-      611
-    ],
+    "path": 1,
+    "task": "From page_102 to page_0",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_162 to page_222. History: Null"
+        "content": "<image>Instruction: from page_102 to page_0. History: Null"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Business_194 icon on page_162.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+        "content": "Explain: click home icon on page_102.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
       }
     ],
     "images": [
-      "datas/pages/page_162.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_102.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_102",
+    "target_page": "page_0",
+    "path_length": 1
   },
   {
     "idx": 17,
-    "type": "edge",
-    "source_page": "page_19",
-    "target_page": "page_47",
-    "icon_name": "Animals_12",
-    "bbox_norm": [
-      678,
-      500,
-      790,
-      611
-    ],
+    "path": 1,
+    "task": "From page_102 to page_0",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_19 to page_47. History: Null"
+        "content": "<image>Instruction: from page_102 to page_0. History: step1: click home icon on page_102"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Animals_12 icon on page_19.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_19.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_102",
+    "target_page": "page_0",
+    "path_length": 1
   },
   {
     "idx": 18,
-    "type": "edge",
-    "source_page": "page_19",
-    "target_page": "page_48",
-    "icon_name": "Business_213",
-    "bbox_norm": [
-      321,
-      500,
-      433,
-      611
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_19 to page_48. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_213 icon on page_19.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_19.png"
-    ]
-  },
-  {
-    "idx": 19,
-    "type": "edge",
-    "source_page": "page_47",
-    "target_page": "page_103",
-    "icon_name": "Business_105",
-    "bbox_norm": [
-      857,
-      678,
-      968,
-      790
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_47 to page_103. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_105 icon on page_47.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_47.png"
-    ]
-  },
-  {
-    "idx": 20,
-    "type": "edge",
-    "source_page": "page_47",
-    "target_page": "page_104",
-    "icon_name": "Business_190",
-    "bbox_norm": [
-      321,
-      500,
-      433,
-      611
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_47 to page_104. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_190 icon on page_47.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_47.png"
-    ]
-  },
-  {
-    "idx": 21,
-    "type": "edge",
-    "source_page": "page_103",
-    "target_page": "page_163",
-    "icon_name": "Animals_45",
-    "bbox_norm": [
-      321,
-      678,
-      433,
-      790
-    ],
+    "path": 1,
+    "task": "From page_103 to page_163",
     "messages": [
       {
         "role": "user",
@@ -568,47 +518,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_103.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_103.png"
+    ],
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_103",
+    "target_page": "page_163",
+    "path_length": 1
   },
   {
-    "idx": 22,
-    "type": "edge",
-    "source_page": "page_163",
-    "target_page": "page_223",
-    "icon_name": "Animals_56",
-    "bbox_norm": [
-      678,
-      500,
-      790,
-      611
-    ],
+    "idx": 19,
+    "path": 1,
+    "task": "From page_103 to page_163",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_163 to page_223. History: Null"
+        "content": "<image>Instruction: from page_103 to page_163. History: step1: click Animals_45 icon on page_103"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Animals_56 icon on page_163.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_163.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_163.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_103",
+    "target_page": "page_163",
+    "path_length": 1
+  },
+  {
+    "idx": 20,
+    "path": 1,
+    "task": "From page_103 to page_47",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_103 to page_47. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_103.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_103.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_103",
+    "target_page": "page_47",
+    "path_length": 1
+  },
+  {
+    "idx": 21,
+    "path": 1,
+    "task": "From page_103 to page_47",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_103 to page_47. History: step1: click back icon on page_103"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_47.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_103",
+    "target_page": "page_47",
+    "path_length": 1
+  },
+  {
+    "idx": 22,
+    "path": 1,
+    "task": "From page_103 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_103 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_103.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_103.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_103",
+    "target_page": "page_0",
+    "path_length": 1
   },
   {
     "idx": 23,
-    "type": "edge",
-    "source_page": "page_104",
-    "target_page": "page_164",
-    "icon_name": "Business_176",
-    "bbox_norm": [
-      857,
-      500,
-      968,
-      611
+    "path": 1,
+    "task": "From page_103 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_103 to page_0. History: step1: click home icon on page_103"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
     ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_103",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 24,
+    "path": 1,
+    "task": "From page_104 to page_164",
     "messages": [
       {
         "role": "user",
@@ -620,99 +686,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_104.png"
-    ]
-  },
-  {
-    "idx": 24,
-    "type": "edge",
-    "source_page": "page_164",
-    "target_page": "page_224",
-    "icon_name": "Business_173",
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_104.png"
+    ],
     "bbox_norm": [
-      321,
-      678,
-      433,
-      790
+      857,
+      500,
+      968,
+      611
     ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_164 to page_224. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_173 icon on page_164.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_164.png"
-    ]
+    "source": "sub4_edge",
+    "source_page": "page_104",
+    "target_page": "page_164",
+    "path_length": 1
   },
   {
     "idx": 25,
-    "type": "edge",
-    "source_page": "page_48",
-    "target_page": "page_105",
-    "icon_name": "Animals_51",
-    "bbox_norm": [
-      321,
-      678,
-      433,
-      790
-    ],
+    "path": 1,
+    "task": "From page_104 to page_164",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_48 to page_105. History: Null"
+        "content": "<image>Instruction: from page_104 to page_164. History: step1: click Business_176 icon on page_104"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Animals_51 icon on page_48.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_48.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_164.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_104",
+    "target_page": "page_164",
+    "path_length": 1
   },
   {
     "idx": 26,
-    "type": "edge",
-    "source_page": "page_48",
-    "target_page": "page_106",
-    "icon_name": "Animals_104",
-    "bbox_norm": [
-      678,
-      678,
-      790,
-      790
-    ],
+    "path": 1,
+    "task": "From page_104 to page_47",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_48 to page_106. History: Null"
+        "content": "<image>Instruction: from page_104 to page_47. History: Null"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Animals_104 icon on page_48.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+        "content": "Explain: click back icon on page_104.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
       }
     ],
     "images": [
-      "datas/pages/page_48.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_104.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_104",
+    "target_page": "page_47",
+    "path_length": 1
   },
   {
     "idx": 27,
-    "type": "edge",
-    "source_page": "page_105",
-    "target_page": "page_165",
-    "icon_name": "Animals_91",
-    "bbox_norm": [
-      142,
-      500,
-      254,
-      611
+    "path": 1,
+    "task": "From page_104 to page_47",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_104 to page_47. History: step1: click back icon on page_104"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
     ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_47.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_104",
+    "target_page": "page_47",
+    "path_length": 1
+  },
+  {
+    "idx": 28,
+    "path": 1,
+    "task": "From page_104 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_104 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_104.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_104.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_104",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 29,
+    "path": 1,
+    "task": "From page_104 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_104 to page_0. History: step1: click home icon on page_104"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_104",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 30,
+    "path": 1,
+    "task": "From page_105 to page_165",
     "messages": [
       {
         "role": "user",
@@ -724,47 +854,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_105.png"
-    ]
-  },
-  {
-    "idx": 28,
-    "type": "edge",
-    "source_page": "page_165",
-    "target_page": "page_225",
-    "icon_name": "Animals_47",
-    "bbox_norm": [
-      142,
-      678,
-      254,
-      790
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_105.png"
     ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_165 to page_225. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Animals_47 icon on page_165.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_165.png"
-    ]
-  },
-  {
-    "idx": 29,
-    "type": "edge",
-    "source_page": "page_106",
-    "target_page": "page_166",
-    "icon_name": "Business_182",
     "bbox_norm": [
       142,
       500,
       254,
       611
     ],
+    "source": "sub4_edge",
+    "source_page": "page_105",
+    "target_page": "page_165",
+    "path_length": 1
+  },
+  {
+    "idx": 31,
+    "path": 1,
+    "task": "From page_105 to page_165",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_165. History: step1: click Animals_91 icon on page_105"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_165.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_105",
+    "target_page": "page_165",
+    "path_length": 1
+  },
+  {
+    "idx": 32,
+    "path": 1,
+    "task": "From page_105 to page_48",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_48. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_105.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_105.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_105",
+    "target_page": "page_48",
+    "path_length": 1
+  },
+  {
+    "idx": 33,
+    "path": 1,
+    "task": "From page_105 to page_48",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_48. History: step1: click back icon on page_105"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_48.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_105",
+    "target_page": "page_48",
+    "path_length": 1
+  },
+  {
+    "idx": 34,
+    "path": 1,
+    "task": "From page_105 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_105.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_105.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_105",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 35,
+    "path": 1,
+    "task": "From page_105 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_105 to page_0. History: step1: click home icon on page_105"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_105",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 36,
+    "path": 1,
+    "task": "From page_106 to page_166",
     "messages": [
       {
         "role": "user",
@@ -776,151 +1022,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_106.png"
-    ]
-  },
-  {
-    "idx": 30,
-    "type": "edge",
-    "source_page": "page_166",
-    "target_page": "page_226",
-    "icon_name": "Business_206",
-    "bbox_norm": [
-      857,
-      500,
-      968,
-      611
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_106.png"
     ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_166 to page_226. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_206 icon on page_166.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_166.png"
-    ]
-  },
-  {
-    "idx": 31,
-    "type": "edge",
-    "source_page": "page_20",
-    "target_page": "page_49",
-    "icon_name": "Animals_2",
-    "bbox_norm": [
-      500,
-      678,
-      611,
-      790
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_20 to page_49. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Animals_2 icon on page_20.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_20.png"
-    ]
-  },
-  {
-    "idx": 32,
-    "type": "edge",
-    "source_page": "page_20",
-    "target_page": "page_50",
-    "icon_name": "Animals_7",
-    "bbox_norm": [
-      678,
-      678,
-      790,
-      790
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_20 to page_50. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Animals_7 icon on page_20.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_20.png"
-    ]
-  },
-  {
-    "idx": 33,
-    "type": "edge",
-    "source_page": "page_49",
-    "target_page": "page_107",
-    "icon_name": "Business_164",
     "bbox_norm": [
       142,
-      678,
-      254,
-      790
-    ],
-    "messages": [
-      {
-        "role": "user",
-        "content": "<image>Instruction: from page_49 to page_107. History: Null"
-      },
-      {
-        "role": "assistant",
-        "content": "Explain: click Business_164 icon on page_49.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
-      }
-    ],
-    "images": [
-      "datas/pages/page_49.png"
-    ]
-  },
-  {
-    "idx": 34,
-    "type": "edge",
-    "source_page": "page_49",
-    "target_page": "page_108",
-    "icon_name": "Business_184",
-    "bbox_norm": [
-      857,
       500,
-      968,
+      254,
       611
     ],
+    "source": "sub4_edge",
+    "source_page": "page_106",
+    "target_page": "page_166",
+    "path_length": 1
+  },
+  {
+    "idx": 37,
+    "path": 1,
+    "task": "From page_106 to page_166",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_49 to page_108. History: Null"
+        "content": "<image>Instruction: from page_106 to page_166. History: step1: click Business_182 icon on page_106"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Business_184 icon on page_49.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_49.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_166.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_106",
+    "target_page": "page_166",
+    "path_length": 1
   },
   {
-    "idx": 35,
-    "type": "edge",
-    "source_page": "page_107",
-    "target_page": "page_167",
-    "icon_name": "Animals_20",
-    "bbox_norm": [
-      142,
-      678,
-      254,
-      790
+    "idx": 38,
+    "path": 1,
+    "task": "From page_106 to page_48",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_106 to page_48. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_106.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
     ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_106.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_106",
+    "target_page": "page_48",
+    "path_length": 1
+  },
+  {
+    "idx": 39,
+    "path": 1,
+    "task": "From page_106 to page_48",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_106 to page_48. History: step1: click back icon on page_106"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_48.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_106",
+    "target_page": "page_48",
+    "path_length": 1
+  },
+  {
+    "idx": 40,
+    "path": 1,
+    "task": "From page_106 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_106 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_106.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_106.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_106",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 41,
+    "path": 1,
+    "task": "From page_106 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_106 to page_0. History: step1: click home icon on page_106"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_106",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 42,
+    "path": 1,
+    "task": "From page_107 to page_167",
     "messages": [
       {
         "role": "user",
@@ -932,47 +1190,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_107.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_107.png"
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_107",
+    "target_page": "page_167",
+    "path_length": 1
   },
   {
-    "idx": 36,
-    "type": "edge",
-    "source_page": "page_167",
-    "target_page": "page_227",
-    "icon_name": "Business_132",
-    "bbox_norm": [
-      321,
-      500,
-      433,
-      611
-    ],
+    "idx": 43,
+    "path": 1,
+    "task": "From page_107 to page_167",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_167 to page_227. History: Null"
+        "content": "<image>Instruction: from page_107 to page_167. History: step1: click Animals_20 icon on page_107"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Business_132 icon on page_167.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_167.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_167.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_107",
+    "target_page": "page_167",
+    "path_length": 1
   },
   {
-    "idx": 37,
-    "type": "edge",
-    "source_page": "page_108",
-    "target_page": "page_168",
-    "icon_name": "Business_216",
-    "bbox_norm": [
-      500,
-      500,
-      611,
-      611
+    "idx": 44,
+    "path": 1,
+    "task": "From page_107 to page_49",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_107 to page_49. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_107.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
     ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_107.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_107",
+    "target_page": "page_49",
+    "path_length": 1
+  },
+  {
+    "idx": 45,
+    "path": 1,
+    "task": "From page_107 to page_49",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_107 to page_49. History: step1: click back icon on page_107"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_49.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_107",
+    "target_page": "page_49",
+    "path_length": 1
+  },
+  {
+    "idx": 46,
+    "path": 1,
+    "task": "From page_107 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_107 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_107.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_107.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_107",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 47,
+    "path": 1,
+    "task": "From page_107 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_107 to page_0. History: step1: click home icon on page_107"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_107",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 48,
+    "path": 1,
+    "task": "From page_108 to page_168",
     "messages": [
       {
         "role": "user",
@@ -984,99 +1358,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_108.png"
-    ]
-  },
-  {
-    "idx": 38,
-    "type": "edge",
-    "source_page": "page_168",
-    "target_page": "page_228",
-    "icon_name": "Business_124",
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_108.png"
+    ],
     "bbox_norm": [
-      857,
       500,
-      968,
+      500,
+      611,
       611
     ],
+    "source": "sub4_edge",
+    "source_page": "page_108",
+    "target_page": "page_168",
+    "path_length": 1
+  },
+  {
+    "idx": 49,
+    "path": 1,
+    "task": "From page_108 to page_168",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_168 to page_228. History: Null"
+        "content": "<image>Instruction: from page_108 to page_168. History: step1: click Business_216 icon on page_108"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Business_124 icon on page_168.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_168.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_168.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_108",
+    "target_page": "page_168",
+    "path_length": 1
   },
   {
-    "idx": 39,
-    "type": "edge",
-    "source_page": "page_50",
-    "target_page": "page_109",
-    "icon_name": "Animals_103",
-    "bbox_norm": [
-      678,
-      500,
-      790,
-      611
-    ],
+    "idx": 50,
+    "path": 1,
+    "task": "From page_108 to page_49",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_50 to page_109. History: Null"
+        "content": "<image>Instruction: from page_108 to page_49. History: Null"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Animals_103 icon on page_50.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+        "content": "Explain: click back icon on page_108.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
       }
     ],
     "images": [
-      "datas/pages/page_50.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_108.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_108",
+    "target_page": "page_49",
+    "path_length": 1
   },
   {
-    "idx": 40,
-    "type": "edge",
-    "source_page": "page_50",
-    "target_page": "page_110",
-    "icon_name": "Business_21",
-    "bbox_norm": [
-      142,
-      678,
-      254,
-      790
-    ],
+    "idx": 51,
+    "path": 1,
+    "task": "From page_108 to page_49",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_50 to page_110. History: Null"
+        "content": "<image>Instruction: from page_108 to page_49. History: step1: click back icon on page_108"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Business_21 icon on page_50.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_50.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_49.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_108",
+    "target_page": "page_49",
+    "path_length": 1
   },
   {
-    "idx": 41,
-    "type": "edge",
-    "source_page": "page_109",
-    "target_page": "page_169",
-    "icon_name": "Business_12",
-    "bbox_norm": [
-      857,
-      500,
-      968,
-      611
+    "idx": 52,
+    "path": 1,
+    "task": "From page_108 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_108 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_108.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
     ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_108.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_108",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 53,
+    "path": 1,
+    "task": "From page_108 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_108 to page_0. History: step1: click home icon on page_108"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_108",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 54,
+    "path": 1,
+    "task": "From page_109 to page_169",
     "messages": [
       {
         "role": "user",
@@ -1088,47 +1526,163 @@
       }
     ],
     "images": [
-      "datas/pages/page_109.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_109.png"
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_109",
+    "target_page": "page_169",
+    "path_length": 1
   },
   {
-    "idx": 42,
-    "type": "edge",
-    "source_page": "page_169",
-    "target_page": "page_229",
-    "icon_name": "Animals_73",
-    "bbox_norm": [
-      142,
-      678,
-      254,
-      790
-    ],
+    "idx": 55,
+    "path": 1,
+    "task": "From page_109 to page_169",
     "messages": [
       {
         "role": "user",
-        "content": "<image>Instruction: from page_169 to page_229. History: Null"
+        "content": "<image>Instruction: from page_109 to page_169. History: step1: click Business_12 icon on page_109"
       },
       {
         "role": "assistant",
-        "content": "Explain: click Animals_73 icon on page_169.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+        "content": "Explain: this is target page.\tAction: complete"
       }
     ],
     "images": [
-      "datas/pages/page_169.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_169.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_109",
+    "target_page": "page_169",
+    "path_length": 1
   },
   {
-    "idx": 43,
-    "type": "edge",
-    "source_page": "page_110",
-    "target_page": "page_170",
-    "icon_name": "Animals_5",
-    "bbox_norm": [
-      500,
-      500,
-      611,
-      611
+    "idx": 56,
+    "path": 1,
+    "task": "From page_109 to page_50",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_109 to page_50. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_109.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
     ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_109.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_109",
+    "target_page": "page_50",
+    "path_length": 1
+  },
+  {
+    "idx": 57,
+    "path": 1,
+    "task": "From page_109 to page_50",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_109 to page_50. History: step1: click back icon on page_109"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_50.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_109",
+    "target_page": "page_50",
+    "path_length": 1
+  },
+  {
+    "idx": 58,
+    "path": 1,
+    "task": "From page_109 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_109 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_109.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_109.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_109",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 59,
+    "path": 1,
+    "task": "From page_109 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_109 to page_0. History: step1: click home icon on page_109"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_109",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 60,
+    "path": 1,
+    "task": "From page_110 to page_170",
     "messages": [
       {
         "role": "user",
@@ -1140,21 +1694,2011 @@
       }
     ],
     "images": [
-      "datas/pages/page_110.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_110.png"
+    ],
+    "bbox_norm": [
+      500,
+      500,
+      611,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_110",
+    "target_page": "page_170",
+    "path_length": 1
   },
   {
-    "idx": 44,
-    "type": "edge",
-    "source_page": "page_170",
-    "target_page": "page_230",
-    "icon_name": "Animals_95",
+    "idx": 61,
+    "path": 1,
+    "task": "From page_110 to page_170",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_170. History: step1: click Animals_5 icon on page_110"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_170.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_110",
+    "target_page": "page_170",
+    "path_length": 1
+  },
+  {
+    "idx": 62,
+    "path": 1,
+    "task": "From page_110 to page_50",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_50. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_110.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_110.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_110",
+    "target_page": "page_50",
+    "path_length": 1
+  },
+  {
+    "idx": 63,
+    "path": 1,
+    "task": "From page_110 to page_50",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_50. History: step1: click back icon on page_110"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_50.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_110",
+    "target_page": "page_50",
+    "path_length": 1
+  },
+  {
+    "idx": 64,
+    "path": 1,
+    "task": "From page_110 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_110.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_110.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_110",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 65,
+    "path": 1,
+    "task": "From page_110 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_110 to page_0. History: step1: click home icon on page_110"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_110",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 66,
+    "path": 1,
+    "task": "From page_159 to page_219",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_219. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_104 icon on page_159.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_159.png"
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_159",
+    "target_page": "page_219",
+    "path_length": 1
+  },
+  {
+    "idx": 67,
+    "path": 1,
+    "task": "From page_159 to page_219",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_219. History: step1: click Business_104 icon on page_159"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_219.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_159",
+    "target_page": "page_219",
+    "path_length": 1
+  },
+  {
+    "idx": 68,
+    "path": 1,
+    "task": "From page_159 to page_99",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_99. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_159.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_159.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_159",
+    "target_page": "page_99",
+    "path_length": 1
+  },
+  {
+    "idx": 69,
+    "path": 1,
+    "task": "From page_159 to page_99",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_99. History: step1: click back icon on page_159"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_99.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_159",
+    "target_page": "page_99",
+    "path_length": 1
+  },
+  {
+    "idx": 70,
+    "path": 1,
+    "task": "From page_159 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_159.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_159.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_159",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 71,
+    "path": 1,
+    "task": "From page_159 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_159 to page_0. History: step1: click home icon on page_159"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_159",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 72,
+    "path": 1,
+    "task": "From page_160 to page_220",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_220. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_146 icon on page_160.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_160.png"
+    ],
     "bbox_norm": [
       678,
-      678,
+      500,
       790,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_160",
+    "target_page": "page_220",
+    "path_length": 1
+  },
+  {
+    "idx": 73,
+    "path": 1,
+    "task": "From page_160 to page_220",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_220. History: step1: click Business_146 icon on page_160"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_220.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_160",
+    "target_page": "page_220",
+    "path_length": 1
+  },
+  {
+    "idx": 74,
+    "path": 1,
+    "task": "From page_160 to page_100",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_100. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_160.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_160.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_160",
+    "target_page": "page_100",
+    "path_length": 1
+  },
+  {
+    "idx": 75,
+    "path": 1,
+    "task": "From page_160 to page_100",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_100. History: step1: click back icon on page_160"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_100.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_160",
+    "target_page": "page_100",
+    "path_length": 1
+  },
+  {
+    "idx": 76,
+    "path": 1,
+    "task": "From page_160 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_160.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_160.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_160",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 77,
+    "path": 1,
+    "task": "From page_160 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_160 to page_0. History: step1: click home icon on page_160"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_160",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 78,
+    "path": 1,
+    "task": "From page_161 to page_221",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_221. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_84 icon on page_161.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_161.png"
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_161",
+    "target_page": "page_221",
+    "path_length": 1
+  },
+  {
+    "idx": 79,
+    "path": 1,
+    "task": "From page_161 to page_221",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_221. History: step1: click Animals_84 icon on page_161"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_221.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_161",
+    "target_page": "page_221",
+    "path_length": 1
+  },
+  {
+    "idx": 80,
+    "path": 1,
+    "task": "From page_161 to page_101",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_101. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_161.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_161.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_161",
+    "target_page": "page_101",
+    "path_length": 1
+  },
+  {
+    "idx": 81,
+    "path": 1,
+    "task": "From page_161 to page_101",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_101. History: step1: click back icon on page_161"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_101.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_161",
+    "target_page": "page_101",
+    "path_length": 1
+  },
+  {
+    "idx": 82,
+    "path": 1,
+    "task": "From page_161 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_161.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_161.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_161",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 83,
+    "path": 1,
+    "task": "From page_161 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_161 to page_0. History: step1: click home icon on page_161"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_161",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 84,
+    "path": 1,
+    "task": "From page_162 to page_222",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_222. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_194 icon on page_162.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_162.png"
+    ],
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_162",
+    "target_page": "page_222",
+    "path_length": 1
+  },
+  {
+    "idx": 85,
+    "path": 1,
+    "task": "From page_162 to page_222",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_222. History: step1: click Business_194 icon on page_162"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_222.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_162",
+    "target_page": "page_222",
+    "path_length": 1
+  },
+  {
+    "idx": 86,
+    "path": 1,
+    "task": "From page_162 to page_102",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_102. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_162.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_162.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_162",
+    "target_page": "page_102",
+    "path_length": 1
+  },
+  {
+    "idx": 87,
+    "path": 1,
+    "task": "From page_162 to page_102",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_102. History: step1: click back icon on page_162"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_102.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_162",
+    "target_page": "page_102",
+    "path_length": 1
+  },
+  {
+    "idx": 88,
+    "path": 1,
+    "task": "From page_162 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_162.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_162.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_162",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 89,
+    "path": 1,
+    "task": "From page_162 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_162 to page_0. History: step1: click home icon on page_162"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_162",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 90,
+    "path": 1,
+    "task": "From page_163 to page_223",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_223. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_56 icon on page_163.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_163.png"
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_163",
+    "target_page": "page_223",
+    "path_length": 1
+  },
+  {
+    "idx": 91,
+    "path": 1,
+    "task": "From page_163 to page_223",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_223. History: step1: click Animals_56 icon on page_163"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_223.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_163",
+    "target_page": "page_223",
+    "path_length": 1
+  },
+  {
+    "idx": 92,
+    "path": 1,
+    "task": "From page_163 to page_103",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_103. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_163.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_163.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_163",
+    "target_page": "page_103",
+    "path_length": 1
+  },
+  {
+    "idx": 93,
+    "path": 1,
+    "task": "From page_163 to page_103",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_103. History: step1: click back icon on page_163"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_103.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_163",
+    "target_page": "page_103",
+    "path_length": 1
+  },
+  {
+    "idx": 94,
+    "path": 1,
+    "task": "From page_163 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_163.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_163.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_163",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 95,
+    "path": 1,
+    "task": "From page_163 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_163 to page_0. History: step1: click home icon on page_163"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_163",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 96,
+    "path": 1,
+    "task": "From page_164 to page_224",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_224. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_173 icon on page_164.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_164.png"
+    ],
+    "bbox_norm": [
+      321,
+      678,
+      433,
       790
     ],
+    "source": "sub4_edge",
+    "source_page": "page_164",
+    "target_page": "page_224",
+    "path_length": 1
+  },
+  {
+    "idx": 97,
+    "path": 1,
+    "task": "From page_164 to page_224",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_224. History: step1: click Business_173 icon on page_164"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_224.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_164",
+    "target_page": "page_224",
+    "path_length": 1
+  },
+  {
+    "idx": 98,
+    "path": 1,
+    "task": "From page_164 to page_104",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_104. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_164.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_164.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_164",
+    "target_page": "page_104",
+    "path_length": 1
+  },
+  {
+    "idx": 99,
+    "path": 1,
+    "task": "From page_164 to page_104",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_104. History: step1: click back icon on page_164"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_104.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_164",
+    "target_page": "page_104",
+    "path_length": 1
+  },
+  {
+    "idx": 100,
+    "path": 1,
+    "task": "From page_164 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_164.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_164.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_164",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 101,
+    "path": 1,
+    "task": "From page_164 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_164 to page_0. History: step1: click home icon on page_164"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_164",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 102,
+    "path": 1,
+    "task": "From page_165 to page_225",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_225. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_47 icon on page_165.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_165.png"
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_165",
+    "target_page": "page_225",
+    "path_length": 1
+  },
+  {
+    "idx": 103,
+    "path": 1,
+    "task": "From page_165 to page_225",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_225. History: step1: click Animals_47 icon on page_165"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_225.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_165",
+    "target_page": "page_225",
+    "path_length": 1
+  },
+  {
+    "idx": 104,
+    "path": 1,
+    "task": "From page_165 to page_105",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_105. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_165.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_165.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_165",
+    "target_page": "page_105",
+    "path_length": 1
+  },
+  {
+    "idx": 105,
+    "path": 1,
+    "task": "From page_165 to page_105",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_105. History: step1: click back icon on page_165"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_105.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_165",
+    "target_page": "page_105",
+    "path_length": 1
+  },
+  {
+    "idx": 106,
+    "path": 1,
+    "task": "From page_165 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_165.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_165.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_165",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 107,
+    "path": 1,
+    "task": "From page_165 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_165 to page_0. History: step1: click home icon on page_165"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_165",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 108,
+    "path": 1,
+    "task": "From page_166 to page_226",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_226. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_206 icon on page_166.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_166.png"
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_166",
+    "target_page": "page_226",
+    "path_length": 1
+  },
+  {
+    "idx": 109,
+    "path": 1,
+    "task": "From page_166 to page_226",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_226. History: step1: click Business_206 icon on page_166"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_226.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_166",
+    "target_page": "page_226",
+    "path_length": 1
+  },
+  {
+    "idx": 110,
+    "path": 1,
+    "task": "From page_166 to page_106",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_106. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_166.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_166.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_166",
+    "target_page": "page_106",
+    "path_length": 1
+  },
+  {
+    "idx": 111,
+    "path": 1,
+    "task": "From page_166 to page_106",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_106. History: step1: click back icon on page_166"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_106.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_166",
+    "target_page": "page_106",
+    "path_length": 1
+  },
+  {
+    "idx": 112,
+    "path": 1,
+    "task": "From page_166 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_166.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_166.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_166",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 113,
+    "path": 1,
+    "task": "From page_166 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_166 to page_0. History: step1: click home icon on page_166"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_166",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 114,
+    "path": 1,
+    "task": "From page_167 to page_227",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_227. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_132 icon on page_167.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_167.png"
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_167",
+    "target_page": "page_227",
+    "path_length": 1
+  },
+  {
+    "idx": 115,
+    "path": 1,
+    "task": "From page_167 to page_227",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_227. History: step1: click Business_132 icon on page_167"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_227.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_167",
+    "target_page": "page_227",
+    "path_length": 1
+  },
+  {
+    "idx": 116,
+    "path": 1,
+    "task": "From page_167 to page_107",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_107. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_167.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_167.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_167",
+    "target_page": "page_107",
+    "path_length": 1
+  },
+  {
+    "idx": 117,
+    "path": 1,
+    "task": "From page_167 to page_107",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_107. History: step1: click back icon on page_167"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_107.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_167",
+    "target_page": "page_107",
+    "path_length": 1
+  },
+  {
+    "idx": 118,
+    "path": 1,
+    "task": "From page_167 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_167.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_167.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_167",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 119,
+    "path": 1,
+    "task": "From page_167 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_167 to page_0. History: step1: click home icon on page_167"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_167",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 120,
+    "path": 1,
+    "task": "From page_168 to page_228",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_228. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_124 icon on page_168.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_168.png"
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_168",
+    "target_page": "page_228",
+    "path_length": 1
+  },
+  {
+    "idx": 121,
+    "path": 1,
+    "task": "From page_168 to page_228",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_228. History: step1: click Business_124 icon on page_168"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_228.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_168",
+    "target_page": "page_228",
+    "path_length": 1
+  },
+  {
+    "idx": 122,
+    "path": 1,
+    "task": "From page_168 to page_108",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_108. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_168.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_168.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_168",
+    "target_page": "page_108",
+    "path_length": 1
+  },
+  {
+    "idx": 123,
+    "path": 1,
+    "task": "From page_168 to page_108",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_108. History: step1: click back icon on page_168"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_108.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_168",
+    "target_page": "page_108",
+    "path_length": 1
+  },
+  {
+    "idx": 124,
+    "path": 1,
+    "task": "From page_168 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_168.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_168.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_168",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 125,
+    "path": 1,
+    "task": "From page_168 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_168 to page_0. History: step1: click home icon on page_168"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_168",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 126,
+    "path": 1,
+    "task": "From page_169 to page_229",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_229. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_73 icon on page_169.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_169.png"
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_169",
+    "target_page": "page_229",
+    "path_length": 1
+  },
+  {
+    "idx": 127,
+    "path": 1,
+    "task": "From page_169 to page_229",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_229. History: step1: click Animals_73 icon on page_169"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_229.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_169",
+    "target_page": "page_229",
+    "path_length": 1
+  },
+  {
+    "idx": 128,
+    "path": 1,
+    "task": "From page_169 to page_109",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_109. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_169.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_169.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_169",
+    "target_page": "page_109",
+    "path_length": 1
+  },
+  {
+    "idx": 129,
+    "path": 1,
+    "task": "From page_169 to page_109",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_109. History: step1: click back icon on page_169"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_109.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_169",
+    "target_page": "page_109",
+    "path_length": 1
+  },
+  {
+    "idx": 130,
+    "path": 1,
+    "task": "From page_169 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_169.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_169.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_169",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 131,
+    "path": 1,
+    "task": "From page_169 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_169 to page_0. History: step1: click home icon on page_169"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_169",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 132,
+    "path": 1,
+    "task": "From page_170 to page_230",
     "messages": [
       {
         "role": "user",
@@ -1166,7 +3710,3965 @@
       }
     ],
     "images": [
-      "datas/pages/page_170.png"
-    ]
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_170.png"
+    ],
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_170",
+    "target_page": "page_230",
+    "path_length": 1
+  },
+  {
+    "idx": 133,
+    "path": 1,
+    "task": "From page_170 to page_230",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_230. History: step1: click Animals_95 icon on page_170"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_230.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_170",
+    "target_page": "page_230",
+    "path_length": 1
+  },
+  {
+    "idx": 134,
+    "path": 1,
+    "task": "From page_170 to page_110",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_110. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_170.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_170.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_170",
+    "target_page": "page_110",
+    "path_length": 1
+  },
+  {
+    "idx": 135,
+    "path": 1,
+    "task": "From page_170 to page_110",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_110. History: step1: click back icon on page_170"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_110.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_170",
+    "target_page": "page_110",
+    "path_length": 1
+  },
+  {
+    "idx": 136,
+    "path": 1,
+    "task": "From page_170 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_170.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_170.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_170",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 137,
+    "path": 1,
+    "task": "From page_170 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_170 to page_0. History: step1: click home icon on page_170"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_170",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 138,
+    "path": 1,
+    "task": "From page_18 to page_45",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_45. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_177 icon on page_18.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_18.png"
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_18",
+    "target_page": "page_45",
+    "path_length": 1
+  },
+  {
+    "idx": 139,
+    "path": 1,
+    "task": "From page_18 to page_45",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_45. History: step1: click Business_177 icon on page_18"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_45.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_18",
+    "target_page": "page_45",
+    "path_length": 1
+  },
+  {
+    "idx": 140,
+    "path": 1,
+    "task": "From page_18 to page_46",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_46. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_82 icon on page_18.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_18.png"
+    ],
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_18",
+    "target_page": "page_46",
+    "path_length": 1
+  },
+  {
+    "idx": 141,
+    "path": 1,
+    "task": "From page_18 to page_46",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_46. History: step1: click Animals_82 icon on page_18"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_46.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_18",
+    "target_page": "page_46",
+    "path_length": 1
+  },
+  {
+    "idx": 142,
+    "path": 1,
+    "task": "From page_18 to page_5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_5. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_18.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_18.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_18",
+    "target_page": "page_5",
+    "path_length": 1
+  },
+  {
+    "idx": 143,
+    "path": 1,
+    "task": "From page_18 to page_5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_5. History: step1: click back icon on page_18"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_5.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_18",
+    "target_page": "page_5",
+    "path_length": 1
+  },
+  {
+    "idx": 144,
+    "path": 1,
+    "task": "From page_18 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_18.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_18.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_18",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 145,
+    "path": 1,
+    "task": "From page_18 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_18 to page_0. History: step1: click home icon on page_18"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_18",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 146,
+    "path": 1,
+    "task": "From page_19 to page_47",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_47. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_12 icon on page_19.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_19.png"
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_19",
+    "target_page": "page_47",
+    "path_length": 1
+  },
+  {
+    "idx": 147,
+    "path": 1,
+    "task": "From page_19 to page_47",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_47. History: step1: click Animals_12 icon on page_19"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_47.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_19",
+    "target_page": "page_47",
+    "path_length": 1
+  },
+  {
+    "idx": 148,
+    "path": 1,
+    "task": "From page_19 to page_48",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_48. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_213 icon on page_19.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_19.png"
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_19",
+    "target_page": "page_48",
+    "path_length": 1
+  },
+  {
+    "idx": 149,
+    "path": 1,
+    "task": "From page_19 to page_48",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_48. History: step1: click Business_213 icon on page_19"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_48.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_19",
+    "target_page": "page_48",
+    "path_length": 1
+  },
+  {
+    "idx": 150,
+    "path": 1,
+    "task": "From page_19 to page_5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_5. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_19.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_19.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_19",
+    "target_page": "page_5",
+    "path_length": 1
+  },
+  {
+    "idx": 151,
+    "path": 1,
+    "task": "From page_19 to page_5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_5. History: step1: click back icon on page_19"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_5.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_19",
+    "target_page": "page_5",
+    "path_length": 1
+  },
+  {
+    "idx": 152,
+    "path": 1,
+    "task": "From page_19 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_19.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_19.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_19",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 153,
+    "path": 1,
+    "task": "From page_19 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_19 to page_0. History: step1: click home icon on page_19"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_19",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 154,
+    "path": 1,
+    "task": "From page_20 to page_49",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_49. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_2 icon on page_20.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_20.png"
+    ],
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_20",
+    "target_page": "page_49",
+    "path_length": 1
+  },
+  {
+    "idx": 155,
+    "path": 1,
+    "task": "From page_20 to page_49",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_49. History: step1: click Animals_2 icon on page_20"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_49.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_20",
+    "target_page": "page_49",
+    "path_length": 1
+  },
+  {
+    "idx": 156,
+    "path": 1,
+    "task": "From page_20 to page_50",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_50. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_7 icon on page_20.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_20.png"
+    ],
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_20",
+    "target_page": "page_50",
+    "path_length": 1
+  },
+  {
+    "idx": 157,
+    "path": 1,
+    "task": "From page_20 to page_50",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_50. History: step1: click Animals_7 icon on page_20"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_50.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_20",
+    "target_page": "page_50",
+    "path_length": 1
+  },
+  {
+    "idx": 158,
+    "path": 1,
+    "task": "From page_20 to page_5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_5. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_20.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_20.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_20",
+    "target_page": "page_5",
+    "path_length": 1
+  },
+  {
+    "idx": 159,
+    "path": 1,
+    "task": "From page_20 to page_5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_5. History: step1: click back icon on page_20"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_5.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_20",
+    "target_page": "page_5",
+    "path_length": 1
+  },
+  {
+    "idx": 160,
+    "path": 1,
+    "task": "From page_20 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_20.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_20.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_20",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 161,
+    "path": 1,
+    "task": "From page_20 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_20 to page_0. History: step1: click home icon on page_20"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_20",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 162,
+    "path": 1,
+    "task": "From page_219 to page_159",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_219 to page_159. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_219.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_219.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_219",
+    "target_page": "page_159",
+    "path_length": 1
+  },
+  {
+    "idx": 163,
+    "path": 1,
+    "task": "From page_219 to page_159",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_219 to page_159. History: step1: click back icon on page_219"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_159.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_219",
+    "target_page": "page_159",
+    "path_length": 1
+  },
+  {
+    "idx": 164,
+    "path": 1,
+    "task": "From page_219 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_219 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_219.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_219.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_219",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 165,
+    "path": 1,
+    "task": "From page_219 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_219 to page_0. History: step1: click home icon on page_219"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_219",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 166,
+    "path": 1,
+    "task": "From page_220 to page_160",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_220 to page_160. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_220.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_220.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_220",
+    "target_page": "page_160",
+    "path_length": 1
+  },
+  {
+    "idx": 167,
+    "path": 1,
+    "task": "From page_220 to page_160",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_220 to page_160. History: step1: click back icon on page_220"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_160.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_220",
+    "target_page": "page_160",
+    "path_length": 1
+  },
+  {
+    "idx": 168,
+    "path": 1,
+    "task": "From page_220 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_220 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_220.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_220.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_220",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 169,
+    "path": 1,
+    "task": "From page_220 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_220 to page_0. History: step1: click home icon on page_220"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_220",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 170,
+    "path": 1,
+    "task": "From page_221 to page_161",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_221 to page_161. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_221.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_221.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_221",
+    "target_page": "page_161",
+    "path_length": 1
+  },
+  {
+    "idx": 171,
+    "path": 1,
+    "task": "From page_221 to page_161",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_221 to page_161. History: step1: click back icon on page_221"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_161.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_221",
+    "target_page": "page_161",
+    "path_length": 1
+  },
+  {
+    "idx": 172,
+    "path": 1,
+    "task": "From page_221 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_221 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_221.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_221.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_221",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 173,
+    "path": 1,
+    "task": "From page_221 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_221 to page_0. History: step1: click home icon on page_221"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_221",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 174,
+    "path": 1,
+    "task": "From page_222 to page_162",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_222 to page_162. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_222.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_222.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_222",
+    "target_page": "page_162",
+    "path_length": 1
+  },
+  {
+    "idx": 175,
+    "path": 1,
+    "task": "From page_222 to page_162",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_222 to page_162. History: step1: click back icon on page_222"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_162.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_222",
+    "target_page": "page_162",
+    "path_length": 1
+  },
+  {
+    "idx": 176,
+    "path": 1,
+    "task": "From page_222 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_222 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_222.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_222.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_222",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 177,
+    "path": 1,
+    "task": "From page_222 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_222 to page_0. History: step1: click home icon on page_222"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_222",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 178,
+    "path": 1,
+    "task": "From page_223 to page_163",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_223 to page_163. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_223.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_223.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_223",
+    "target_page": "page_163",
+    "path_length": 1
+  },
+  {
+    "idx": 179,
+    "path": 1,
+    "task": "From page_223 to page_163",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_223 to page_163. History: step1: click back icon on page_223"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_163.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_223",
+    "target_page": "page_163",
+    "path_length": 1
+  },
+  {
+    "idx": 180,
+    "path": 1,
+    "task": "From page_223 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_223 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_223.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_223.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_223",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 181,
+    "path": 1,
+    "task": "From page_223 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_223 to page_0. History: step1: click home icon on page_223"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_223",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 182,
+    "path": 1,
+    "task": "From page_224 to page_164",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_224 to page_164. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_224.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_224.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_224",
+    "target_page": "page_164",
+    "path_length": 1
+  },
+  {
+    "idx": 183,
+    "path": 1,
+    "task": "From page_224 to page_164",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_224 to page_164. History: step1: click back icon on page_224"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_164.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_224",
+    "target_page": "page_164",
+    "path_length": 1
+  },
+  {
+    "idx": 184,
+    "path": 1,
+    "task": "From page_224 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_224 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_224.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_224.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_224",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 185,
+    "path": 1,
+    "task": "From page_224 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_224 to page_0. History: step1: click home icon on page_224"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_224",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 186,
+    "path": 1,
+    "task": "From page_225 to page_165",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_225 to page_165. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_225.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_225.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_225",
+    "target_page": "page_165",
+    "path_length": 1
+  },
+  {
+    "idx": 187,
+    "path": 1,
+    "task": "From page_225 to page_165",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_225 to page_165. History: step1: click back icon on page_225"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_165.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_225",
+    "target_page": "page_165",
+    "path_length": 1
+  },
+  {
+    "idx": 188,
+    "path": 1,
+    "task": "From page_225 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_225 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_225.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_225.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_225",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 189,
+    "path": 1,
+    "task": "From page_225 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_225 to page_0. History: step1: click home icon on page_225"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_225",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 190,
+    "path": 1,
+    "task": "From page_226 to page_166",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_226 to page_166. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_226.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_226.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_226",
+    "target_page": "page_166",
+    "path_length": 1
+  },
+  {
+    "idx": 191,
+    "path": 1,
+    "task": "From page_226 to page_166",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_226 to page_166. History: step1: click back icon on page_226"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_166.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_226",
+    "target_page": "page_166",
+    "path_length": 1
+  },
+  {
+    "idx": 192,
+    "path": 1,
+    "task": "From page_226 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_226 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_226.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_226.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_226",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 193,
+    "path": 1,
+    "task": "From page_226 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_226 to page_0. History: step1: click home icon on page_226"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_226",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 194,
+    "path": 1,
+    "task": "From page_227 to page_167",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_227 to page_167. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_227.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_227.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_227",
+    "target_page": "page_167",
+    "path_length": 1
+  },
+  {
+    "idx": 195,
+    "path": 1,
+    "task": "From page_227 to page_167",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_227 to page_167. History: step1: click back icon on page_227"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_167.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_227",
+    "target_page": "page_167",
+    "path_length": 1
+  },
+  {
+    "idx": 196,
+    "path": 1,
+    "task": "From page_227 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_227 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_227.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_227.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_227",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 197,
+    "path": 1,
+    "task": "From page_227 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_227 to page_0. History: step1: click home icon on page_227"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_227",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 198,
+    "path": 1,
+    "task": "From page_228 to page_168",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_228 to page_168. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_228.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_228.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_228",
+    "target_page": "page_168",
+    "path_length": 1
+  },
+  {
+    "idx": 199,
+    "path": 1,
+    "task": "From page_228 to page_168",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_228 to page_168. History: step1: click back icon on page_228"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_168.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_228",
+    "target_page": "page_168",
+    "path_length": 1
+  },
+  {
+    "idx": 200,
+    "path": 1,
+    "task": "From page_228 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_228 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_228.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_228.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_228",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 201,
+    "path": 1,
+    "task": "From page_228 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_228 to page_0. History: step1: click home icon on page_228"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_228",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 202,
+    "path": 1,
+    "task": "From page_229 to page_169",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_229 to page_169. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_229.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_229.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_229",
+    "target_page": "page_169",
+    "path_length": 1
+  },
+  {
+    "idx": 203,
+    "path": 1,
+    "task": "From page_229 to page_169",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_229 to page_169. History: step1: click back icon on page_229"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_169.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_229",
+    "target_page": "page_169",
+    "path_length": 1
+  },
+  {
+    "idx": 204,
+    "path": 1,
+    "task": "From page_229 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_229 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_229.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_229.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_229",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 205,
+    "path": 1,
+    "task": "From page_229 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_229 to page_0. History: step1: click home icon on page_229"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_229",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 206,
+    "path": 1,
+    "task": "From page_230 to page_170",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_230 to page_170. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_230.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_230.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_230",
+    "target_page": "page_170",
+    "path_length": 1
+  },
+  {
+    "idx": 207,
+    "path": 1,
+    "task": "From page_230 to page_170",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_230 to page_170. History: step1: click back icon on page_230"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_170.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_230",
+    "target_page": "page_170",
+    "path_length": 1
+  },
+  {
+    "idx": 208,
+    "path": 1,
+    "task": "From page_230 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_230 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_230.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_230.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_230",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 209,
+    "path": 1,
+    "task": "From page_230 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_230 to page_0. History: step1: click home icon on page_230"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_230",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 210,
+    "path": 1,
+    "task": "From page_45 to page_99",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_99. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_61 icon on page_45.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_45.png"
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_45",
+    "target_page": "page_99",
+    "path_length": 1
+  },
+  {
+    "idx": 211,
+    "path": 1,
+    "task": "From page_45 to page_99",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_99. History: step1: click Animals_61 icon on page_45"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_99.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_45",
+    "target_page": "page_99",
+    "path_length": 1
+  },
+  {
+    "idx": 212,
+    "path": 1,
+    "task": "From page_45 to page_100",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_100. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_15 icon on page_45.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_45.png"
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_45",
+    "target_page": "page_100",
+    "path_length": 1
+  },
+  {
+    "idx": 213,
+    "path": 1,
+    "task": "From page_45 to page_100",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_100. History: step1: click Business_15 icon on page_45"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_100.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_45",
+    "target_page": "page_100",
+    "path_length": 1
+  },
+  {
+    "idx": 214,
+    "path": 1,
+    "task": "From page_45 to page_18",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_18. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_45.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_45.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_45",
+    "target_page": "page_18",
+    "path_length": 1
+  },
+  {
+    "idx": 215,
+    "path": 1,
+    "task": "From page_45 to page_18",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_18. History: step1: click back icon on page_45"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_18.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_45",
+    "target_page": "page_18",
+    "path_length": 1
+  },
+  {
+    "idx": 216,
+    "path": 1,
+    "task": "From page_45 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_45.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_45.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_45",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 217,
+    "path": 1,
+    "task": "From page_45 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_45 to page_0. History: step1: click home icon on page_45"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_45",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 218,
+    "path": 1,
+    "task": "From page_46 to page_101",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_101. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_231 icon on page_46.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_46.png"
+    ],
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_46",
+    "target_page": "page_101",
+    "path_length": 1
+  },
+  {
+    "idx": 219,
+    "path": 1,
+    "task": "From page_46 to page_101",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_101. History: step1: click Business_231 icon on page_46"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_101.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_46",
+    "target_page": "page_101",
+    "path_length": 1
+  },
+  {
+    "idx": 220,
+    "path": 1,
+    "task": "From page_46 to page_102",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_102. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_110 icon on page_46.\tAction: click(start_box='<|box_start|>(198,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_46.png"
+    ],
+    "bbox_norm": [
+      142,
+      500,
+      254,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_46",
+    "target_page": "page_102",
+    "path_length": 1
+  },
+  {
+    "idx": 221,
+    "path": 1,
+    "task": "From page_46 to page_102",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_102. History: step1: click Animals_110 icon on page_46"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_102.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_46",
+    "target_page": "page_102",
+    "path_length": 1
+  },
+  {
+    "idx": 222,
+    "path": 1,
+    "task": "From page_46 to page_18",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_18. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_46.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_46.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_46",
+    "target_page": "page_18",
+    "path_length": 1
+  },
+  {
+    "idx": 223,
+    "path": 1,
+    "task": "From page_46 to page_18",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_18. History: step1: click back icon on page_46"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_18.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_46",
+    "target_page": "page_18",
+    "path_length": 1
+  },
+  {
+    "idx": 224,
+    "path": 1,
+    "task": "From page_46 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_46.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_46.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_46",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 225,
+    "path": 1,
+    "task": "From page_46 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_46 to page_0. History: step1: click home icon on page_46"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_46",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 226,
+    "path": 1,
+    "task": "From page_47 to page_103",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_103. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_105 icon on page_47.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_47.png"
+    ],
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_47",
+    "target_page": "page_103",
+    "path_length": 1
+  },
+  {
+    "idx": 227,
+    "path": 1,
+    "task": "From page_47 to page_103",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_103. History: step1: click Business_105 icon on page_47"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_103.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_47",
+    "target_page": "page_103",
+    "path_length": 1
+  },
+  {
+    "idx": 228,
+    "path": 1,
+    "task": "From page_47 to page_104",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_104. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_190 icon on page_47.\tAction: click(start_box='<|box_start|>(377,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_47.png"
+    ],
+    "bbox_norm": [
+      321,
+      500,
+      433,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_47",
+    "target_page": "page_104",
+    "path_length": 1
+  },
+  {
+    "idx": 229,
+    "path": 1,
+    "task": "From page_47 to page_104",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_104. History: step1: click Business_190 icon on page_47"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_104.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_47",
+    "target_page": "page_104",
+    "path_length": 1
+  },
+  {
+    "idx": 230,
+    "path": 1,
+    "task": "From page_47 to page_19",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_19. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_47.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_47.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_47",
+    "target_page": "page_19",
+    "path_length": 1
+  },
+  {
+    "idx": 231,
+    "path": 1,
+    "task": "From page_47 to page_19",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_19. History: step1: click back icon on page_47"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_19.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_47",
+    "target_page": "page_19",
+    "path_length": 1
+  },
+  {
+    "idx": 232,
+    "path": 1,
+    "task": "From page_47 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_47.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_47.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_47",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 233,
+    "path": 1,
+    "task": "From page_47 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_47 to page_0. History: step1: click home icon on page_47"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_47",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 234,
+    "path": 1,
+    "task": "From page_48 to page_105",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_105. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_51 icon on page_48.\tAction: click(start_box='<|box_start|>(377,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_48.png"
+    ],
+    "bbox_norm": [
+      321,
+      678,
+      433,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_48",
+    "target_page": "page_105",
+    "path_length": 1
+  },
+  {
+    "idx": 235,
+    "path": 1,
+    "task": "From page_48 to page_105",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_105. History: step1: click Animals_51 icon on page_48"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_105.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_48",
+    "target_page": "page_105",
+    "path_length": 1
+  },
+  {
+    "idx": 236,
+    "path": 1,
+    "task": "From page_48 to page_106",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_106. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_104 icon on page_48.\tAction: click(start_box='<|box_start|>(734,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_48.png"
+    ],
+    "bbox_norm": [
+      678,
+      678,
+      790,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_48",
+    "target_page": "page_106",
+    "path_length": 1
+  },
+  {
+    "idx": 237,
+    "path": 1,
+    "task": "From page_48 to page_106",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_106. History: step1: click Animals_104 icon on page_48"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_106.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_48",
+    "target_page": "page_106",
+    "path_length": 1
+  },
+  {
+    "idx": 238,
+    "path": 1,
+    "task": "From page_48 to page_19",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_19. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_48.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_48.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_48",
+    "target_page": "page_19",
+    "path_length": 1
+  },
+  {
+    "idx": 239,
+    "path": 1,
+    "task": "From page_48 to page_19",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_19. History: step1: click back icon on page_48"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_19.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_48",
+    "target_page": "page_19",
+    "path_length": 1
+  },
+  {
+    "idx": 240,
+    "path": 1,
+    "task": "From page_48 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_48.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_48.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_48",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 241,
+    "path": 1,
+    "task": "From page_48 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_48 to page_0. History: step1: click home icon on page_48"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_48",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 242,
+    "path": 1,
+    "task": "From page_49 to page_107",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_107. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_164 icon on page_49.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_49.png"
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_49",
+    "target_page": "page_107",
+    "path_length": 1
+  },
+  {
+    "idx": 243,
+    "path": 1,
+    "task": "From page_49 to page_107",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_107. History: step1: click Business_164 icon on page_49"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_107.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_49",
+    "target_page": "page_107",
+    "path_length": 1
+  },
+  {
+    "idx": 244,
+    "path": 1,
+    "task": "From page_49 to page_108",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_108. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_184 icon on page_49.\tAction: click(start_box='<|box_start|>(912,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_49.png"
+    ],
+    "bbox_norm": [
+      857,
+      500,
+      968,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_49",
+    "target_page": "page_108",
+    "path_length": 1
+  },
+  {
+    "idx": 245,
+    "path": 1,
+    "task": "From page_49 to page_108",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_108. History: step1: click Business_184 icon on page_49"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_108.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_49",
+    "target_page": "page_108",
+    "path_length": 1
+  },
+  {
+    "idx": 246,
+    "path": 1,
+    "task": "From page_49 to page_20",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_20. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_49.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_49.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_49",
+    "target_page": "page_20",
+    "path_length": 1
+  },
+  {
+    "idx": 247,
+    "path": 1,
+    "task": "From page_49 to page_20",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_20. History: step1: click back icon on page_49"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_20.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_49",
+    "target_page": "page_20",
+    "path_length": 1
+  },
+  {
+    "idx": 248,
+    "path": 1,
+    "task": "From page_49 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_49.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_49.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_49",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 249,
+    "path": 1,
+    "task": "From page_49 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_49 to page_0. History: step1: click home icon on page_49"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_49",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 250,
+    "path": 1,
+    "task": "From page_5 to page_18",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_18. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_137 icon on page_5.\tAction: click(start_box='<|box_start|>(912,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_5.png"
+    ],
+    "bbox_norm": [
+      857,
+      678,
+      968,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_5",
+    "target_page": "page_18",
+    "path_length": 1
+  },
+  {
+    "idx": 251,
+    "path": 1,
+    "task": "From page_5 to page_18",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_18. History: step1: click Business_137 icon on page_5"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_18.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_5",
+    "target_page": "page_18",
+    "path_length": 1
+  },
+  {
+    "idx": 252,
+    "path": 1,
+    "task": "From page_5 to page_19",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_19. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_183 icon on page_5.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_5.png"
+    ],
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_5",
+    "target_page": "page_19",
+    "path_length": 1
+  },
+  {
+    "idx": 253,
+    "path": 1,
+    "task": "From page_5 to page_19",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_19. History: step1: click Business_183 icon on page_5"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_19.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_5",
+    "target_page": "page_19",
+    "path_length": 1
+  },
+  {
+    "idx": 254,
+    "path": 1,
+    "task": "From page_5 to page_20",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_20. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_217 icon on page_5.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_5.png"
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_5",
+    "target_page": "page_20",
+    "path_length": 1
+  },
+  {
+    "idx": 255,
+    "path": 1,
+    "task": "From page_5 to page_20",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_20. History: step1: click Business_217 icon on page_5"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_20.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_5",
+    "target_page": "page_20",
+    "path_length": 1
+  },
+  {
+    "idx": 256,
+    "path": 1,
+    "task": "From page_5 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_5.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_5.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_5",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 257,
+    "path": 1,
+    "task": "From page_5 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_5 to page_0. History: step1: click back icon on page_5"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_5",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 258,
+    "path": 1,
+    "task": "From page_50 to page_109",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_109. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_103 icon on page_50.\tAction: click(start_box='<|box_start|>(734,555)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_50.png"
+    ],
+    "bbox_norm": [
+      678,
+      500,
+      790,
+      611
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_50",
+    "target_page": "page_109",
+    "path_length": 1
+  },
+  {
+    "idx": 259,
+    "path": 1,
+    "task": "From page_50 to page_109",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_109. History: step1: click Animals_103 icon on page_50"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_109.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_50",
+    "target_page": "page_109",
+    "path_length": 1
+  },
+  {
+    "idx": 260,
+    "path": 1,
+    "task": "From page_50 to page_110",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_110. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_21 icon on page_50.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_50.png"
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_50",
+    "target_page": "page_110",
+    "path_length": 1
+  },
+  {
+    "idx": 261,
+    "path": 1,
+    "task": "From page_50 to page_110",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_110. History: step1: click Business_21 icon on page_50"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_110.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_50",
+    "target_page": "page_110",
+    "path_length": 1
+  },
+  {
+    "idx": 262,
+    "path": 1,
+    "task": "From page_50 to page_20",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_20. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_50.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_50.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_50",
+    "target_page": "page_20",
+    "path_length": 1
+  },
+  {
+    "idx": 263,
+    "path": 1,
+    "task": "From page_50 to page_20",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_20. History: step1: click back icon on page_50"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_20.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_50",
+    "target_page": "page_20",
+    "path_length": 1
+  },
+  {
+    "idx": 264,
+    "path": 1,
+    "task": "From page_50 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_50.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_50.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_50",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 265,
+    "path": 1,
+    "task": "From page_50 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_50 to page_0. History: step1: click home icon on page_50"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_50",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 266,
+    "path": 1,
+    "task": "From page_99 to page_159",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_159. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Business_198 icon on page_99.\tAction: click(start_box='<|box_start|>(555,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_99.png"
+    ],
+    "bbox_norm": [
+      500,
+      678,
+      611,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_99",
+    "target_page": "page_159",
+    "path_length": 1
+  },
+  {
+    "idx": 267,
+    "path": 1,
+    "task": "From page_99 to page_159",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_159. History: step1: click Business_198 icon on page_99"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_159.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_99",
+    "target_page": "page_159",
+    "path_length": 1
+  },
+  {
+    "idx": 268,
+    "path": 1,
+    "task": "From page_99 to page_45",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_45. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click back icon on page_99.\tAction: click(start_box='<|box_start|>(100,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_99.png"
+    ],
+    "bbox_norm": [
+      44,
+      44,
+      156,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_99",
+    "target_page": "page_45",
+    "path_length": 1
+  },
+  {
+    "idx": 269,
+    "path": 1,
+    "task": "From page_99 to page_45",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_45. History: step1: click back icon on page_99"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_45.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_99",
+    "target_page": "page_45",
+    "path_length": 1
+  },
+  {
+    "idx": 270,
+    "path": 1,
+    "task": "From page_99 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_0. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click home icon on page_99.\tAction: click(start_box='<|box_start|>(899,100)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_99.png"
+    ],
+    "bbox_norm": [
+      843,
+      44,
+      955,
+      156
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_99",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 271,
+    "path": 1,
+    "task": "From page_99 to page_0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_99 to page_0. History: step1: click home icon on page_99"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_99",
+    "target_page": "page_0",
+    "path_length": 1
+  },
+  {
+    "idx": 272,
+    "path": 1,
+    "task": "From page_0 to page_5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_0 to page_5. History: Null"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: click Animals_19 icon on page_0.\tAction: click(start_box='<|box_start|>(198,734)<|box_end|>')"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_0.png"
+    ],
+    "bbox_norm": [
+      142,
+      678,
+      254,
+      790
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_0",
+    "target_page": "page_5",
+    "path_length": 1
+  },
+  {
+    "idx": 273,
+    "path": 1,
+    "task": "From page_0 to page_5",
+    "messages": [
+      {
+        "role": "user",
+        "content": "<image>Instruction: from page_0 to page_5. History: step1: click Animals_19 icon on page_0"
+      },
+      {
+        "role": "assistant",
+        "content": "Explain: this is target page.\tAction: complete"
+      }
+    ],
+    "images": [
+      "/ext_hdd2/nhkoh/gelab-env/datas/pages/page_5.png"
+    ],
+    "bbox_norm": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "source": "sub4_edge",
+    "source_page": "page_0",
+    "target_page": "page_5",
+    "path_length": 1
   }
 ]
