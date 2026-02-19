@@ -38,10 +38,10 @@ gelab-env/
 │   ├── st_rl_path_only.json        # ST-RL training data (24,878 path samples, both subtrees)
 │   ├── st_rl_path_sub2.json        # ST-RL training data (12,439 path samples, subtree 2 only)
 │   ├── mt_rl_aligned.json          # MT-RL training data (2,200 tasks)
-│   ├── test_id_edge.json           # ID edge test (90 samples, subtrees 0-1)
-│   ├── test_id_path.json           # ID path test (4,851 all-step samples, subtrees 0-1)
-│   ├── test_ood_edge.json          # OOD edge test (45 samples, subtree 4)
-│   └── test_ood_path.json          # OOD path test (2,433 all-step samples, subtree 4)
+│   ├── test_id_edge.json           # ID edge test (548 samples, subtrees 0-1)
+│   ├── test_id_path.json           # ID path test (24,878 all-step samples, subtrees 0-1)
+│   ├── test_ood_edge.json          # OOD edge test (274 samples, subtree 4)
+│   └── test_ood_path.json          # OOD path test (12,439 all-step samples, subtree 4)
 │
 ├── environment/demo -> datas/      # Symlink for runtime access
 │
@@ -283,7 +283,7 @@ python data_engine/generate_st_rl_data.py --env_dir datas --output datas/st_rl_p
 python data_engine/generate_mt_rl_data.py --env_dir datas --output datas/mt_rl_aligned.json
 
 # Test splits: ID/OOD Edge/Path
-python eval/generate_eval_splits.py --env_path datas --output_dir datas
+python eval/generate_eval_splits.py --env_dir datas --output_dir datas
 ```
 
 ### 4.4 Dataset Sizes (seed=42)
@@ -293,10 +293,10 @@ python eval/generate_eval_splits.py --env_path datas --output_dir datas
 | SFT | `sft_aligned.json` | 30,888 | Subtrees 0-1 (path+edge+grounding+caption) |
 | ST-RL | `st_rl_path_only.json` | 24,878 | Subtrees 2-3 (path-only) |
 | MT-RL | `mt_rl_aligned.json` | 2,200 | Subtrees 2-3 (balanced by path length) |
-| Test ID Edge | `test_id_edge.json` | 90 | Subtrees 0-1 |
-| Test ID Path | `test_id_path.json` | 4,851 | Subtrees 0-1 (all steps, per-subtree independent) |
-| Test OOD Edge | `test_ood_edge.json` | 45 | Subtree 4 |
-| Test OOD Path | `test_ood_path.json` | 2,433 | Subtree 4 (all steps) |
+| Test ID Edge | `test_id_edge.json` | 548 | Subtrees 0-1 (274 per subtree, all transitions incl. back/home) |
+| Test ID Path | `test_id_path.json` | 24,878 | Subtrees 0-1 (12,439 per subtree, all path pairs) |
+| Test OOD Edge | `test_ood_edge.json` | 274 | Subtree 4 (all transitions) |
+| Test OOD Path | `test_ood_path.json` | 12,439 | Subtree 4 (all path pairs) |
 
 ---
 
