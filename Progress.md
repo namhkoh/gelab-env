@@ -19,16 +19,25 @@
 | Qwen2.5-VL-7B-SFT (paper)    | 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
 | **Qwen2.5-VL-7B-SFT (ours)** | **87.78** | **76.32** | -  | **66.67** | **67.75** | - | **14.20** | **21.80** |
 | Qwen2.5-VL-7B-ST-RL (paper)  | 97.48 | 97.08 | 97.63   | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
-| **Qwen2.5-VL-7B-ST-RL (ours)** | **60.00** | **80.93** | **80.60** | **55.56** | **63.75** | **63.60** | - | - |
+| **Qwen2.5-VL-7B-ST-RL v1 (ours)** | **60.00** | **80.93** | **80.60** | **55.56** | **63.75** | **63.60** | **7.35** | **7.86** |
+| **Qwen2.5-VL-7B-ST-RL v2 (ours)** | **77.92** | **84.76** | **84.61** | **80.66** | **63.68** | **64.04** | *pending* | *pending* |
 | Qwen2.5-VL-7B-MT-RL (paper)  | 72.60 | 57.77 | 67.33   | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
+| **Qwen2.5-VL-7B-MT-RL (ours)** | - | - | - | - | - | - | **7.35** | **7.63** |
 
 **Results Summary**:
-- SFT: ID Edge=92.22%, ID Path=77.27%, OOD Edge=80.00%, OOD Path=68.13%
-- **ST-RL: ID Edge=60.00%, ID Path=80.93%, OOD Edge=55.56%, OOD Path=63.75%**
-  - OOD Overall (63.60%) matches paper (63.06%)
-  - ID metrics lower than paper due to catastrophic forgetting (ST-RL trained on subtrees 2-3, ID tests subtrees 0-1)
-  - OOD Edge drop (55.56% vs paper 68.68%) caused by path-only RL training forgetting edge knowledge
-- **MT-RL**: Training in progress (batch=2, num_gen=6, step 2/2730)
+
+- **SFT**: ID Edge=87.78%, OOD Edge=66.67%, Pass@1=14.20%, Pass@5=21.80% (matches paper)
+- **ST-RL v1** (old: 2 subtrees, 3 epochs, eff batch 48):
+  - OOD Overall 63.60% matched paper, but catastrophic forgetting destroyed ID and interactive performance
+  - Interactive Pass@1=7.35% (paper: 17.22%) -- worse than SFT baseline (14.20%)
+- **ST-RL v2** (new: 1 subtree, 5 epochs, eff batch 144):
+  - OOD Overall 64.04% (paper: 63.06%) -- slight improvement over v1
+  - OOD Edge 80.66% (paper: 68.68%) -- significantly exceeds paper, catastrophic forgetting fixed
+  - ID retention improved: 84.61% vs v1's 80.60%, but still below paper's 97.63%
+  - Interactive eval in progress
+- **MT-RL** (trained on broken ST-RL v1 base): Pass@1=7.35%, will need retraining on v2 base
+
+**Known issue**: All models trained with incorrect system prompt (short 7-line version instead of paper's full Appendix A.10 prompt). Full pipeline retrain needed.
 
 ### Table 2: Performance Comparison of Methods across Tasks of Varying Difficulty
 
