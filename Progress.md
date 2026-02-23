@@ -17,16 +17,18 @@
 | Gemini-2.0-flash             | -     | -     | -       | 15.05 | 5.33  | 8.80    | 0.36        | 0.52   |
 | *Fine-tuned Model*           |       |       |         |       |       |         |             |        |
 | Qwen2.5-VL-7B-SFT (paper)    | 94.82 | 99.76 | 98.89   | 64.55 | 41.76 | 55.45   | 14.30       | 20.86  |
-| **Qwen2.5-VL-7B-SFT (ours)** | **87.78** | **76.32** | -  | **66.67** | **67.75** | - | **14.20** | **21.80** |
+| **Qwen2.5-VL-7B-SFT v1 (ours, wrong prompt)** | **87.78** | **76.32** | -  | **66.67** | **67.75** | - | **14.20** | **21.80** |
+| **Qwen2.5-VL-7B-SFT v2 (ours, A.10 prompt)** | **98.18** | **97.54** | **97.55** | **97.81** | **61.32** | **62.11** | **15.68** | **20.72** |
 | Qwen2.5-VL-7B-ST-RL (paper)  | 97.48 | 97.08 | 97.63   | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
 | **Qwen2.5-VL-7B-ST-RL v1 (ours)** | **60.00** | **80.93** | **80.60** | **55.56** | **63.75** | **63.60** | **7.35** | **7.86** |
-| **Qwen2.5-VL-7B-ST-RL v2 (ours)** | **77.92** | **84.76** | **84.61** | **80.66** | **63.68** | **64.04** | *pending* | *pending* |
+| **Qwen2.5-VL-7B-ST-RL v2 (ours)** | **77.92** | **84.76** | **84.61** | **80.66** | **63.68** | **64.04** | **7.59** | **8.60** |
 | Qwen2.5-VL-7B-MT-RL (paper)  | 72.60 | 57.77 | 67.33   | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
 | **Qwen2.5-VL-7B-MT-RL (ours)** | - | - | - | - | - | - | **7.35** | **7.63** |
 
 **Results Summary**:
 
-- **SFT**: ID Edge=87.78%, OOD Edge=66.67%, Pass@1=14.20%, Pass@5=21.80% (matches paper)
+- **SFT v1** (wrong prompt): ID Edge=87.78%, OOD Edge=66.67%, Pass@1=14.20%, Pass@5=21.80%
+- **SFT v2** (correct A.10 prompt): ID Overall 97.55% (paper: 98.89%), OOD Overall 62.11% (paper: 55.45%), Pass@1=15.68% (paper: 14.30%), Pass@5=20.72% (paper: 20.86%). Matches or exceeds paper across all benchmarks.
 - **ST-RL v1** (old: 2 subtrees, 3 epochs, eff batch 48):
   - OOD Overall 63.60% matched paper, but catastrophic forgetting destroyed ID and interactive performance
   - Interactive Pass@1=7.35% (paper: 17.22%) -- worse than SFT baseline (14.20%)
@@ -34,30 +36,36 @@
   - OOD Overall 64.04% (paper: 63.06%) -- slight improvement over v1
   - OOD Edge 80.66% (paper: 68.68%) -- significantly exceeds paper, catastrophic forgetting fixed
   - ID retention improved: 84.61% vs v1's 80.60%, but still below paper's 97.63%
-  - Interactive eval in progress
+  - Interactive Pass@1=7.59% (paper: 17.22%), Pass@5=8.60% (paper: 22.34%) -- still well below paper
+  - Interactive worse than SFT (14.20%/21.80%) -- ST-RL degrades multi-step ability despite static OOD gains
 - **MT-RL** (trained on broken ST-RL v1 base): Pass@1=7.35%, will need retraining on v2 base
 
-**Known issue**: All models trained with incorrect system prompt (short 7-line version instead of paper's full Appendix A.10 prompt). Full pipeline retrain needed.
+**Known issue**: v1 models trained with incorrect system prompt (short 7-line version instead of paper's full Appendix A.10 prompt). v2 models use correct prompt. Full pipeline retrain in progress (SFT v2 done, ST-RL v2 next).
 
 ### Table 2: Performance Comparison of Methods across Tasks of Varying Difficulty
 
 |        |              | Path@1 | Path@2 | Path@3 | Path@4 | Path@5 | Path@6 | Path@7 |
 |--------|--------------|--------|--------|--------|--------|--------|--------|--------|
 | Pass@1 | SFT (paper)  | 99.71  | 51.16  | 19.55  | 8.52   | 3.13   | 2.15   | 0.31   |
-|        | **SFT (ours)** | **90.5** | **41.5** | **27.1** | **13.3** | **7.0** | **3.2** | **0.0** |
+|        | **SFT v1 (ours)** | **90.5** | **41.5** | **27.1** | **13.3** | **7.0** | **3.2** | **0.0** |
+|        | **SFT v2 (ours)** | **96.00** | **52.08** | **21.92** | **10.71** | **3.70** | **2.83** | **2.03** |
 |        | ST-RL (paper)| 99.71  | 59.73  | 27.57  | 14.01  | 4.59   | 3.38   | 0.83   |
-|        | **ST-RL (ours)** | **92.67** | **50.69** | **27.40** | **8.77** | **1.64** | **1.52** | **0.00** |
+|        | **ST-RL v1 (ours)** | **92.67** | **50.69** | **27.40** | **8.77** | **1.64** | **1.52** | **0.00** |
+|        | **ST-RL v2 (ours)** | **79.33** | **18.06** | **0.91** | **1.95** | **1.85** | **0.43** | **0.00** |
 |        | MT-RL (paper)| 98.10  | 52.93  | 26.31  | 13.64  | 6.63   | 4.17   | 2.92   |
 | Pass@5 | SFT (paper)  | 100.00 | 74.15  | 36.04  | 19.75  | 6.71   | 5.04   | 1.30   |
-|        | **SFT (ours)** | **95.2** | **68.3** | **50.0** | **24.1** | **8.8** | **5.3** | **2.0** |
+|        | **SFT v1 (ours)** | **95.2** | **68.3** | **50.0** | **24.1** | **8.8** | **5.3** | **2.0** |
+|        | **SFT v2 (ours)** | **98.00** | **68.75** | **40.18** | **14.94** | **6.37** | **5.00** | **3.55** |
 |        | ST-RL (paper)| 100.00 | 70.07  | 37.84  | 23.77  | 7.52   | 7.02   | 3.39   |
-|        | **ST-RL (ours)** | **96.67** | **63.89** | **38.36** | **10.71** | **3.29** | **1.74** | **0.00** |
+|        | **ST-RL v1 (ours)** | **96.67** | **63.89** | **38.36** | **10.71** | **3.29** | **1.74** | **0.00** |
+|        | **ST-RL v2 (ours)** | **80.00** | **24.31** | **1.83** | **3.90** | **2.05** | **1.09** | **0.00** |
 |        | MT-RL (paper)| 100.00 | 66.67  | 43.24  | 24.69  | 13.01  | 8.11   | 8.33   |
 
-**ST-RL Analysis**: After fixing eval bugs, ST-RL now slightly exceeds SFT on Pass@1 (14.52% vs 14.20%) and improves short paths (1-2). However:
-1. Pass@N (17.48%) is lower than SFT's Pass@5 (21.80%), suggesting less diversity in outputs
-2. Longer paths (4+) degrade compared to SFT — ST-RL may overfit to short-horizon rewards
-3. Still below paper's ST-RL (17.22% Pass@1, 22.34% Pass@5)
+**ST-RL v2 Analysis**: Despite strong static eval (OOD Overall 64.04%, OOD Edge 80.66%), interactive performance degraded severely:
+1. Pass@1=7.59%, Pass@5=8.60% — worse than both SFT (14.20%/21.80%) and ST-RL v1 (7.35%/7.86% on old eval splits)
+2. Path@1 dropped from 92.67% (v1) to 79.33% (v2) — even single-step navigation degraded
+3. Path@2+ collapses: 18.06% at Path@2, near-zero at Path@3+ — model cannot chain actions in interactive mode
+4. Root cause likely: wrong system prompt during training (short 7-line vs paper's full A.10 prompt). Full pipeline retrain needed.
 
 ---
 

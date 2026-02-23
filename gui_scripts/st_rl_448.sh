@@ -22,7 +22,7 @@ export REPORT_TO="wandb"
 
 # Model and Data Paths
 export SAVE_NAME="st_rl_448"
-export MODEL_PATH="checkpoint/gui_exp/sft_448/v0-20260209_210621/checkpoint-1275"
+export MODEL_PATH="checkpoint/gui_exp/sft_448/v0-20260221_074940/checkpoint-1275"
 export DATASET_PATH="datas/st_rl_path_sub2.json"
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
@@ -73,7 +73,7 @@ export DATASET_NUM_PROC=4
 export LOG_COMPLETIONS="true"
 
 # System Prompt (Paper Appendix A.10)
-read -r -d '' SYSTEM_PROMPT << 'PROMPT_EOF'
+read -r -d '' SYSTEM_PROMPT << 'PROMPT_EOF' || true
 You are a Multifaceted Mobile Interface Assistant. Your responsibilities include:
 
 - 1. Navigating a mobile phone interface to reach a target page based on user instructions, task history, and the current screen state.

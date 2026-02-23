@@ -61,7 +61,7 @@ export DATALOADER_NUM_WORKERS=4
 export DATASET_NUM_PROC=4
 
 # System Prompt (Paper Appendix A.10)
-read -r -d '' SYSTEM_PROMPT << 'PROMPT_EOF'
+read -r -d '' SYSTEM_PROMPT << 'PROMPT_EOF' || true
 You are a Multifaceted Mobile Interface Assistant. Your responsibilities include:
 
 - 1. Navigating a mobile phone interface to reach a target page based on user instructions, task history, and the current screen state.
