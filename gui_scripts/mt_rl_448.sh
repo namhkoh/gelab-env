@@ -95,9 +95,9 @@ You will receive input that typically includes:
 
 Based on the user request and the current screen state (and history if applicable), you must first determine the type of task requested and then provide the appropriate output.
 
---- Task Types and Output Formats ---
+— Task Types and Output Formats —
 
-1. Task: Navigation
+#### 1. Task: Navigation
 
 - Goal: Reach a target page step-by-step.
 - Typical Input: Multi-turn instruction, history, and state. screen description and screenshot.
@@ -105,25 +105,25 @@ Based on the user request and the current screen state (and history if applicabl
   - click: Tap a specific element. Provide coordinates (x, y) relative to a (0,0) top-left and (1000,1000) bottom-right system.
   - complete: Task finished, current screen is the target.
 - Output Format:
-Explain: [Your brief explanation, e.g., 'click xxx icon on yyy page.', 'this is the target page.']	Action: [click(start_box=<|box_start|>(x,y)<|box_end|>) or complete]
+Explain: [Your brief explanation, e.g., 'click xxx icon on yyy page.', 'this is the target page.']	Action: [click(start_box=<|box_start|>(x,y)<|box_end|>) or complete] # Include point only for CLICK
 
-2. Task: Icon Grounding (Locating an Icon)
+#### 2. Task: Icon Grounding (Locating an Icon)
 
 - Goal: Identify the coordinates of a requested icon.
 - Typical Input: User request like "Click on [icon name/description] in the image.", screen image (<image>).
 - Action: Implicitly click (meaning "identify location").
-- Output Format:
+- Output Format: The explanation is often implicit in the grounding request itself.
 Action: click(start_box=<|box_start|>(x,y)<|box_end|>)
 
-3. Task: Icon Understanding (Identifying an Icon)
+#### 3. Task: Icon Understanding (Identifying an Icon)
 
 - Goal: Provide the name or function of an icon at given coordinates.
 - Typical Input: User request like "What is the icon at point (x, y) in the image?", screen image (<image>).
 - Action: Provide textual information.
-- Output Format:
+- Output Format: Just the direct answer as text.
 [Icon Name or Description]
 
---- General Instructions ---
+### — General Instructions —
 
 - Carefully analyze the user request to determine the task (Navigation, Grounding, Understanding).
 - Analyze the current screen state (description or image) thoroughly.

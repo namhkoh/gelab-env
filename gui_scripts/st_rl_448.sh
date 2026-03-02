@@ -23,7 +23,7 @@ export REPORT_TO="wandb"
 # Model and Data Paths
 export SAVE_NAME="st_rl_448"
 export MODEL_PATH="checkpoint/gui_exp/sft_448/v0-20260221_074940/checkpoint-1275"
-export DATASET_PATH="datas/st_rl_path_sub2.json"
+export DATASET_PATH="datas/st_rl_path_only.json"  # Both subtrees 2-3 (24,878 samples), matching paper
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
 
@@ -32,16 +32,17 @@ export BASE_LOG_DIR="./logs/train"
 # =============================================================================
 export LEARNING_RATE=1e-6
 export NUM_TRAIN_EPOCHS=5
-export NUM_GENERATIONS=8
+export NUM_GENERATIONS=8  # Paper: 16, but OOMs on 80GB A100. 8 fits at 63.7 GiB.
 export TEMPERATURE=1.2
 export TOP_P=1.0
 export TOP_K=8
 export MAX_PIXELS=200704
 
 # GPU Adjustment for 3x A100 80GB
-# Paper: 16 GPUs × batch=8 × num_gen=8 = 128 effective batch
-# Ours: 3 GPUs × batch=16 × grad_acc=3 = 144 effective batch (close to 128)
+# Paper: 16 GPUs × batch=16 × num_gen=16 = 256 effective batch, 16 unique prompts/step
+# Ours: 3 GPUs × batch=16 × grad_acc=3 = 144 effective batch
 # num_gen=8 divides micro-batch (3×16=48), 48/8=6 unique prompts per micro-batch
+# grad_acc=1: 63.7 GiB stable. grad_acc=5+: 78.5 GiB → OOM. grad_acc=3: ~71 GiB expected.
 export NPROC_PER_NODE=3
 export PER_DEVICE_TRAIN_BATCH_SIZE=16
 export GRADIENT_ACCUMULATION_STEPS=3
@@ -62,9 +63,9 @@ export REWARD_FUNCS="web_action_match web_coordinate_match_bbox web_intent_match
 export REWARD_WEIGHTS="0.25 0.25 0.25 0.25"
 
 # Logging
-# Save per epoch: 12,439 samples / (16×3/8) prompts per micro-batch / 3 grad_acc ≈ 691 steps/epoch
-export EVAL_STEPS=691
-export SAVE_STEPS=691
+# Save per epoch: 24,878 samples / (48/8=6) prompts per micro-batch / 3 grad_acc ≈ 1382 steps/epoch
+export EVAL_STEPS=1382
+export SAVE_STEPS=1382
 export SAVE_TOTAL_LIMIT=5
 export SAVE_ONLY_MODEL="true"
 export LOGGING_STEPS=5
@@ -88,9 +89,9 @@ You will receive input that typically includes:
 
 Based on the user request and the current screen state (and history if applicable), you must first determine the type of task requested and then provide the appropriate output.
 
---- Task Types and Output Formats ---
+— Task Types and Output Formats —
 
-1. Task: Navigation
+#### 1. Task: Navigation
 
 - Goal: Reach a target page step-by-step.
 - Typical Input: Multi-turn instruction, history, and state. screen description and screenshot.
@@ -98,25 +99,25 @@ Based on the user request and the current screen state (and history if applicabl
   - click: Tap a specific element. Provide coordinates (x, y) relative to a (0,0) top-left and (1000,1000) bottom-right system.
   - complete: Task finished, current screen is the target.
 - Output Format:
-Explain: [Your brief explanation, e.g., 'click xxx icon on yyy page.', 'this is the target page.']	Action: [click(start_box=<|box_start|>(x,y)<|box_end|>) or complete]
+Explain: [Your brief explanation, e.g., 'click xxx icon on yyy page.', 'this is the target page.']	Action: [click(start_box=<|box_start|>(x,y)<|box_end|>) or complete] # Include point only for CLICK
 
-2. Task: Icon Grounding (Locating an Icon)
+#### 2. Task: Icon Grounding (Locating an Icon)
 
 - Goal: Identify the coordinates of a requested icon.
 - Typical Input: User request like "Click on [icon name/description] in the image.", screen image (<image>).
 - Action: Implicitly click (meaning "identify location").
-- Output Format:
+- Output Format: The explanation is often implicit in the grounding request itself.
 Action: click(start_box=<|box_start|>(x,y)<|box_end|>)
 
-3. Task: Icon Understanding (Identifying an Icon)
+#### 3. Task: Icon Understanding (Identifying an Icon)
 
 - Goal: Provide the name or function of an icon at given coordinates.
 - Typical Input: User request like "What is the icon at point (x, y) in the image?", screen image (<image>).
 - Action: Provide textual information.
-- Output Format:
+- Output Format: Just the direct answer as text.
 [Icon Name or Description]
 
---- General Instructions ---
+### — General Instructions —
 
 - Carefully analyze the user request to determine the task (Navigation, Grounding, Understanding).
 - Analyze the current screen state (description or image) thoroughly.
