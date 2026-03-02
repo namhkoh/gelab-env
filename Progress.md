@@ -22,8 +22,10 @@
 | Qwen2.5-VL-7B-ST-RL (paper)  | 97.48 | 97.08 | 97.63   | 68.68 | 52.25 | 63.06   | 17.22       | 22.34  |
 | **Qwen2.5-VL-7B-ST-RL v1 (ours)** | **60.00** | **80.93** | **80.60** | **55.56** | **63.75** | **63.60** | **7.35** | **7.86** |
 | **Qwen2.5-VL-7B-ST-RL v2 (ours)** | **77.92** | **84.76** | **84.61** | **80.66** | **63.68** | **64.04** | **7.59** | **8.60** |
+| **Qwen2.5-VL-7B-ST-RL v3 (ours, A.10 prompt)** | **83.03** | **87.49** | **87.39** | **86.50** | **61.30** | **61.84** | **8.83** | **9.81** |
 | Qwen2.5-VL-7B-MT-RL (paper)  | 72.60 | 57.77 | 67.33   | 69.86 | 52.35 | 63.25   | 17.47       | 25.16  |
-| **Qwen2.5-VL-7B-MT-RL (ours)** | - | - | - | - | - | - | **7.35** | **7.63** |
+| **Qwen2.5-VL-7B-MT-RL v1 (ours, wrong prompt)** | - | - | - | - | - | - | **7.35** | **7.63** |
+| **Qwen2.5-VL-7B-MT-RL v2 (ours, A.10 prompt)** | **83.94** | **87.60** | **87.52** | **86.86** | **60.53** | **61.09** | **8.74** | **9.99** |
 
 **Results Summary**:
 
@@ -38,9 +40,20 @@
   - ID retention improved: 84.61% vs v1's 80.60%, but still below paper's 97.63%
   - Interactive Pass@1=7.59% (paper: 17.22%), Pass@5=8.60% (paper: 22.34%) -- still well below paper
   - Interactive worse than SFT (14.20%/21.80%) -- ST-RL degrades multi-step ability despite static OOD gains
-- **MT-RL** (trained on broken ST-RL v1 base): Pass@1=7.35%, will need retraining on v2 base
+- **ST-RL v3** (correct A.10 prompt, base=SFT v2, 1 subtree, 5 epochs):
+  - Static: ID Overall 87.39% (paper: 97.63%), OOD Overall 61.84% (paper: 63.06%)
+  - OOD Edge 86.50% (paper: 68.68%) — exceeds paper significantly
+  - Interactive: Pass@1=8.83% (paper: 17.22%), Pass@5=9.81% (paper: 22.34%)
+  - ID catastrophic forgetting persists (97.55% → 87.39%), likely due to SFT data being ~half paper's size (30,888 vs 60,864)
+  - Interactive performance degraded from SFT v2 (15.68% → 8.83%) — ST-RL hurts multi-step ability
+- **MT-RL v1** (trained on broken ST-RL v1 base, wrong prompt): Pass@1=7.35%
+- **MT-RL v2** (correct A.10 prompt, base=ST-RL v3, 10 epochs, max_turns=8):
+  - Static: ID Overall 87.52% (paper: 67.33%), OOD Overall 61.09% (paper: 63.25%)
+  - Interactive: Pass@1=8.74% (paper: 17.47%), Pass@5=9.99% (paper: 25.16%)
+  - Nearly identical to ST-RL v3 base (8.83%/9.81%) — MT-RL did not improve interactive performance
+  - A2B reward remained low throughout training (~0.06-0.19), model rarely completed tasks
 
-**Known issue**: v1 models trained with incorrect system prompt (short 7-line version instead of paper's full Appendix A.10 prompt). v2 models use correct prompt. Full pipeline retrain in progress (SFT v2 done, ST-RL v2 next).
+**Known issue**: ID catastrophic forgetting during ST-RL likely caused by SFT training data being ~half the paper's (30,888 vs 60,864 samples). v1/v2 models also used wrong system prompt; v3 uses correct A.10 prompt but forgetting persists.
 
 ### Table 2: Performance Comparison of Methods across Tasks of Varying Difficulty
 
@@ -52,20 +65,26 @@
 |        | ST-RL (paper)| 99.71  | 59.73  | 27.57  | 14.01  | 4.59   | 3.38   | 0.83   |
 |        | **ST-RL v1 (ours)** | **92.67** | **50.69** | **27.40** | **8.77** | **1.64** | **1.52** | **0.00** |
 |        | **ST-RL v2 (ours)** | **79.33** | **18.06** | **0.91** | **1.95** | **1.85** | **0.43** | **0.00** |
+|        | **ST-RL v3 (ours, A.10 prompt)** | **78.00** | **31.94** | **3.20** | **3.90** | **0.21** | **0.87** | **1.02** |
 |        | MT-RL (paper)| 98.10  | 52.93  | 26.31  | 13.64  | 6.63   | 4.17   | 2.92   |
+|        | **MT-RL v2 (ours, A.10 prompt)** | **77.33** | **31.94** | **2.74** | **3.57** | **0.82** | **0.87** | **0.51** |
 | Pass@5 | SFT (paper)  | 100.00 | 74.15  | 36.04  | 19.75  | 6.71   | 5.04   | 1.30   |
 |        | **SFT v1 (ours)** | **95.2** | **68.3** | **50.0** | **24.1** | **8.8** | **5.3** | **2.0** |
 |        | **SFT v2 (ours)** | **98.00** | **68.75** | **40.18** | **14.94** | **6.37** | **5.00** | **3.55** |
 |        | ST-RL (paper)| 100.00 | 70.07  | 37.84  | 23.77  | 7.52   | 7.02   | 3.39   |
 |        | **ST-RL v1 (ours)** | **96.67** | **63.89** | **38.36** | **10.71** | **3.29** | **1.74** | **0.00** |
 |        | **ST-RL v2 (ours)** | **80.00** | **24.31** | **1.83** | **3.90** | **2.05** | **1.09** | **0.00** |
+|        | **ST-RL v3 (ours, A.10 prompt)** | **79.33** | **32.64** | **4.57** | **5.84** | **1.85** | **1.09** | **1.02** |
 |        | MT-RL (paper)| 100.00 | 66.67  | 43.24  | 24.69  | 13.01  | 8.11   | 8.33   |
+|        | **MT-RL v2 (ours, A.10 prompt)** | **82.67** | **35.42** | **4.57** | **5.19** | **1.44** | **1.09** | **0.76** |
 
-**ST-RL v2 Analysis**: Despite strong static eval (OOD Overall 64.04%, OOD Edge 80.66%), interactive performance degraded severely:
-1. Pass@1=7.59%, Pass@5=8.60% — worse than both SFT (14.20%/21.80%) and ST-RL v1 (7.35%/7.86% on old eval splits)
-2. Path@1 dropped from 92.67% (v1) to 79.33% (v2) — even single-step navigation degraded
-3. Path@2+ collapses: 18.06% at Path@2, near-zero at Path@3+ — model cannot chain actions in interactive mode
-4. Root cause likely: wrong system prompt during training (short 7-line vs paper's full A.10 prompt). Full pipeline retrain needed.
+**ST-RL v3 Analysis** (correct A.10 prompt, base=SFT v2):
+- Static: ID Overall 87.39% (paper: 97.63%), OOD Overall 61.84% (paper: 63.06%)
+- Interactive: Pass@1=8.83% (paper: 17.22%), Pass@5=9.81% (paper: 22.34%)
+- Improvement over v2: Path@2 recovered from 18.06% → 31.94%, Path@3 from 0.91% → 3.20%
+- Still worse than SFT v2 baseline (Pass@1=15.68%, Pass@5=20.72%) — ST-RL degrades interactive ability
+- ID catastrophic forgetting persists: 97.55% (SFT v2) → 87.39% (ST-RL v3), paper only drops 98.89% → 97.63%
+- Likely root cause: SFT training data ~half paper's (30,888 vs 60,864), making ID knowledge fragile during RL
 
 ---
 

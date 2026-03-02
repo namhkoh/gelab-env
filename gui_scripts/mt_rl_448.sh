@@ -28,7 +28,7 @@ export TORCH_NCCL_TRACE_BUFFER_SIZE=1000  # Enable flight recorder for debugging
 
 # Model and Data Paths
 export SAVE_NAME="mt_rl_448"
-export MODEL_PATH="./checkpoint/gui_exp/st_rl_448/v0-20260210_095510/checkpoint-12315"  # ST-RL checkpoint (pipeline: SFT -> ST-RL -> MT-RL)
+export MODEL_PATH="./checkpoint/gui_exp/st_rl_448/v0-20260221_215851/checkpoint-3420"  # ST-RL v3 checkpoint (pipeline: SFT v2 -> ST-RL v3 -> MT-RL)
 export DATASET_PATH="datas/mt_rl_aligned.json"  # 2200 tasks from sub2+sub3
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
@@ -163,6 +163,7 @@ echo "============================================================"
 
 python -c "import json; data=json.load(open('$DATASET_PATH')); print(f'Dataset samples: {len(data)}')"
 
+MT_RL_MAX_TURNS=8 \
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 CUDA_VISIBLE_DEVICES=0,1,2 \
 NPROC_PER_NODE=$NPROC_PER_NODE \
