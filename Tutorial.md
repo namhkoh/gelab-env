@@ -85,7 +85,7 @@ export HF_TOKEN="your_token"
 bash gui_scripts/sft_448.sh
 ```
 
-**Pre-trained checkpoint**: [`namhokaist/gelab-sft-448-seed42`](https://huggingface.co/namhokaist/gelab-sft-448-seed42) on HuggingFace Hub.
+**Pre-trained checkpoint**: [`namhokaist/SFT_True_Final`](https://huggingface.co/namhokaist/SFT_True_Final) on HuggingFace Hub.
 
 ### 2.2 ST-RL (Single-Turn Reinforcement Learning)
 
@@ -116,13 +116,13 @@ export HF_TOKEN="your_token"
 bash gui_scripts/st_rl_448.sh
 ```
 
-**Pre-trained checkpoint**: [`namhokaist/gelab-st-rl-448-seed42`](https://huggingface.co/namhokaist/gelab-st-rl-448-seed42) on HuggingFace Hub (old 2-subtree, 3-epoch run — will be updated after retraining).
+**Pre-trained checkpoint**: [`namhokaist/STRL_True_Final`](https://huggingface.co/namhokaist/STRL_True_Final) on HuggingFace Hub.
 
 ### 2.3 MT-RL (Multi-Turn Reinforcement Learning)
 
 **Script**: `gui_scripts/mt_rl_448.sh`
 
-Fine-tunes the ST-RL checkpoint with GRPO on multi-turn navigation episodes (up to 12 steps) using subtrees 2-3. Following the paper's three-stage pipeline: SFT → ST-RL → MT-RL.
+Fine-tunes the ST-RL checkpoint with GRPO on multi-turn navigation episodes (up to 8 steps) using subtrees 2-3. Following the paper's three-stage pipeline: SFT → ST-RL → MT-RL.
 
 | Parameter | Our Value | Paper Value | Notes |
 |-----------|-----------|-------------|-------|
@@ -136,19 +136,19 @@ Fine-tunes the ST-RL checkpoint with GRPO on multi-turn navigation episodes (up 
 | Gradient Accumulation | 16 | — | Effective batch: 3x1x16=48 (paper: 128) |
 | Temperature | 1.2 | 1.2 | |
 | Max Completion Length | 1024 | 1024 | |
-| Max Turns | 12 | 12 | Allows backtracking on Path@7 tasks |
+| Max Turns | 8 | 12 | Configurable via `MT_RL_MAX_TURNS` env var (default 12) |
 | Reward Function | A2B (sparse) | A2B (sparse) | +1 if target reached, 0 otherwise |
 | Multi-Turn Env | `gelab_multi_turn` | `gelab_multi_turn` | |
 | DeepSpeed | ZeRO Stage 3 | ZeRO Stage 3 | |
 | Gradient Checkpointing | true | — | Required for memory |
 
-**Pre-trained checkpoint**: [`namhokaist/gelab-mt-rl-448-seed42`](https://huggingface.co/namhokaist/gelab-mt-rl-448-seed42) on HuggingFace Hub (trained from old ST-RL checkpoint — will be updated after ST-RL retraining).
+**Pre-trained checkpoint**: [`namhokaist/MTRL_True_Final`](https://huggingface.co/namhokaist/MTRL_True_Final) on HuggingFace Hub.
 
 The multi-turn environment (`swift/plugin/multi_turn.py`) simulates interactive episodes:
 1. Model outputs `click(x,y)` -> environment checks if click hits a valid icon bbox
 2. If valid click: transitions to target page, updates history, gives model the new screenshot
 3. If model reaches target page and outputs `complete`: episode ends with reward=1
-4. If 12 steps exceeded or invalid navigation: episode ends with reward=0
+4. If max turns exceeded (default 12, configurable via `MT_RL_MAX_TURNS` env var) or invalid navigation: episode ends with reward=0
 
 Supports optional `MAX_STEPS` env var for quick validation runs.
 
@@ -492,6 +492,46 @@ python eval/evaluate.py --model_path <checkpoint> --mode all --num_gpus 3
 
 ---
 
-## Current Workings
+## Pre-trained Models
 
-ST-RL is being retrained with a corrected configuration: 1 subtree (12,439 samples), 5 epochs, grad_acc=3 (effective batch 144). The previous 2-subtree, 3-epoch config caused catastrophic forgetting (interactive Pass@1 dropped from 15% to 7.35%); the new config reduces total gradient updates from 12,439 to 3,420, closely matching the paper's training scale. After ST-RL retraining completes and is validated, MT-RL will be retrained on top of the new ST-RL checkpoint.
+All three pipeline stages are available on HuggingFace. These are full fine-tuned models (not LoRA adapters).
+
+| Stage | HuggingFace Model | Training Data | Base Model |
+|-------|-------------------|---------------|------------|
+| SFT | [`namhokaist/SFT_True_Final`](https://huggingface.co/namhokaist/SFT_True_Final) | 30,888 samples (subtrees 0-1) | Qwen2.5-VL-7B-Instruct |
+| ST-RL | [`namhokaist/STRL_True_Final`](https://huggingface.co/namhokaist/STRL_True_Final) | 12,439 path samples (subtree 2) | SFT_True_Final |
+| MT-RL | [`namhokaist/MTRL_True_Final`](https://huggingface.co/namhokaist/MTRL_True_Final) | 2,200 multi-turn tasks (subtrees 2-3) | STRL_True_Final |
+
+### Download and Evaluate
+
+```bash
+# Evaluate SFT model (static + interactive)
+python eval/evaluate.py --model_path namhokaist/SFT_True_Final --mode all
+
+# Evaluate ST-RL model
+python eval/evaluate.py --model_path namhokaist/STRL_True_Final --mode all
+
+# Evaluate MT-RL model
+python eval/evaluate.py --model_path namhokaist/MTRL_True_Final --mode all
+
+# Multi-GPU (3x faster)
+python eval/evaluate.py --model_path namhokaist/SFT_True_Final --mode all --num_gpus 3
+```
+
+### Expected Results (Pipeline B Baselines)
+
+| Model | ID Edge | ID Path | ID Overall | OOD Edge | OOD Path | OOD Overall | Pass@1 | Pass@5 |
+|-------|---------|---------|------------|----------|----------|-------------|--------|--------|
+| SFT_True_Final | 98.18 | 97.54 | 97.55 | 97.81 | 61.32 | 62.11 | 15.68 | 20.72 |
+| STRL_True_Final | 83.03 | 87.49 | 87.39 | 86.50 | 61.30 | 61.84 | 8.83 | 9.81 |
+| MTRL_True_Final | 83.94 | 87.60 | 87.52 | 86.86 | 60.53 | 61.09 | 8.74 | 9.99 |
+
+### Load a Pre-trained Model in Python
+
+```python
+from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+
+model_name = "namhokaist/SFT_True_Final"  # or STRL_True_Final, MTRL_True_Final
+model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_name, torch_dtype="bfloat16", device_map="auto")
+processor = AutoProcessor.from_pretrained(model_name)
+```
