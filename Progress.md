@@ -53,6 +53,14 @@
   - Nearly identical to ST-RL v3 base (8.83%/9.81%) — MT-RL did not improve interactive performance
   - A2B reward remained low throughout training (~0.06-0.19), model rarely completed tasks
 
+- **ST-RL v4** (A.10+ prompt with em-dashes, base=SFT v2, 2 subtrees, 5 epochs):
+  - Trained on both subtrees 2-3 (24,878 samples) vs v3's single subtree (12,439)
+  - Crashed at step 5290/6845 (epoch 3.87) due to disk full; continued from checkpoint-4146 (epoch 3) with LR=1e-7 for 2 more epochs
+  - Static: ID Overall 84.92% (paper: 97.63%), OOD Overall 63.42% (paper: 63.06%)
+  - OOD improved over v3: 63.42% vs 61.84%, OOD Path 62.91% vs 61.30%
+  - ID slightly worse than v3: 84.92% vs 87.39% — more RL data increased forgetting
+  - Interactive eval not yet run
+
 **Known issue**: ID catastrophic forgetting during ST-RL likely caused by SFT training data being ~half the paper's (30,888 vs 60,864 samples). v1/v2 models also used wrong system prompt; v3 uses correct A.10 prompt but forgetting persists.
 
 ### Table 2: Performance Comparison of Methods across Tasks of Varying Difficulty
