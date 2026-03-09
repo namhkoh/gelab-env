@@ -24,10 +24,14 @@ datas/images/
 datas/pages/
 datas/real_world_images/
 
-# Sim2Real extracted icons (regenerable via data_engine/sim2real.py)
+# Sim2Real extracted icons and composed environments (regenerable)
 data_engine/real_icons/
+data_engine/sim2real_envs/
 environment/demo/pages/
 environment/demo/pages_old_*/
+
+# Presentation slides (not code)
+sr_slides/
 
 # Backups
 datas_backup_*/

@@ -16,6 +16,8 @@ gelab-env/
 │   ├── generate_mt_rl_data.py      # MT-RL task generation (balanced by path length)
 │   ├── prepare_continue_train_data.py  # Real-world data prep (AITW + Mind2Web -> 24k)
 │   ├── sim2real.py                 # Sim2Real: extract real icons from GUIOdyssey
+│   ├── sim2real_compose.py         # Sim2Real: detection-guided page composition (GPT-5-mini)
+│   ├── sim2real_envs/              # Output: composed GE-Lab environments (gitignored)
 │   ├── icons/                      # Synthetic icon pool (Animals/, Business/)
 │   └── real_icons/                 # Real-world icon pool (extracted, gitignored)
 │
@@ -520,6 +522,46 @@ python data_engine/tree.py --seed 42 --icon_dir data_engine/real_icons
 ```
 
 The current synthetic icon pool has 259 icons (Animals + Business). The real-world pool has 1,509 icons extracted from mobile apps (Chrome, Instagram, Amazon, YouTube, etc.), providing significantly more visual diversity.
+
+### 6.5 Compose: Detection-Guided Page Composition
+
+**Script**: `data_engine/sim2real_compose.py`
+
+Takes a GUIOdyssey trajectory and produces a complete GE-Lab environment where each page preserves the actual UI elements from the original screenshots. This goes beyond simple icon extraction — it recreates full pages with correct spatial layouts.
+
+```bash
+pip install openai  # Required for GPT-5-mini API
+
+export OPENAI_API_KEY="sk-..."
+python data_engine/sim2real_compose.py \
+  --trajectory_id 0492550243730272 \
+  --output_dir data_engine/sim2real_envs/trajectory_001 \
+  --gpu 0
+```
+
+**Pipeline stages per screenshot:**
+1. **Detect** — YOLO icon detection + EasyOCR text detection on the 720x1280 screenshot
+2. **Crop** — Extracts each detected element as an RGBA crop
+3. **Compose** — GPT-5-mini generates PIL code that arranges the real cropped elements on a 448x448 canvas using `get_crop(index, w, h)`. Falls back to proportional scaling if code generation fails.
+4. **Structure** — Builds `ui_structure.json` + `ui_structure_layer.json` from the trajectory annotations (transitions, actions, page chain)
+
+**Output:**
+```
+data_engine/sim2real_envs/<name>/
+├── pages/              448x448 PNG files (one per trajectory step)
+├── generated_code/     GPT-generated PIL code per step
+├── ui_structure.json   GE-Lab compatible structure with transitions
+└── ui_structure_layer.json  Hierarchical structure
+```
+
+**Key arguments:**
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--trajectory_id` | (required) | GUIOdyssey episode ID |
+| `--output_dir` | `sim2real_envs/trajectory_001` | Output directory |
+| `--model_name` | `gpt-5-mini-2025-08-07` | OpenAI model for code generation |
+| `--weights_dir` | `/ext_hdd2/nhkoh/OmniParser/weights` | OmniParser YOLO weights |
+| `--gpu` | `0` | GPU for YOLO detection |
 
 ---
 
