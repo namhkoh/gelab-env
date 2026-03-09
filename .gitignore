@@ -19,9 +19,13 @@ Sequence/
 data_engine/ui_environment*/
 data_engine/assets/
 
-# Generated images (regenerable from tree.py)
+# Generated images (regenerable from scripts)
 datas/images/
 datas/pages/
+datas/real_world_images/
+
+# Sim2Real extracted icons (regenerable via data_engine/sim2real.py)
+data_engine/real_icons/
 environment/demo/pages/
 environment/demo/pages_old_*/
 

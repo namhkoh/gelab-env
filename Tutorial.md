@@ -15,7 +15,9 @@ gelab-env/
 │   ├── generate_st_rl_data.py      # ST-RL dataset generation (path-only, subtrees 2-3)
 │   ├── generate_mt_rl_data.py      # MT-RL task generation (balanced by path length)
 │   ├── prepare_continue_train_data.py  # Real-world data prep (AITW + Mind2Web -> 24k)
-│   └── icons/                      # Icon pool (Animals/, Business/, etc.)
+│   ├── sim2real.py                 # Sim2Real: extract real icons from GUIOdyssey
+│   ├── icons/                      # Synthetic icon pool (Animals/, Business/)
+│   └── real_icons/                 # Real-world icon pool (extracted, gitignored)
 │
 ├── swift/plugin/                   # Training plugins (modified ms-swift framework)
 │   ├── multi_turn.py               # Multi-turn environment for MT-RL rollouts
@@ -439,35 +441,117 @@ The simulator produces:
 
 ---
 
-## 6. Environment Setup
+## 6. Sim2Real Pipeline
+
+Extracts real-world UI icons from mobile screenshots (GUIOdyssey dataset) using OmniParser, producing a drop-in replacement icon pool for the GE-Lab environment.
 
 ### 6.1 Prerequisites
+
+```bash
+# Install OmniParser dependencies (in gelab conda env)
+pip install ultralytics easyocr supervision==0.18.0 timm
+
+# Clone OmniParser and download weights
+git clone https://github.com/microsoft/OmniParser.git /ext_hdd2/nhkoh/OmniParser
+huggingface-cli download microsoft/OmniParser-v2.0 --local-dir /ext_hdd2/nhkoh/OmniParser/weights
+```
+
+### 6.2 Download GUIOdyssey Subset
+
+The full dataset is ~93 GB. We download a small, diverse subset (~50 MB):
+
+```bash
+# 1. Download annotation index
+huggingface-cli download hflqf88888/GUIOdyssey all_annot.json \
+  --repo-type dataset --local-dir /ext_hdd2/nhkoh/GUI-Odyssey/
+
+# 2. Select episodes (18 episodes, 230 screenshots, Small Phone 720x1280)
+#    Balanced across 6 categories: General_Tool, Information_Management,
+#    Media_Entertainment, Multi_Apps, Social_Sharing, Web_Shopping
+#    Selection script saves selected_episodes.json
+
+# 3. Download per-episode annotations (with sam2_bbox, descriptions)
+#    Source: hflqf88888/GUIOdyssey/annotations/{episode_id}.json
+
+# 4. Download screenshots (individual PNGs from OpenGVLab/GUI-Odyssey)
+#    Screenshots are in 100 shards: screenshots/data_0/ through data_99/
+#    Script scans shards to find needed files and downloads selectively
+```
+
+Resulting data layout:
+```
+/ext_hdd2/nhkoh/GUI-Odyssey/       ~76 MB
+├── all_annot.json                  Full annotation index (8,334 episodes)
+├── selected_episodes.json          18 selected episode IDs
+├── annotations/                    18 detailed per-episode JSONs
+└── screenshots/                    230 PNGs (720x1280)
+```
+
+### 6.3 Extract Icons
+
+```bash
+# Full pipeline: YOLO detection + EasyOCR + deduplication + organize
+python data_engine/sim2real.py \
+  --screenshots_dir /ext_hdd2/nhkoh/GUI-Odyssey/screenshots \
+  --omniparser_weights /ext_hdd2/nhkoh/OmniParser/weights \
+  --output_dir data_engine/real_icons \
+  --skip_caption --gpu 0
+
+# Quick run (no dedup, no organize):
+python data_engine/sim2real.py --skip_caption --skip_dedup --skip_organize --gpu 0
+```
+
+Pipeline stages:
+1. **YOLO detection** — OmniParser's YOLOv8 detects icon bounding boxes
+2. **EasyOCR** — Extracts text labels from detected regions
+3. **Merge** — Combines YOLO + OCR detections, resolves overlaps
+4. **Crop** — Extracts 50x50 icon PNGs from screenshots
+5. **Deduplicate** — Perceptual hashing removes near-duplicates (hamming distance <= 5)
+6. **Organize** — Places icons in `RealWorld/PNG/` directory (tree.py compatible)
+
+Output: `data_engine/real_icons/RealWorld/PNG/*.png` (1,509 unique icons from 230 screenshots)
+
+### 6.4 Use Real Icons in GE-Lab
+
+The extracted icons are compatible with `tree.py`'s icon loading (`*/PNG/*.png` glob pattern). To generate a GE-Lab environment with real-world icons:
+
+```bash
+python data_engine/tree.py --seed 42 --icon_dir data_engine/real_icons
+```
+
+The current synthetic icon pool has 259 icons (Animals + Business). The real-world pool has 1,509 icons extracted from mobile apps (Chrome, Instagram, Amazon, YouTube, etc.), providing significantly more visual diversity.
+
+---
+
+## 7. Environment Setup
+
+### 7.1 Prerequisites
 
 - NVIDIA GPU with 80GB+ VRAM (A100 or H100 recommended)
 - CUDA 12.x
 - Miniconda or Anaconda
 
-### 6.2 Create the Conda Environment
+### 7.2 Create the Conda Environment
 
 ```bash
 conda create -n gelab python=3.10 -y
 conda activate gelab
 ```
 
-### 6.3 Install PyTorch
+### 7.3 Install PyTorch
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-### 6.4 Install ms-swift (Training Framework)
+### 7.4 Install ms-swift (Training Framework)
 
 ```bash
 cd /path/to/gelab-env
 pip install -e .
 ```
 
-### 6.5 Install Framework Dependencies
+### 7.5 Install Framework Dependencies
 
 ```bash
 pip install -r requirements/framework.txt
@@ -482,7 +566,7 @@ Key packages:
 - `pillow`, `numpy<2.0`, `scipy`
 - `wandb` (experiment tracking)
 
-### 6.6 Install Optional Packages
+### 7.6 Install Optional Packages
 
 ```bash
 pip install vllm                        # Fast evaluation
@@ -490,7 +574,7 @@ pip install flash-attn --no-build-isolation  # Flash Attention
 pip install qwen-vl-utils qwen-omni-utils    # Qwen VL utilities
 ```
 
-### 6.7 Set Environment Variables
+### 7.7 Set Environment Variables
 
 Add to your `~/.bashrc` or run before training:
 
@@ -501,7 +585,7 @@ export HF_HOME="/path/to/cache/huggingface"
 export CUDA_HOME=/path/to/cuda-12.x
 ```
 
-### 6.8 Verify Installation
+### 7.8 Verify Installation
 
 ```bash
 conda activate gelab
