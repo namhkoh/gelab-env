@@ -26,6 +26,7 @@ import argparse
 import base64
 import json
 import os
+import random
 import re
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -210,47 +211,39 @@ def _encode_image_base64(image_path: str) -> str:
 
 
 RENDER_CODE_PROMPT = """\
-Write Python PIL code to recreate this mobile screenshot as a 448x448 GE-Lab page, \
-using the ACTUAL detected UI elements listed below.
+Write Python PIL code to recreate this mobile screenshot at its ORIGINAL resolution \
+({{orig_w}}x{{orig_h}} pixels), using the ACTUAL detected UI elements listed below. \
+The canvas will be resized to 448x448 afterwards — just work at the original size.
 
-Original screenshot: {{orig_w}}x{{orig_h}} pixels.
+Canvas size: {{orig_w}}x{{orig_h}} pixels (same as the original screenshot).
 
-Detected UI elements (from OmniParser YOLO+OCR):
+Detected UI elements (from OmniParser YOLO+OCR) with positions in original pixel coords:
 {{element_list}}
 
 RULES:
 1. Use get_crop(index, w, h) to paste REAL cropped elements from the screenshot.
-2. ALL coordinates MUST be within 0-448 (canvas is 448x448).
-3. Canvas zones: y=0..20 status bar, y=20..65 header, y=65..403 content, y=403..448 nav bar.
-4. x margins: 15 left, 433 right.
-5. Do NOT import anything. Do NOT define functions.
-6. Every pasted element MUST have a layout entry: layout["name"] = [x1, y1, x2, y2]
-7. All crops are RGBA, so always use: canvas.paste(img, (x, y), img)
+2. Coordinates are in the ORIGINAL {{orig_w}}x{{orig_h}} space. Use the detected positions directly.
+3. Do NOT import anything. Do NOT define functions.
+4. Every pasted element MUST have a layout entry: layout["name"] = [x1, y1, x2, y2]
+5. All crops are RGBA, so always use: canvas.paste(img, (x, y), img)
+6. Use draw.rectangle/text/rounded_rectangle for backgrounds, headers, text.
 
 Available variables:
-- canvas: PIL Image (448x448 RGBA-compatible)
+- canvas: PIL Image ({{orig_w}}x{{orig_h}} RGB)
 - draw: PIL ImageDraw object
 - get_crop(index, w, h): returns detected element [index] resized to w x h (RGBA)
-- font_sm (9pt), font_md (12pt), font_lg (16pt), font_xl (20pt)
+- font_sm (12pt), font_md (18pt), font_lg (24pt), font_xl (32pt)
 - layout: dict — fill with layout["element_name"] = [x1, y1, x2, y2]
 - Image, ImageDraw, range, len, enumerate, min, max, int, float, str, etc.
 
-Layout patterns:
-- Home screen: 4-column icon grid at x=[30,135,240,345], rows at y=[70,140,210,280]
-- Settings/list page: stack items at y=70,100,130,... with full width rows
-- App page: header at y=20..65, main content centered in y=65..403
-- Search page: search bar at y=70, results below
+Strategy:
+- Start by filling the background with the dominant color from the screenshot.
+- Paste each detected element at its ORIGINAL position using get_crop(index, w, h) \
+  where w and h are the element's original size from the detected bbox.
+- Add text labels, headers, and decorative elements as needed to fill gaps.
+- The code should reconstruct the screenshot faithfully using the real cropped elements.
 
-REQUIRED nav bar at end:
-draw.rectangle([0, 403, 448, 448], fill=(40, 40, 50))
-draw.rounded_rectangle([20, 410, 100, 440], radius=4, fill=(255, 200, 200))
-draw.text((40, 417), "Back", fill=(30, 30, 30), font=font_sm)
-layout["back"] = [20, 410, 100, 440]
-draw.rounded_rectangle([348, 410, 428, 440], radius=4, fill=(200, 255, 200))
-draw.text((368, 417), "Home", fill=(30, 30, 30), font=font_sm)
-layout["home"] = [348, 410, 428, 440]
-
-Output ONLY a ```python code block. Start with background color, then paste elements, end with nav bar."""
+Output ONLY a ```python code block. Start with background, paste detected elements, add structure."""
 
 # Legacy JSON prompt (used as fallback)
 PAGE_ANALYSIS_PROMPT = """\
@@ -325,7 +318,7 @@ def generate_page_code(client: OpenAI, model_name: str,
                        image_path: str, elements: List[dict],
                        orig_size: Tuple[int, int],
                        step_info: dict = None,
-                       max_retries: int = 2) -> Optional[str]:
+                       max_retries: int = 3) -> Optional[str]:
     """Ask GPT to generate PIL rendering code using detected elements."""
     element_list = format_element_list(elements, orig_size)
 
@@ -346,24 +339,24 @@ def generate_page_code(client: OpenAI, model_name: str,
         if context:
             prompt += f"\n\nAdditional context:{context}"
 
+    # Always prefix with forceful instruction (GPT-5-mini often returns empty without it)
+    prompt = (
+        "You MUST respond with ONLY a ```python code block. "
+        "No explanations, no markdown besides the code block.\n\n"
+        + prompt
+    )
+
     for attempt in range(max_retries):
         try:
-            cur_prompt = prompt
-            if attempt > 0:
-                # Retry with a more forceful prompt
-                cur_prompt = (
-                    "You MUST respond with ONLY a ```python code block. "
-                    "No explanations, no markdown besides the code block.\n\n"
-                    + prompt
-                )
-            response = _query_gpt(client, model_name, image_path, cur_prompt)
+            response = _query_gpt(client, model_name, image_path, prompt)
             code = _extract_code_block(response)
             if code:
                 return code
             if attempt == 0:
-                # Log first 200 chars of failed response for debugging
                 _log_failed_response(response, image_path)
-                print(f" [no code block, retry]", end="", flush=True)
+                print(f" [no code, retry]", end="", flush=True)
+            else:
+                print(f" [retry {attempt+1}]", end="", flush=True)
         except Exception as e:
             print(f"\n  API error: {e}")
             if attempt == max_retries - 1:
@@ -446,28 +439,45 @@ def _detect_max_coordinate(code_str: str) -> int:
     return max(numbers) if numbers else 448
 
 
-def render_from_code(code_str: str, elements: List[dict]) -> Tuple[Optional[Image.Image], Optional[dict]]:
-    """Execute GPT-generated PIL code with actual cropped elements."""
-    canvas = Image.new("RGB", CANVAS_SIZE, BG_WHITE)
+def render_from_code(code_str: str, elements: List[dict],
+                     orig_size: Tuple[int, int] = (720, 1280)
+                     ) -> Tuple[Optional[Image.Image], Optional[dict]]:
+    """Execute GPT-generated PIL code at original resolution, then resize to 448x448.
+
+    GPT composes at the original phone resolution (e.g., 720x1280) using the real
+    detected coordinates, then we resize down to 448x448 and scale all layout bboxes.
+    """
+    ow, oh = orig_size
+    canvas = Image.new("RGB", (ow, oh), BG_WHITE)
     draw = ImageDraw.Draw(canvas)
     layout = {}
 
-    font_sm = _try_load_font(9)
-    font_md = _try_load_font(12)
-    font_lg = _try_load_font(16)
-    font_xl = _try_load_font(20)
+    # Larger fonts for original resolution (will be scaled down with resize)
+    font_sm = _try_load_font(12)
+    font_md = _try_load_font(18)
+    font_lg = _try_load_font(24)
+    font_xl = _try_load_font(32)
 
     def get_crop(index, w=50, h=50):
         """Return the actual cropped element resized to w x h."""
         if 0 <= index < len(elements):
             crop = elements[index]["crop"].convert("RGBA")
             return crop.resize((int(w), int(h)), Image.LANCZOS)
-        # Fallback placeholder
         ph = Image.new("RGBA", (int(w), int(h)), (200, 200, 200, 255))
         return ph
 
-    # Use a single dict as both globals and locals to avoid Python scoping issues
-    # with exec() where separate globals/locals can't find names in locals.
+    # Wrap canvas.paste to auto-convert float coordinates to int
+    _real_paste = canvas.paste
+
+    def _safe_paste(im, box=None, mask=None):
+        if isinstance(box, (tuple, list)):
+            box = tuple(int(v) for v in box)
+        if mask is not None:
+            _real_paste(im, box, mask)
+        else:
+            _real_paste(im, box)
+    canvas.paste = _safe_paste
+
     namespace = {
         "__builtins__": {},
         "canvas": canvas,
@@ -480,7 +490,7 @@ def render_from_code(code_str: str, elements: List[dict]) -> Tuple[Optional[Imag
         "get_crop": get_crop,
         "Image": Image,
         "ImageDraw": ImageDraw,
-        # Safe builtins — comprehensive set to avoid exec failures
+        # Safe builtins
         "range": range, "len": len, "enumerate": enumerate,
         "min": min, "max": max, "int": int, "float": float, "str": str,
         "True": True, "False": False, "None": None,
@@ -492,18 +502,19 @@ def render_from_code(code_str: str, elements: List[dict]) -> Tuple[Optional[Imag
         "sum": sum, "any": any, "all": all, "ord": ord, "chr": chr,
         "TypeError": TypeError, "ValueError": ValueError, "Exception": Exception,
         "KeyError": KeyError, "IndexError": IndexError,
+        "random": random,
     }
+
+    code_str = _sanitize_code(code_str)
 
     try:
         exec(code_str, namespace)
     except Exception as e:
         print(f"\n  Code execution error: {e}")
-        # Try stripping problematic lines and retry
         fixed = _try_fix_code(code_str, str(e))
         if fixed and fixed != code_str:
             try:
-                # Reset canvas
-                canvas = Image.new("RGB", CANVAS_SIZE, BG_WHITE)
+                canvas = Image.new("RGB", (ow, oh), BG_WHITE)
                 draw = ImageDraw.Draw(canvas)
                 layout.clear()
                 namespace["canvas"] = canvas
@@ -516,13 +527,57 @@ def render_from_code(code_str: str, elements: List[dict]) -> Tuple[Optional[Imag
         else:
             return None, None
 
-    # Ensure layout has at least back/home
-    if "back" not in layout:
-        layout["back"] = [20, 410, 100, 440]
-    if "home" not in layout:
-        layout["home"] = [348, 410, 428, 440]
+    # Resize from original resolution to 448x448
+    canvas_448 = canvas.resize(CANVAS_SIZE, Image.LANCZOS)
 
-    return canvas, layout
+    # Scale layout bboxes from orig_size to 448x448
+    sx = CANVAS_SIZE[0] / ow
+    sy = CANVAS_SIZE[1] / oh
+    scaled_layout = {}
+    for key, bbox in layout.items():
+        scaled_layout[key] = [
+            int(bbox[0] * sx), int(bbox[1] * sy),
+            int(bbox[2] * sx), int(bbox[3] * sy),
+        ]
+
+    # Ensure layout has at least back/home
+    if "back" not in scaled_layout:
+        scaled_layout["back"] = [20, 410, 100, 440]
+    if "home" not in scaled_layout:
+        scaled_layout["home"] = [348, 410, 428, 440]
+
+    return canvas_448, scaled_layout
+
+
+def _sanitize_code(code_str: str) -> str:
+    """Pre-process GPT code to remove/fix common issues before exec."""
+    lines = code_str.split("\n")
+    cleaned = []
+    for line in lines:
+        stripped = line.strip()
+        # Remove import statements
+        if stripped.startswith("import ") or stripped.startswith("from "):
+            cleaned.append(f"# REMOVED: {line}")
+            continue
+        cleaned.append(line)
+    code_str = "\n".join(cleaned)
+
+    # Fix deprecated draw.textsize() -> draw.textlength() (Pillow 10+)
+    # Common pattern: w, h = draw.textsize(text, font=font) or draw.textsize(text)
+    code_str = re.sub(
+        r'draw\.textsize\(([^)]+)\)',
+        r'(draw.textlength(\1), 20)',  # approximate height as 20
+        code_str
+    )
+
+    # Fix draw.rectangle(..., radius=N) -> draw.rounded_rectangle(..., radius=N)
+    code_str = re.sub(
+        r'draw\.rectangle\(([^)]*?),\s*radius\s*=',
+        r'draw.rounded_rectangle(\1, radius=',
+        code_str
+    )
+
+    return code_str
 
 
 def _try_fix_code(code_str: str, error_msg: str) -> Optional[str]:
@@ -1134,6 +1189,44 @@ def _build_layer_structure(pages_data: List[dict]) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Crop saving: labeled detection output for inspection
+# ---------------------------------------------------------------------------
+
+def _save_labeled_crops(elements: List[dict], orig_size: Tuple[int, int],
+                        screenshot_path: str, output_dir: str):
+    """Save each detected crop as a labeled PNG + annotated overview image."""
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Save individual crops
+    for e in elements:
+        label = e["label"].replace("/", "_").replace(" ", "_")[:30]
+        fname = f"{e['index']:02d}_{e['type']}_{label}.png"
+        e["crop"].save(os.path.join(output_dir, fname))
+
+    # Save annotated screenshot showing all detections with labels
+    img = Image.open(screenshot_path).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    font = _try_load_font(14)
+    for e in elements:
+        x1, y1, x2, y2 = e["bbox"]
+        color = (0, 255, 0) if e["type"] == "icon" else (255, 255, 0)
+        draw.rectangle([x1, y1, x2, y2], outline=color, width=2)
+        draw.text((x1, max(0, y1 - 16)),
+                  f"[{e['index']}] {e['label'][:20]}", fill=color, font=font)
+    img.save(os.path.join(output_dir, "_annotated.png"))
+
+    # Save element manifest
+    manifest = []
+    for e in elements:
+        manifest.append({
+            "index": e["index"], "label": e["label"], "type": e["type"],
+            "bbox": e["bbox"], "conf": round(e["conf"], 3),
+        })
+    with open(os.path.join(output_dir, "_manifest.json"), "w") as f:
+        json.dump(manifest, f, indent=2)
+
+
+# ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
 
@@ -1186,6 +1279,11 @@ def run_pipeline(args):
         elements, orig_size = detect_and_crop(screenshot_path, yolo_model, ocr_reader)
         print(f" ({len(elements)} detected)", end="", flush=True)
 
+        # Optionally save labeled crops for inspection
+        if args.save_crops:
+            _save_labeled_crops(elements, orig_size, screenshot_path,
+                                os.path.join(args.output_dir, "crops", page_id))
+
         # Stage 3: GPT arranges cropped elements on 448x448 canvas
         page_img = None
         layout = None
@@ -1196,7 +1294,7 @@ def run_pipeline(args):
         if code_str:
             with open(os.path.join(codes_dir, f"{page_id}.py"), "w") as f:
                 f.write(code_str)
-            page_img, layout = render_from_code(code_str, elements)
+            page_img, layout = render_from_code(code_str, elements, orig_size)
 
         if page_img is not None:
             print(f" [code] ({len(layout)} elems)")
@@ -1343,6 +1441,8 @@ def parse_args():
                         default="gpt-5-mini-2025-08-07",
                         help="OpenAI model name for page composition")
     parser.add_argument("--gpu", type=int, default=0, help="GPU for YOLO detection")
+    parser.add_argument("--save_crops", action="store_true",
+                        help="Save labeled crops and annotated screenshots for inspection")
     return parser.parse_args()
 
 
