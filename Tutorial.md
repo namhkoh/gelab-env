@@ -14,6 +14,7 @@ gelab-env/
 │   ├── generate_sft_data.py        # SFT dataset generation (path+edge+grounding+caption)
 │   ├── generate_st_rl_data.py      # ST-RL dataset generation (path-only, subtrees 2-3)
 │   ├── generate_mt_rl_data.py      # MT-RL task generation (balanced by path length)
+│   ├── prepare_continue_train_data.py  # Real-world data prep (AITW + Mind2Web -> 24k)
 │   └── icons/                      # Icon pool (Animals/, Business/, etc.)
 │
 ├── swift/plugin/                   # Training plugins (modified ms-swift framework)
@@ -22,12 +23,14 @@ gelab-env/
 │
 ├── eval/                           # Evaluation scripts
 │   ├── evaluate.py                 # Unified evaluation (static + interactive)
+│   ├── evaluate_real_world.py      # Real-world grounding benchmarks (7 datasets)
 │   └── generate_eval_splits.py     # Generate ID/OOD Edge/Path test splits
 │
 ├── gui_scripts/                    # Training launch scripts (3x A100 80GB)
 │   ├── sft_448.sh                  # SFT training (Paper Table 8)
 │   ├── st_rl_448.sh                # Single-Turn RL training (GRPO)
-│   └── mt_rl_448.sh                # Multi-Turn RL training (GRPO + A2B reward)
+│   ├── mt_rl_448.sh                # Multi-Turn RL training (GRPO + A2B reward)
+│   └── continue_train_448.sh       # Continue Train (real-world SFT, Paper Section 6.2)
 │
 ├── datas/                          # Single source of truth for all data
 │   ├── config.json                 # Tree parameters, canvas/icon sizes
@@ -177,6 +180,62 @@ The paper uses 16x A800 GPUs. Fitting GRPO full fine-tuning of a 7B VLM on 3x A1
 - batch=16, gen=8: **63.7 GB** (current optimal — matches paper's `num_generations=8`)
 
 **Key lesson learned:** Using 2 subtrees (24,878 samples) for ST-RL with only 3 epochs caused severe catastrophic forgetting — interactive Pass@1 dropped from 15% (SFT) to 7.35% (ST-RL). The paper's 99,512 total interactions (= 12,439 × 8 gen) implies single-subtree training. Switching to 1 subtree with 5 epochs and grad_acc=3 (effective batch 144, close to paper's 128) reduced total gradient updates from 12,439 to 3,420, matching the paper's scale.
+
+### 2.5 Continue Train (Real-World Continual Training — Paper Section 6.2)
+
+**Script**: `gui_scripts/continue_train_448.sh`
+
+Continual SFT training on 24k real-world GUI samples from AITW and Mind2Web. This evaluates whether GE-Lab pre-training transfers to real-world downstream tasks. Applied to all 4 model stages (Base, SFT, ST-RL, MT-RL) to produce Table 5 results.
+
+**Data Preparation**: `data_engine/prepare_continue_train_data.py`
+
+Downloads AITW (mobile) and Mind2Web (web) from HuggingFace, converts to ms-swift SFT format with the real-world system prompt from Appendix A.5. Default: 12k AITW + 12k Mind2Web = 24k samples.
+
+```bash
+# Prepare the 24k real-world dataset
+python data_engine/prepare_continue_train_data.py \
+  --output datas/continue_train_24k.json \
+  --image_dir datas/real_world_images \
+  --aitw_samples 12000 \
+  --mind2web_samples 12000
+```
+
+The real-world action space extends the simulator's with: `click`, `TYPE("text")`, `SCROLL(N)`, `WAIT(N)`, `complete`.
+
+| Parameter | Our Value | Paper Value | Notes |
+|-----------|-----------|-------------|-------|
+| Dataset | 24k (AITW + Mind2Web) | 24k (AITW + AITZ + AMEX + Mind2Web) | AMEX excluded (87GB manual download) |
+| Learning Rate | 1e-5 | 1e-5 | |
+| Epochs | 2 | 2 | |
+| Per-device Batch Size | 2 | 16 | |
+| Gradient Accumulation | 43 | 1 | Effective batch: 3x2x43=258 (paper: 256) |
+| DeepSpeed | ZeRO Stage 3 | — | ZeRO-2 + grad_ckpt + bf16 causes NaN |
+| Gradient Checkpointing | true | — | |
+| Max Length | 5120 | 5120 | |
+| max_pixels | 200704 (448x448) | 200704 | |
+
+```bash
+# Train on each model stage (produces Table 5 columns)
+MODEL_STAGE=base    bash gui_scripts/continue_train_448.sh  # Base Qwen2.5-VL
+MODEL_STAGE=sft     bash gui_scripts/continue_train_448.sh  # SFT checkpoint
+MODEL_STAGE=st_rl   bash gui_scripts/continue_train_448.sh  # ST-RL checkpoint
+MODEL_STAGE=mt_rl   bash gui_scripts/continue_train_448.sh  # MT-RL checkpoint
+```
+
+**Evaluation**: `eval/evaluate_real_world.py`
+
+Evaluates on 7 static grounding benchmarks (ScreenSpot, ScreenSpot-v2, FuncPred, MoTIF, Refexp, VWB-AG, VWB-EG) using click accuracy (point-in-bbox).
+
+```bash
+# Single-GPU evaluation
+python eval/evaluate_real_world.py --model_path <checkpoint>
+
+# Multi-GPU evaluation
+python eval/evaluate_real_world.py --model_path <checkpoint> --num_gpus 3
+
+# Specific benchmarks only
+python eval/evaluate_real_world.py --model_path <checkpoint> --benchmarks screenspot motif
+```
 
 ---
 
