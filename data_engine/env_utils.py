@@ -35,6 +35,12 @@ class GELabEnvUtils:
         self.pages = data["pages"]
         self.metadata = data.get("metadata", {})
 
+        # Read canvas size from metadata if available (sim2real envs may differ)
+        canvas = self.metadata.get("canvas_size")
+        if canvas:
+            self.CANVAS_WIDTH = canvas[0]
+            self.CANVAS_HEIGHT = canvas[1]
+
         # Build page-to-subtree mapping from layer structure
         ui_layer_path = os.path.join(env_dir, "ui_structure_layer.json")
         self.page_to_subtree = self._build_subtree_mapping(ui_layer_path)
