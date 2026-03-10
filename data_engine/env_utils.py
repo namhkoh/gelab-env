@@ -3,7 +3,7 @@ Shared utilities for GE-Lab data generation scripts.
 
 Provides GELabEnvUtils base class with:
 - UI structure loading (ui_structure.json, ui_structure_layer.json)
-- Subtree mapping (page -> subtree index)
+- Topology grouping metadata (legacy subtrees or GT-step groupings)
 - Navigation graph and NetworkX graph construction
 - Bbox normalization (448 -> 1000) and center computation
 - Shortest path finding with action/bbox info
@@ -33,6 +33,7 @@ class GELabEnvUtils:
         with open(ui_structure_path) as f:
             data = json.load(f)
         self.pages = data["pages"]
+        self.metadata = data.get("metadata", {})
 
         # Build page-to-subtree mapping from layer structure
         ui_layer_path = os.path.join(env_dir, "ui_structure_layer.json")
@@ -45,10 +46,16 @@ class GELabEnvUtils:
         self.nx_graph = self._build_nx_graph()
 
         print(f"Loaded {len(self.pages)} pages")
-        print(f"Subtree distribution: {self._count_subtrees()}")
+        print(f"Topology distribution: {self._count_subtrees()}")
 
     def _build_subtree_mapping(self, ui_layer_path: str) -> Dict[str, int]:
-        """Build mapping from page_id to subtree index (0-4)."""
+        """Build page grouping metadata for either legacy or GT-spine environments."""
+        if self.metadata.get("topology_type") == "gt_spine_branches":
+            page_to_group = {}
+            for page_id, page_data in self.pages.items():
+                page_to_group[page_id] = int(page_data.get("source_step_index", 0))
+            return page_to_group
+
         with open(ui_layer_path) as f:
             ui = json.load(f)
 
@@ -69,7 +76,7 @@ class GELabEnvUtils:
         return page_to_subtree
 
     def _count_subtrees(self) -> Dict[int, int]:
-        """Count pages per subtree."""
+        """Count pages per topology group."""
         counts = defaultdict(int)
         for page_id, subtree in self.page_to_subtree.items():
             counts[subtree] += 1
@@ -128,8 +135,26 @@ class GELabEnvUtils:
         return "Explain: this is target page.\tAction: complete"
 
     def get_pages_in_subtrees(self, subtree_indices: List[int]) -> List[str]:
-        """Get all pages belonging to specified subtrees (sorted for reproducibility)."""
+        """Get all pages belonging to specified topology groups (sorted)."""
         return sorted(p for p, s in self.page_to_subtree.items() if s in subtree_indices)
+
+    def get_sorted_page_ids(self) -> List[str]:
+        """Return page ids sorted by numeric suffix when possible."""
+        def sort_key(page_id: str):
+            try:
+                return int(page_id.split("_")[1])
+            except Exception:
+                return page_id
+
+        return sorted(self.pages.keys(), key=sort_key)
+
+    def get_public_transitions(self, page_id: str) -> List[Tuple[str, str, List[int]]]:
+        """Return non-system transitions used for training."""
+        return [
+            (target, action, bbox)
+            for target, action, bbox in self.graph.get(page_id, [])
+            if action not in {"back", "home"}
+        ]
 
     def get_path_with_actions(self, start: str, end: str) -> List[Tuple[str, str, List[int]]]:
         """Get shortest path with action and bbox info. Returns [] if no path."""

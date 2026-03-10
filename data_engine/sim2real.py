@@ -226,9 +226,25 @@ def crop_and_save_icon(image_pil, bbox_norm, output_path, target_size=(50, 50)):
         return False
 
     crop = image_pil.crop((x1, y1, x2, y2))
-    crop = crop.resize(target_size, Image.LANCZOS)
+    crop = _resize_with_padding(crop, target_size)
     crop.save(output_path, "PNG")
     return True
+
+
+def _resize_with_padding(image_pil, target_size):
+    """Resize an icon into a fixed box without distorting its aspect ratio."""
+    target_w, target_h = target_size
+    source = image_pil.convert("RGBA")
+    scale = min(target_w / max(source.width, 1), target_h / max(source.height, 1))
+    resized_w = max(1, int(round(source.width * scale)))
+    resized_h = max(1, int(round(source.height * scale)))
+    resized = source.resize((resized_w, resized_h), Image.LANCZOS)
+
+    canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
+    offset_x = (target_w - resized_w) // 2
+    offset_y = (target_h - resized_h) // 2
+    canvas.paste(resized, (offset_x, offset_y), resized)
+    return canvas
 
 
 def compute_image_hash(image_path):

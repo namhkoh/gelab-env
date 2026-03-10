@@ -1,7 +1,7 @@
 import random
-from typing import List, Dict, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import networkx as nx
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageEnhance
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -11,6 +11,7 @@ from megfile import smart_glob, smart_open, smart_path_join
 from io import BytesIO
 from PIL import ImageFont
 import glob
+import re
 # --------------------------
 # Data Structure Definitions
 # --------------------------
@@ -20,7 +21,7 @@ class UIElement:
     ICON_SIZE = 50
     
     def __init__(self, image: Image.Image, func: str):
-        self.raw_image = image.resize((self.ICON_SIZE, self.ICON_SIZE))
+        self.raw_image = fit_image_to_canvas(image, (self.ICON_SIZE, self.ICON_SIZE))
         self.func_desc = func
         self.used = False
 
@@ -34,6 +35,22 @@ class UIPage:
         self.elements = elements
         self.layout = layout
         self.parent = parent
+
+
+def fit_image_to_canvas(image: Image.Image, size: Tuple[int, int]) -> Image.Image:
+    """Resize an icon into a fixed canvas without distorting the original aspect ratio."""
+    canvas_w, canvas_h = size
+    source = image.convert("RGBA")
+    scale = min(canvas_w / max(source.width, 1), canvas_h / max(source.height, 1))
+    resized_w = max(1, int(round(source.width * scale)))
+    resized_h = max(1, int(round(source.height * scale)))
+    resized = source.resize((resized_w, resized_h), Image.Resampling.LANCZOS)
+
+    canvas = Image.new("RGBA", size, (0, 0, 0, 0))
+    offset_x = (canvas_w - resized_w) // 2
+    offset_y = (canvas_h - resized_h) // 2
+    canvas.paste(resized, (offset_x, offset_y), resized)
+    return canvas
 
 # --------------------------
 # Core Environment Class
@@ -223,7 +240,8 @@ class DynamicTopoEnv:
         plt.savefig(save_path, bbox_inches='tight', dpi=300, pad_inches=0.5)
         plt.close()
 
-    def save_environment_data(self, output_dir: str = "output", seed: int = None):
+    def save_environment_data(self, output_dir: str = "output", seed: int = None,
+                              extra_metadata: Optional[dict] = None):
         """Save environment data, including page images, transition relationships, and configuration parameters"""
         os.makedirs(output_dir, exist_ok=True)
         
@@ -330,23 +348,28 @@ class DynamicTopoEnv:
         
         # Modify JSON data saving, add reference to configuration information
         json_path = os.path.join(output_dir, "ui_structure.json")
+        metadata = {
+            "total_pages": len(pages_data),
+            "tree_depth": self.topo_generator.max_depth,
+            "nodes_per_level": self.topo_generator.nodes_per_level,
+            "config_file": "config.json",
+            "action_space": ["click", "complete"],
+        }
+        if extra_metadata:
+            metadata.update(extra_metadata)
+
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump({
                 "pages": pages_data,
-                "metadata": {
-                    "total_pages": len(pages_data),
-                    "tree_depth": self.topo_generator.max_depth,
-                    "nodes_per_level": self.topo_generator.nodes_per_level,
-                    "config_file": "config.json"  # Add configuration file reference
-                }
+                "metadata": metadata
             }, f, indent=2, ensure_ascii=False)
-        
+
         # New: Generate JSON file with hierarchical structure
-        self.generate_layered_structure(pages_data, output_dir)
-        
+        self.generate_layered_structure(pages_data, output_dir, extra_metadata=extra_metadata)
+
         return json_path
 
-    def generate_layered_structure(self, pages_data, output_dir):
+    def generate_layered_structure(self, pages_data, output_dir, extra_metadata: Optional[dict] = None):
         """Generate JSON file with hierarchical structure, child node information placed under parent's subnodes"""
         # Build parent-child relationship mapping
         parent_child_map = {}
@@ -388,15 +411,20 @@ class DynamicTopoEnv:
         
         # Save to file
         layer_json_path = os.path.join(output_dir, "ui_structure_layer.json")
+        metadata = {
+            "total_pages": len(pages_data),
+            "tree_depth": self.topo_generator.max_depth,
+            "nodes_per_level": self.topo_generator.nodes_per_level,
+            "config_file": "config.json",
+            "action_space": ["click", "complete"],
+        }
+        if extra_metadata:
+            metadata.update(extra_metadata)
+
         with open(layer_json_path, 'w', encoding='utf-8') as f:
             json.dump({
                 "root": tree_structure,
-                "metadata": {
-                    "total_pages": len(pages_data),
-                    "tree_depth": self.topo_generator.max_depth,
-                    "nodes_per_level": self.topo_generator.nodes_per_level,
-                    "config_file": "config.json"
-                }
+                "metadata": metadata
             }, f, indent=2, ensure_ascii=False)
         
         print(f"Hierarchical structure JSON file saved to: {layer_json_path}")
@@ -924,6 +952,371 @@ def load_icons_from_directory(dirname: str, required_count: int, output_dir: str
     
     return icons
 
+
+def _sanitize_func_name(text: str, fallback: str) -> str:
+    cleaned = re.sub(r'[^0-9A-Za-z]+', '_', (text or '').strip()).strip('_')
+    return cleaned[:40] if cleaned else fallback
+
+
+def _tokenize(text: str) -> set:
+    return {token for token in re.findall(r'[a-z0-9]+', (text or '').lower()) if len(token) > 1}
+
+
+def _bbox_iou(box1: List[float], box2: List[float]) -> float:
+    x1 = max(box1[0], box2[0])
+    y1 = max(box1[1], box2[1])
+    x2 = min(box1[2], box2[2])
+    y2 = min(box1[3], box2[3])
+    inter = max(0.0, x2 - x1) * max(0.0, y2 - y1)
+    area1 = max(0.0, box1[2] - box1[0]) * max(0.0, box1[3] - box1[1])
+    area2 = max(0.0, box2[2] - box2[0]) * max(0.0, box2[3] - box2[1])
+    union = area1 + area2 - inter + 1e-8
+    return inter / union
+
+
+def _build_icon_path_index(icon_root: str) -> Dict[str, str]:
+    index = {}
+    for dirpath, _, filenames in os.walk(icon_root):
+        for filename in filenames:
+            if not filename.lower().endswith(".png"):
+                continue
+            index.setdefault(filename, os.path.join(dirpath, filename))
+    return index
+
+
+def _load_trajectory_annotation(trajectory_id: str, annotations_dir: str) -> dict:
+    annot_path = os.path.join(annotations_dir, f"{trajectory_id}.json")
+    if not os.path.exists(annot_path):
+        raise FileNotFoundError(f"Trajectory annotation not found: {annot_path}")
+    with open(annot_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def build_trajectory_metadata(trajectory_id: str, annotations_dir: str) -> dict:
+    trajectory = _load_trajectory_annotation(trajectory_id, annotations_dir)
+    task_info = trajectory.get("task_info", {})
+    return {
+        "icon_source": "trajectory",
+        "trajectory_id": trajectory_id,
+        "episode_id": trajectory.get("episode_id", trajectory_id),
+        "trajectory_task": task_info.get("task", ""),
+        "trajectory_instruction": task_info.get("instruction", ""),
+        "trajectory_meta_task": task_info.get("meta_task", ""),
+        "trajectory_apps": task_info.get("app", []),
+        "trajectory_category": task_info.get("category", ""),
+        "trajectory_step_count": len(trajectory.get("steps", [])),
+        "action_space": ["click", "complete"],
+    }
+
+
+def _extract_live_trajectory_icon_metadata(trajectory_id: str,
+                                           annotations_dir: str,
+                                           screenshots_dir: str,
+                                           output_dir: Optional[str] = None,
+                                           weights_dir: str = "/ext_hdd2/nhkoh/OmniParser/weights",
+                                           box_threshold: float = 0.05,
+                                           iou_threshold: float = 0.1) -> List[dict]:
+    trajectory = _load_trajectory_annotation(trajectory_id, annotations_dir)
+    cache_path = os.path.join(output_dir, "trajectory_icon_metadata.json") if output_dir else None
+    if cache_path and os.path.exists(cache_path):
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    from sim2real import (
+        crop_and_save_icon,
+        detect_icons_yolo,
+        detect_text_ocr,
+        load_ocr,
+        load_yolo_model,
+        merge_detections,
+    )
+
+    yolo_model = load_yolo_model(weights_dir)
+    ocr_reader = load_ocr()
+
+    extracted_root = os.path.join(output_dir, "trajectory_icon_pool") if output_dir else None
+    if extracted_root:
+        os.makedirs(extracted_root, exist_ok=True)
+
+    metadata = []
+    for step_idx, step in enumerate(trajectory.get("steps", [])):
+        screenshot_name = step.get("screenshot")
+        if not screenshot_name:
+            continue
+
+        screenshot_path = os.path.join(screenshots_dir, screenshot_name)
+        if not os.path.exists(screenshot_path):
+            continue
+
+        with Image.open(screenshot_path) as img_handle:
+            image_pil = img_handle.convert("RGB")
+            img_w, img_h = image_pil.size
+            yolo_boxes, yolo_confs = detect_icons_yolo(
+                yolo_model, image_pil, box_threshold=box_threshold, iou_threshold=iou_threshold
+            )
+            ocr_texts, ocr_bboxes = detect_text_ocr(ocr_reader, image_pil)
+            elements = merge_detections(
+                yolo_boxes, yolo_confs, ocr_texts, ocr_bboxes, img_w, img_h
+            )
+
+            step_dir = None
+            if extracted_root:
+                step_dir = os.path.join(
+                    extracted_root,
+                    f"step_{step.get('step', step_idx):02d}_{os.path.splitext(screenshot_name)[0]}",
+                )
+                os.makedirs(step_dir, exist_ok=True)
+
+            icon_counter = 0
+            for elem in elements:
+                if elem.get("type") != "icon":
+                    continue
+
+                bbox = list(elem.get("bbox") or [])
+                if len(bbox) != 4:
+                    continue
+
+                content = (elem.get("content") or "").strip()
+                icon_path = None
+                if step_dir:
+                    file_stub = _sanitize_func_name(content, f"icon_{icon_counter}")
+                    icon_path = os.path.join(step_dir, f"{icon_counter:03d}_{file_stub}.png")
+                    if not crop_and_save_icon(image_pil, bbox, icon_path):
+                        icon_path = None
+
+                metadata.append({
+                    "type": "icon",
+                    "bbox": bbox,
+                    "content": content,
+                    "interactivity": bool(elem.get("interactivity", True)),
+                    "confidence": float(elem.get("confidence", 0.0)),
+                    "source": elem.get("source", "trajectory_live"),
+                    "source_screenshot": screenshot_name,
+                    "icon_path": icon_path,
+                    "step_index": step.get("step", step_idx),
+                })
+                icon_counter += 1
+
+    if cache_path:
+        with open(cache_path, 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+    return metadata
+
+
+def _load_icon_from_metadata_entry(entry: Dict[str, Any],
+                                   screenshots_dir: str) -> Optional[Image.Image]:
+    icon_path = entry.get("icon_path")
+    if icon_path and os.path.exists(icon_path):
+        with open(icon_path, 'rb') as f:
+            return Image.open(BytesIO(f.read())).convert('RGBA')
+
+    screenshot_name = entry.get("source_screenshot")
+    bbox = entry.get("bbox") or []
+    if not screenshot_name or len(bbox) != 4:
+        return None
+
+    screenshot_path = os.path.join(screenshots_dir, screenshot_name)
+    if not os.path.exists(screenshot_path):
+        return None
+
+    with Image.open(screenshot_path) as screenshot_img:
+        screenshot = screenshot_img.convert("RGBA")
+        width, height = screenshot.size
+        x1 = max(0, int(round(bbox[0] * width)))
+        y1 = max(0, int(round(bbox[1] * height)))
+        x2 = min(width, int(round(bbox[2] * width)))
+        y2 = min(height, int(round(bbox[3] * height)))
+        if x2 - x1 < 5 or y2 - y1 < 5:
+            return None
+        return screenshot.crop((x1, y1, x2, y2))
+
+
+def load_icons_from_trajectory(trajectory_id: str,
+                               required_count: int,
+                               metadata_path: Optional[str],
+                               annotations_dir: str,
+                               screenshots_dir: str,
+                               output_dir: str = None,
+                               extract_mode: str = "live",
+                               weights_dir: str = "/ext_hdd2/nhkoh/OmniParser/weights"
+                               ) -> List[Tuple[Image.Image, str]]:
+    """Load a trajectory-scoped icon pool for full GE-Lab tree generation."""
+    trajectory = _load_trajectory_annotation(trajectory_id, annotations_dir)
+    if extract_mode == "live":
+        metadata = _extract_live_trajectory_icon_metadata(
+            trajectory_id=trajectory_id,
+            annotations_dir=annotations_dir,
+            screenshots_dir=screenshots_dir,
+            output_dir=output_dir,
+            weights_dir=weights_dir,
+        )
+        icon_path_index = {}
+    else:
+        if not metadata_path or not os.path.exists(metadata_path):
+            raise FileNotFoundError(f"Icon metadata not found: {metadata_path}")
+        with open(metadata_path, 'r', encoding='utf-8') as f:
+            metadata = json.load(f)
+        icon_root = os.path.dirname(metadata_path)
+        icon_path_index = _build_icon_path_index(icon_root)
+
+    steps = trajectory.get("steps", [])
+    task_info = trajectory.get("task_info", {})
+    screenshot_names = {step.get("screenshot") for step in steps if step.get("screenshot")}
+    if not screenshot_names:
+        raise ValueError(f"Trajectory {trajectory_id} does not contain screenshots")
+
+    screenshot_sizes = {}
+    for screenshot_name in screenshot_names:
+        screenshot_path = os.path.join(screenshots_dir, screenshot_name)
+        if os.path.exists(screenshot_path):
+            with Image.open(screenshot_path) as screenshot_img:
+                screenshot_sizes[screenshot_name] = screenshot_img.size
+
+    task_tokens = set()
+    task_tokens.update(_tokenize(task_info.get("task", "")))
+    task_tokens.update(_tokenize(task_info.get("instruction", "")))
+    task_tokens.update(_tokenize(task_info.get("meta_task", "")))
+    for app_name in task_info.get("app", []):
+        task_tokens.update(_tokenize(app_name))
+
+    step_boxes = {}
+    step_tokens = {}
+    for step in steps:
+        screenshot_name = step.get("screenshot")
+        if not screenshot_name:
+            continue
+        step_tokens[screenshot_name] = set()
+        step_tokens[screenshot_name].update(_tokenize(step.get("low_level_instruction", "")))
+        step_tokens[screenshot_name].update(_tokenize(step.get("description", "")))
+        step_tokens[screenshot_name].update(_tokenize(step.get("intention", "")))
+        step_tokens[screenshot_name].update(_tokenize(str(step.get("info", ""))))
+
+        sam2_bbox = step.get("sam2_bbox") or []
+        img_size = screenshot_sizes.get(screenshot_name)
+        if len(sam2_bbox) == 4 and img_size is not None:
+            width, height = img_size
+            step_boxes.setdefault(screenshot_name, []).append([
+                sam2_bbox[0] / width,
+                sam2_bbox[1] / height,
+                sam2_bbox[2] / width,
+                sam2_bbox[3] / height,
+            ])
+
+    ranked_entries = []
+    for index, entry in enumerate(metadata):
+        if entry.get("type") != "icon":
+            continue
+        screenshot_name = entry.get("source_screenshot")
+        if screenshot_name not in screenshot_names:
+            continue
+        icon_path = entry.get("icon_path")
+        if icon_path and not os.path.exists(icon_path):
+            icon_path = icon_path_index.get(os.path.basename(icon_path))
+
+        bbox = entry.get("bbox") or []
+        if len(bbox) != 4:
+            continue
+
+        width = max(0.0, bbox[2] - bbox[0])
+        height = max(0.0, bbox[3] - bbox[1])
+        area = width * height
+        if area < 0.0002 or area > 0.12:
+            continue
+        aspect_ratio = width / max(height, 1e-6)
+        if aspect_ratio > 4.0 or aspect_ratio < 0.25:
+            continue
+
+        score = 0.1
+        content = entry.get("content") or ""
+        content_tokens = _tokenize(content)
+        if content_tokens & task_tokens:
+            score += 0.5
+        if content_tokens & step_tokens.get(screenshot_name, set()):
+            score += 0.35
+
+        max_overlap = 0.0
+        for action_box in step_boxes.get(screenshot_name, []):
+            max_overlap = max(max_overlap, _bbox_iou(bbox, action_box))
+        score += max_overlap * 2.0
+
+        if not content_tokens and max_overlap < 0.1:
+            score -= 0.2
+
+        ranked_entries.append({
+            "score": score,
+            "entry": {**entry, "icon_path": icon_path},
+            "max_overlap": max_overlap,
+            "content": content,
+            "index": index,
+        })
+
+    ranked_entries.sort(
+        key=lambda item: (
+            item["score"],
+            item["max_overlap"],
+            bool(item["content"]),
+            item["content"].lower(),
+            -item["index"],
+        ),
+        reverse=True,
+    )
+
+    selected_entries = ranked_entries[:required_count]
+    initial_selected_count = len(selected_entries)
+    if not selected_entries:
+        raise ValueError(
+            f"Trajectory {trajectory_id} did not yield any usable icons after trajectory filtering."
+        )
+    if initial_selected_count < required_count:
+        base_pool = list(selected_entries)
+        reuse_index = 0
+        while len(selected_entries) < required_count:
+            selected_entries.append(base_pool[reuse_index % len(base_pool)])
+            reuse_index += 1
+
+    icons = []
+    used_icons_info = []
+    name_counts = {}
+    for selection_idx, item in enumerate(selected_entries):
+        entry = item["entry"]
+        img = _load_icon_from_metadata_entry(entry, screenshots_dir)
+        if img is None:
+            continue
+
+        base_name = _sanitize_func_name(
+            entry.get("content") or os.path.splitext(os.path.basename(entry.get("icon_path") or ""))[0],
+            f"traj_icon_{len(icons)}"
+        )
+        suffix = name_counts.get(base_name, 0)
+        name_counts[base_name] = suffix + 1
+        func_name = base_name if suffix == 0 else f"{base_name}_{suffix}"
+
+        icons.append((img, func_name))
+        used_icons_info.append({
+            "icon_path": entry.get("icon_path"),
+            "func_name": func_name,
+            "content": entry.get("content"),
+            "source_screenshot": entry.get("source_screenshot"),
+            "score": round(item["score"], 4),
+            "action_overlap": round(item["max_overlap"], 4),
+            "selection_index": selection_idx,
+            "reused_from_ranked_pool": selection_idx >= initial_selected_count,
+        })
+
+    if output_dir:
+        json_path = os.path.join(output_dir, "used_icons.json")
+        os.makedirs(output_dir, exist_ok=True)
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(used_icons_info, f, indent=2, ensure_ascii=False)
+
+    if len(icons) < required_count:
+        raise ValueError(
+            f"Trajectory {trajectory_id} resolved only {len(icons)} usable icon crops, need {required_count}."
+        )
+
+    return icons
+
 def calculate_required_icons(tree_depth: int, nodes_per_level: List[int]) -> int:
     """
     Calculate minimum number of icons needed for tree structure
@@ -944,11 +1337,595 @@ def calculate_required_icons(tree_depth: int, nodes_per_level: List[int]) -> int
     
     return total_icons
 
+
+def _page_sort_key(page_id: str):
+    try:
+        return int(page_id.split("_")[1])
+    except Exception:
+        return page_id
+
+
+def _typed_layout(layout: Dict[str, List[int]]) -> Dict[str, dict]:
+    return {
+        name: {"bbox": [int(v) for v in bbox], "type": "normal"}
+        for name, bbox in layout.items()
+    }
+
+
+def _dedupe_name(name: str, counts: Dict[str, int]) -> str:
+    suffix = counts.get(name, 0)
+    counts[name] = suffix + 1
+    return name if suffix == 0 else f"{name}_{suffix}"
+
+
+def _normalize_transition_action(raw_label: str, step: dict, fallback: str) -> str:
+    action_type = str(step.get("action", "")).upper()
+    info_text = str(step.get("info", ""))
+    instruction = " ".join([
+        str(step.get("low_level_instruction", "")),
+        str(step.get("description", "")),
+        str(step.get("intention", "")),
+        info_text,
+    ]).lower()
+
+    label = _sanitize_func_name(raw_label, fallback)
+    lowered = label.lower()
+    if "key_home" in info_text.lower() or "home screen" in instruction or lowered == "home":
+        return "launcher_button"
+    if info_text == "BACK" or "go back" in instruction or lowered == "back":
+        return "previous_button"
+    if action_type == "TEXT":
+        return "input_field" if not re.search(r"[A-Za-z]", lowered) else label
+    if action_type == "SCROLL" and lowered in {"scroll", "feed", "content"}:
+        return "content_region"
+    if not re.search(r"[A-Za-z]", label):
+        return fallback
+    return label[:40]
+
+
+def _bbox_area(bbox: List[int]) -> int:
+    return max(0, bbox[2] - bbox[0]) * max(0, bbox[3] - bbox[1])
+
+
+def _bbox_center(bbox: List[int]) -> Tuple[float, float]:
+    return ((bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0)
+
+
+def _bbox_distance(box1: List[int], box2: List[int]) -> float:
+    c1x, c1y = _bbox_center(box1)
+    c2x, c2y = _bbox_center(box2)
+    return ((c1x - c2x) ** 2 + (c1y - c2y) ** 2) ** 0.5
+
+
+def _metadata_action_bbox(kind: str, canvas_size: Tuple[int, int]) -> List[int]:
+    width, height = canvas_size
+    if kind == "launcher_button":
+        return [width // 2 - 34, height - 48, width // 2 + 34, height - 10]
+    if kind == "previous_button":
+        return [10, height - 48, 68, height - 10]
+    if kind == "input_field":
+        return [int(width * 0.08), int(height * 0.04), int(width * 0.92), int(height * 0.12)]
+    return [int(width * 0.08), int(height * 0.18), int(width * 0.92), int(height * 0.86)]
+
+
+def _alias_layout_action(family: dict, raw_name: str, new_name: str) -> str:
+    if not raw_name or raw_name == new_name:
+        return raw_name
+    if raw_name in family["layout"] and new_name not in family["layout"]:
+        family["layout"][new_name] = family["layout"].pop(raw_name)
+        for elem in family["scaled_elements"]:
+            if elem["action_name"] == raw_name:
+                elem["action_name"] = new_name
+                break
+        return new_name
+    return new_name
+
+
+def _add_metadata_action(family: dict, action_name: str, bbox: List[int]) -> Tuple[str, List[int]]:
+    counts = family.setdefault("action_name_counts", {})
+    final_name = _dedupe_name(action_name, counts)
+    family["layout"][final_name] = [int(v) for v in bbox]
+    return final_name, family["layout"][final_name]
+
+
+def _choose_click_target(family: dict) -> Tuple[str, List[int]]:
+    step = family["step"]
+    action_type = str(step.get("action", "")).upper()
+    info_text = str(step.get("info", ""))
+    instruction = " ".join([
+        str(step.get("low_level_instruction", "")),
+        str(step.get("description", "")),
+        str(step.get("intention", "")),
+        info_text,
+    ]).lower()
+    canvas_size = tuple(family["canvas_size"])
+
+    if "KEY_HOME" in info_text or "home screen" in instruction:
+        return _add_metadata_action(family, "launcher_button", _metadata_action_bbox("launcher_button", canvas_size))
+    if info_text == "BACK" or "go back" in instruction or instruction.startswith("back "):
+        return _add_metadata_action(family, "previous_button", _metadata_action_bbox("previous_button", canvas_size))
+
+    scaled_elements = family["scaled_elements"]
+    sam2_bbox = step.get("sam2_bbox") or []
+    if action_type == "CLICK" and len(sam2_bbox) == 4:
+        from sim2real_compose import _scale_bbox_to_box as compose_scale_bbox
+
+        scaled_bbox = compose_scale_bbox(sam2_bbox, tuple(family["orig_size"]), canvas_size)
+        best_elem = None
+        best_iou = 0.0
+        best_distance = float("inf")
+        for elem in scaled_elements:
+            bbox = elem["scaled_bbox"]
+            iou = _bbox_iou(
+                [bbox[0], bbox[1], bbox[2], bbox[3]],
+                [scaled_bbox[0], scaled_bbox[1], scaled_bbox[2], scaled_bbox[3]],
+            )
+            distance = _bbox_distance(bbox, scaled_bbox)
+            if iou > best_iou or (iou == best_iou and distance < best_distance):
+                best_elem = elem
+                best_iou = iou
+                best_distance = distance
+        if best_elem is not None and (best_iou > 0 or best_distance <= 56):
+            action_name = _normalize_transition_action(
+                best_elem["action_name"], step, f"step_{family['source_step_index']:02d}_click"
+            )
+            action_name = _alias_layout_action(family, best_elem["action_name"], action_name)
+            return action_name, family["layout"].get(action_name, best_elem["scaled_bbox"])
+
+    if action_type == "TEXT":
+        preferred = []
+        for elem in scaled_elements:
+            label = str(elem.get("action_name", "")).lower()
+            bbox = elem["scaled_bbox"]
+            is_wide = (bbox[2] - bbox[0]) >= int(canvas_size[0] * 0.45)
+            if any(token in label for token in ("search", "input", "field", "text", "query")) or is_wide:
+                preferred.append((is_wide, _bbox_area(bbox), elem))
+        if preferred:
+            preferred.sort(key=lambda item: (item[0], item[1]), reverse=True)
+            elem = preferred[0][2]
+            action_name = _normalize_transition_action(elem["action_name"], step, "input_field")
+            action_name = _alias_layout_action(family, elem["action_name"], action_name)
+            return action_name, family["layout"].get(action_name, elem["scaled_bbox"])
+        return _add_metadata_action(family, "input_field", _metadata_action_bbox("input_field", canvas_size))
+
+    if action_type == "SCROLL":
+        ranked = []
+        for elem in scaled_elements:
+            bbox = elem["scaled_bbox"]
+            cx, cy = _bbox_center(bbox)
+            area = _bbox_area(bbox)
+            if area < 1200:
+                continue
+            center_bonus = -abs(cx - canvas_size[0] / 2.0) - abs(cy - canvas_size[1] / 2.0) * 0.5
+            ranked.append((area + center_bonus, elem))
+        if ranked:
+            ranked.sort(key=lambda item: item[0], reverse=True)
+            elem = ranked[0][1]
+            action_name = _normalize_transition_action(elem["action_name"], step, "content_region")
+            action_name = _alias_layout_action(family, elem["action_name"], action_name)
+            return action_name, family["layout"].get(action_name, elem["scaled_bbox"])
+        return _add_metadata_action(family, "content_region", _metadata_action_bbox("content_region", canvas_size))
+
+    best_score = -1.0
+    best_elem = None
+    instruction_tokens = _tokenize(instruction)
+    for elem in scaled_elements:
+        label = str(elem.get("action_name", ""))
+        label_tokens = _tokenize(label)
+        overlap = len(instruction_tokens & label_tokens)
+        score = float(overlap) * 2.0 + _bbox_area(elem["scaled_bbox"]) / 5000.0
+        if score > best_score:
+            best_score = score
+            best_elem = elem
+    if best_elem is not None:
+        action_name = _normalize_transition_action(
+            best_elem["action_name"], step, f"step_{family['source_step_index']:02d}_continue"
+        )
+        action_name = _alias_layout_action(family, best_elem["action_name"], action_name)
+        return action_name, family["layout"].get(action_name, best_elem["scaled_bbox"])
+    return _add_metadata_action(
+        family,
+        f"step_{family['source_step_index']:02d}_continue",
+        _metadata_action_bbox("content_region", canvas_size),
+    )
+
+
+def _select_branch_actions(family: dict, max_branches: int) -> List[str]:
+    candidates = []
+    excluded = {family.get("canonical_action_name")}
+    for elem in family["scaled_elements"]:
+        action_name = elem["action_name"]
+        if action_name in excluded:
+            continue
+        bbox = elem["scaled_bbox"]
+        area = _bbox_area(bbox)
+        if area < 320:
+            continue
+        alpha_bonus = 1 if re.search(r"[A-Za-z]", str(elem.get("label", ""))) else 0
+        type_bonus = 1 if elem.get("type") == "icon" else 0
+        score = type_bonus * 100000 + alpha_bonus * 10000 + area
+        candidates.append((score, action_name))
+    candidates.sort(reverse=True)
+    return [name for _, name in candidates[:max_branches]]
+
+
+def _build_branch_asset_pool(families: List[dict], family_idx: int, window: int = 2) -> List[dict]:
+    asset_pool = []
+    start = max(0, family_idx - window)
+    end = min(len(families), family_idx + window + 1)
+    for idx in range(start, end):
+        for elem in families[idx]["scaled_elements"]:
+            asset_path = elem.get("asset_path")
+            bbox = elem.get("bbox") or []
+            if not asset_path or len(bbox) != 4:
+                continue
+            asset_pool.append({
+                "asset_path": asset_path,
+                "type": elem.get("type"),
+                "label": elem.get("label"),
+                "asset_size": (max(1, bbox[2] - bbox[0]), max(1, bbox[3] - bbox[1])),
+                "source_step_index": families[idx]["source_step_index"],
+            })
+    return asset_pool
+
+
+def _choose_replacement_asset(pool: List[dict], elem: dict, family_idx: int, branch_idx: int,
+                              used_paths: set) -> Optional[dict]:
+    target_bbox = elem["scaled_bbox"]
+    target_w = max(1, target_bbox[2] - target_bbox[0])
+    target_h = max(1, target_bbox[3] - target_bbox[1])
+    target_ratio = target_w / float(target_h)
+    ranked = []
+    for item in pool:
+        if item["asset_path"] in used_paths:
+            continue
+        if item["type"] != elem.get("type"):
+            continue
+        if item["label"] == elem.get("label") and item["source_step_index"] == family_idx:
+            continue
+        asset_w, asset_h = item["asset_size"]
+        asset_ratio = asset_w / float(max(asset_h, 1))
+        ratio_penalty = abs(target_ratio - asset_ratio)
+        distance_penalty = abs(item["source_step_index"] - family_idx) * 0.15
+        label_bonus = 0.5 if item["label"] != elem.get("label") else 0.0
+        score = label_bonus - ratio_penalty - distance_penalty
+        ranked.append((score, item))
+    if not ranked:
+        return None
+    ranked.sort(key=lambda item: item[0], reverse=True)
+    return ranked[branch_idx % len(ranked)][1]
+
+
+def _apply_branch_variant(family: dict, focus_action: str, branch_idx: int,
+                          asset_pool: List[dict]) -> Image.Image:
+    image = family["canonical_image"].convert("RGBA")
+    layout = family["layout"]
+    element_by_action = {elem["action_name"]: elem for elem in family["scaled_elements"]}
+    focus_bbox = layout[focus_action]
+    ordered_actions = [focus_action]
+    nearby = []
+    for elem in family["scaled_elements"]:
+        action_name = elem["action_name"]
+        if action_name == focus_action or action_name == family.get("canonical_action_name"):
+            continue
+        nearby.append((_bbox_distance(focus_bbox, elem["scaled_bbox"]), action_name))
+    nearby.sort(key=lambda item: item[0])
+    ordered_actions.extend(name for _, name in nearby[:2])
+
+    used_paths = set()
+    for action_name in ordered_actions:
+        elem = element_by_action.get(action_name)
+        if elem is None:
+            continue
+        bbox = layout[action_name]
+        replacement = _choose_replacement_asset(asset_pool, elem, family["source_step_index"], branch_idx, used_paths)
+        if replacement is not None:
+            used_paths.add(replacement["asset_path"])
+            with Image.open(replacement["asset_path"]) as asset_handle:
+                fitted = fit_image_to_canvas(
+                    asset_handle.convert("RGBA"),
+                    (max(1, bbox[2] - bbox[0]), max(1, bbox[3] - bbox[1])),
+                )
+            image.alpha_composite(fitted, (bbox[0], bbox[1]))
+            continue
+
+        patch = image.crop((bbox[0], bbox[1], bbox[2], bbox[3]))
+        factor = 1.08 if branch_idx % 2 == 0 else 0.92
+        patch = ImageEnhance.Brightness(patch).enhance(factor)
+        image.paste(patch, (bbox[0], bbox[1], bbox[2], bbox[3]))
+
+    return image.convert("RGB")
+
+
+def _visualize_serialized_graph(pages: Dict[str, dict], output_path: str):
+    graph = nx.DiGraph()
+    for page_id, page in pages.items():
+        graph.add_node(page_id, depth=page.get("depth", 0))
+        for transition in page.get("transitions", []):
+            graph.add_edge(page_id, transition["target_page"], action=transition["action"])
+    if not graph.nodes:
+        return
+
+    nodes_by_depth: Dict[int, List[str]] = {}
+    for node, data in graph.nodes(data=True):
+        nodes_by_depth.setdefault(int(data.get("depth", 0)), []).append(node)
+
+    pos = {}
+    for depth in sorted(nodes_by_depth):
+        nodes = sorted(nodes_by_depth[depth], key=_page_sort_key)
+        for idx, node in enumerate(nodes):
+            pos[node] = (depth, -idx)
+
+    plt.figure(figsize=(18, 10))
+    nx.draw_networkx_nodes(graph, pos, node_color="lightblue", node_size=550)
+    nx.draw_networkx_edges(graph, pos, arrows=True, arrowsize=12, edge_color="gray")
+    nx.draw_networkx_labels(graph, pos, font_size=7)
+    edge_labels = {(u, v): data["action"] for u, v, data in graph.edges(data=True)}
+    nx.draw_networkx_edge_labels(
+        graph,
+        pos,
+        edge_labels=edge_labels,
+        font_size=6,
+        bbox=dict(facecolor="white", edgecolor="none", alpha=0.8),
+    )
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig(output_path, bbox_inches="tight", dpi=200)
+    plt.close()
+
+
+def _build_gt_layer_tree(root_id: str, pages: Dict[str, dict], tree_children: Dict[str, List[str]]) -> dict:
+    def build_node(page_id: str) -> dict:
+        page = pages[page_id]
+        return {
+            "image": page["image"],
+            "depth": page["depth"],
+            "layout": page["layout"],
+            "transitions": [t for t in page["transitions"] if t.get("transition_role") != "merge"],
+            "source_step_index": page.get("source_step_index"),
+            "page_family_id": page.get("page_family_id"),
+            "is_canonical": page.get("is_canonical", False),
+            "branch_parent_page": page.get("branch_parent_page"),
+            "merge_target_page": page.get("merge_target_page"),
+            "subnodes": [build_node(child_id) for child_id in tree_children.get(page_id, [])],
+        }
+
+    return build_node(root_id)
+
+
+def generate_trajectory_family_environment(args, output_dir: str) -> dict:
+    from sim2real_compose import (
+        OUTPUT_CANVAS_SIZE,
+        _build_step_context,
+        _persist_extracted_assets,
+        _save_asset_manifest,
+        detect_and_crop,
+        load_detection_models,
+        render_reconstructed_native_page,
+    )
+
+    trajectory = _load_trajectory_annotation(args.trajectory_id, args.annotations_dir)
+    steps = trajectory.get("steps", [])
+    if not steps:
+        raise ValueError(f"Trajectory {args.trajectory_id} has no steps")
+
+    pages_dir = os.path.join(output_dir, "pages")
+    assets_dir = os.path.join(output_dir, "trajectory_assets")
+    family_cache_dir = os.path.join(output_dir, "page_families")
+    os.makedirs(pages_dir, exist_ok=True)
+    os.makedirs(assets_dir, exist_ok=True)
+    os.makedirs(family_cache_dir, exist_ok=True)
+
+    yolo_model, ocr_reader = load_detection_models(args.omniparser_weights, 0)
+
+    families = []
+    pages_detection_data = []
+    for step_idx, step in enumerate(steps):
+        screenshot_name = step.get("screenshot", f"{args.trajectory_id}_{step_idx}.png")
+        screenshot_path = os.path.join(args.screenshots_dir, screenshot_name)
+        if not os.path.exists(screenshot_path):
+            raise FileNotFoundError(f"Missing screenshot: {screenshot_path}")
+
+        family_json_path = os.path.join(family_cache_dir, f"family_{step_idx:03d}.json")
+        family_png_path = os.path.join(family_cache_dir, f"family_{step_idx:03d}_canonical.png")
+        if os.path.exists(family_json_path) and os.path.exists(family_png_path):
+            with open(family_json_path, "r", encoding="utf-8") as f:
+                family = json.load(f)
+            if family.get("render_mode") == "crop_reconstructed":
+                with Image.open(family_png_path) as img_handle:
+                    family["canonical_image"] = img_handle.convert("RGB")
+                families.append(family)
+                pages_detection_data.append({
+                    "page_id": family["page_id"],
+                    "screenshot_name": screenshot_name,
+                    "step": family["step"],
+                    "elements": family["elements"],
+                })
+                continue
+
+        step_context = _build_step_context(trajectory, step_idx)
+        elements, orig_size = detect_and_crop(screenshot_path, yolo_model, ocr_reader)
+        asset_elements = _persist_extracted_assets(elements, screenshot_name, assets_dir, step_context)
+        canonical_image, layout, scaled_elements = render_reconstructed_native_page(
+            screenshot_path,
+            asset_elements,
+            orig_size,
+        )
+        family = {
+            "page_id": f"page_{step_idx}",
+            "page_family_id": f"family_{step_idx:03d}",
+            "source_step_index": step_idx,
+            "screenshot_name": screenshot_name,
+            "screenshot_path": screenshot_path,
+            "orig_size": list(orig_size),
+            "canvas_size": list(OUTPUT_CANVAS_SIZE),
+            "step": step_context,
+            "elements": asset_elements,
+            "scaled_elements": scaled_elements,
+            "layout": {name: [int(v) for v in bbox] for name, bbox in layout.items()},
+            "action_name_counts": {name: 1 for name in layout},
+            "render_mode": "crop_reconstructed",
+        }
+        family["canonical_image"] = canonical_image
+
+        with open(family_json_path, "w", encoding="utf-8") as f:
+            json.dump({k: v for k, v in family.items() if k != "canonical_image"}, f, indent=2)
+        canonical_image.save(family_png_path)
+
+        families.append(family)
+        pages_detection_data.append({
+            "page_id": family["page_id"],
+            "screenshot_name": screenshot_name,
+            "step": step_context,
+            "elements": asset_elements,
+        })
+
+    _save_asset_manifest(output_dir, pages_detection_data)
+
+    spine_page_ids = [family["page_id"] for family in families]
+    tree_children: Dict[str, List[str]] = {page_id: [] for page_id in spine_page_ids}
+    pages: Dict[str, dict] = {}
+    branch_pages = []
+
+    for family_idx, family in enumerate(families):
+        page_id = family["page_id"]
+        next_page_id = spine_page_ids[family_idx + 1] if family_idx + 1 < len(spine_page_ids) else None
+        if next_page_id is not None:
+            action_name, action_bbox = _choose_click_target(family)
+            family["canonical_action_name"] = action_name
+            family["canonical_action_bbox"] = [int(v) for v in action_bbox]
+        else:
+            family["canonical_action_name"] = None
+            family["canonical_action_bbox"] = None
+
+        page_path = os.path.join(pages_dir, f"{page_id}.png")
+        family["canonical_image"].save(page_path)
+        page_record = {
+            "image": f"{page_id}.png",
+            "depth": family_idx,
+            "layout": _typed_layout(family["layout"]),
+            "transitions": [],
+            "source_step_index": family_idx,
+            "page_family_id": family["page_family_id"],
+            "is_canonical": True,
+            "branch_parent_page": None,
+            "branch_parent_action": None,
+            "merge_target_page": next_page_id,
+        }
+        if next_page_id is not None:
+            page_record["transitions"].append({
+                "action": family["canonical_action_name"],
+                "target_page": next_page_id,
+                "icon_bbox": family["canonical_action_bbox"],
+                "transition_role": "spine",
+            })
+            tree_children[page_id].append(next_page_id)
+        pages[page_id] = page_record
+
+    page_counter = len(families)
+    max_branches = max(0, int(getattr(args, "branches_per_step", 2)))
+    for family_idx, family in enumerate(families[:-1]):
+        canonical_page_id = family["page_id"]
+        merge_target_page = spine_page_ids[family_idx + 1]
+        branch_actions = _select_branch_actions(family, max_branches)
+        if not branch_actions:
+            continue
+        asset_pool = _build_branch_asset_pool(families, family_idx)
+        for branch_idx, branch_action in enumerate(branch_actions):
+            branch_page_id = f"page_{page_counter}"
+            page_counter += 1
+            branch_img = _apply_branch_variant(family, branch_action, branch_idx, asset_pool)
+            branch_path = os.path.join(pages_dir, f"{branch_page_id}.png")
+            branch_img.save(branch_path)
+
+            pages[canonical_page_id]["transitions"].append({
+                "action": branch_action,
+                "target_page": branch_page_id,
+                "icon_bbox": family["layout"][branch_action],
+                "transition_role": "branch",
+            })
+            tree_children.setdefault(canonical_page_id, []).append(branch_page_id)
+            tree_children.setdefault(branch_page_id, [])
+
+            branch_pages.append(branch_page_id)
+            pages[branch_page_id] = {
+                "image": f"{branch_page_id}.png",
+                "depth": family_idx + 1,
+                "layout": _typed_layout({name: bbox[:] for name, bbox in family["layout"].items()}),
+                "transitions": [{
+                    "action": family["canonical_action_name"],
+                    "target_page": merge_target_page,
+                    "icon_bbox": family["canonical_action_bbox"],
+                    "transition_role": "merge",
+                }],
+                "source_step_index": family_idx,
+                "page_family_id": family["page_family_id"],
+                "is_canonical": False,
+                "branch_parent_page": canonical_page_id,
+                "branch_parent_action": branch_action,
+                "merge_target_page": merge_target_page,
+            }
+
+    metadata = build_trajectory_metadata(args.trajectory_id, args.annotations_dir)
+    metadata.update({
+        "topology_type": "gt_spine_branches",
+        "root_page_id": spine_page_ids[0],
+        "spine_page_ids": spine_page_ids,
+        "canonical_page_count": len(spine_page_ids),
+        "branch_page_count": len(branch_pages),
+        "page_family_count": len(families),
+        "total_pages": len(pages),
+        "output_canvas_size": list(families[0]["canvas_size"]),
+        "branch_pages_per_step": max_branches,
+        "visual_mode": "crop_reconstructed_native",
+        "canonical_render_mode": "extracted_crops",
+    })
+
+    ui_structure = {"pages": pages, "metadata": metadata}
+    layer = {
+        "root": _build_gt_layer_tree(spine_page_ids[0], pages, tree_children),
+        "metadata": metadata,
+    }
+
+    with open(os.path.join(output_dir, "ui_structure.json"), "w", encoding="utf-8") as f:
+        json.dump(ui_structure, f, indent=2, ensure_ascii=False)
+    with open(os.path.join(output_dir, "ui_structure_layer.json"), "w", encoding="utf-8") as f:
+        json.dump(layer, f, indent=2, ensure_ascii=False)
+
+    _visualize_serialized_graph(pages, os.path.join(output_dir, "ui_topology.png"))
+    return ui_structure
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Generate UI environment tree")
     parser.add_argument("--seed", type=int, default=42,
                         help="Random seed for reproducibility (default: 42)")
+    parser.add_argument("--icon_source", type=str, default="synthetic",
+                        choices=["synthetic", "trajectory"],
+                        help="Whether to sample icons from the built-in synthetic pool or a GUIOdyssey trajectory")
+    parser.add_argument("--trajectory_id", type=str, default=None,
+                        help="GUIOdyssey trajectory ID when --icon_source trajectory")
+    parser.add_argument("--icons_dir", type=str, default="icons",
+                        help="Synthetic icon directory used when --icon_source synthetic")
+    parser.add_argument("--icons_metadata", type=str,
+                        default="data_engine/real_icons/icons_metadata.json",
+                        help="Sim2real icon metadata JSON used when --icon_source trajectory")
+    parser.add_argument("--trajectory_extract_mode", type=str, default="live",
+                        choices=["live", "metadata"],
+                        help="When using trajectory icons, extract directly from the selected GUIOdyssey trajectory or reuse a prebuilt metadata file")
+    parser.add_argument("--omniparser_weights", type=str,
+                        default="/ext_hdd2/nhkoh/OmniParser/weights",
+                        help="OmniParser weights directory used for live trajectory icon extraction")
+    parser.add_argument("--annotations_dir", type=str,
+                        default="/ext_hdd2/nhkoh/GUI-Odyssey/annotations",
+                        help="GUIOdyssey annotations directory used when --icon_source trajectory")
+    parser.add_argument("--screenshots_dir", type=str,
+                        default="/ext_hdd2/nhkoh/GUI-Odyssey/screenshots",
+                        help="GUIOdyssey screenshots directory used when --icon_source trajectory")
+    parser.add_argument("--output_dir", type=str, default=None,
+                        help="Optional output directory. Defaults to a timestamped directory under ui_environment_448/")
+    parser.add_argument("--branches_per_step", type=int, default=2,
+                        help="Number of deterministic branch pages to attach to each GT step in trajectory mode")
     args = parser.parse_args()
 
     # Set random seed for reproducibility
@@ -968,68 +1945,71 @@ if __name__ == "__main__":
     print(f"Minimum number of icons needed for tree structure: {required_icons}")
     
     # Create output directory (448x448 paper-aligned)
-    output_dir = os.path.join("ui_environment_448", time.strftime("%Y%m%d_%H%M%S"))
+    output_dir = args.output_dir or os.path.join("ui_environment_448", time.strftime("%Y%m%d_%H%M%S"))
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Modify icon directory to local path
-    icons_dir = "icons"
-    icon_data = load_icons_from_directory(icons_dir, required_icons, output_dir)
-    test_icons = [img for img, _ in icon_data]
-    test_funcs = [func for _, func in icon_data]
-    
-    # Check if number of icons is sufficient
-    available_icons = len(test_funcs)
-    if available_icons < required_icons:
-        raise ValueError(
-            f"Insufficient number of icons! Need {required_icons}, but only have {available_icons}\n"
-            f"Current configuration:\n"
-            f"- Tree depth: {tree_depth}\n"
-            f"- Nodes per level: {nodes_per_level}"
-        )
-    
-    print(f"Icon count check passed: Need {required_icons}, Available {available_icons}")
-    
-    # Initialize environment
-    env = DynamicTopoEnv(
-        icon_images=test_icons,
-        func_descs=test_funcs,
-        tree_depth=tree_depth,
-        nodes_per_level=nodes_per_level,
-        is_random_node=is_random_node
-    )
-    
-    # Save environment data to same directory
-    json_path = env.save_environment_data(output_dir, seed=args.seed)
-    print(f"Environment data saved to: {json_path}")
-    
-    # Visualize topology structure
-    env.visualize_topology(os.path.join(os.path.dirname(json_path), 'ui_topology.png'))
-    
-    # Add debug information
-    print("\n=== Initial Icon Status ===")
-    print(f"Total icons: {len(env.ui_manager.total_icons)}")
-    print(f"Icon list: {[e.func_desc for e in env.ui_manager.total_icons]}")
-    
-    print("\n=== Page Icon Distribution ===")
-    for page_id, page_data in env.transition_graph.nodes(data=True):
-        page = page_data['page']
-        normal_icons = [e.func_desc for e in page.elements if e.func_desc not in ['back', 'home']]
-        children = [v for u, v in env.transition_graph.edges(page_id) 
-                   if env.transition_graph[u][v]['action'] not in ['back', 'home']]
-        print(f"\nPage {page_id}:")
-        print(f"Icons owned: {normal_icons}")
-        print(f"Connected child nodes: {children}")
-    
-    # Simulation run
-    obs_img, obs_layout = env.reset()
-    
-    # Example operation sequence
-    actions = ['icon_0', 'icon_1', 'back', 'home', 'icon_2', 'icon_3']
-    for action in actions:
-        print(f"Execute action: {action}")
-        (obs, layout), reward, done = env.step(action)
-        print(f"Reward: {reward}, Current page: {env.current_page}")
 
-    # Check icon status anytime
-    status = env.ui_manager.get_icon_status()
-    print(f"Icon status: {status}")
+    if args.icon_source == "trajectory":
+        if not args.trajectory_id:
+            parser.error("--trajectory_id is required when --icon_source trajectory")
+        ui_structure = generate_trajectory_family_environment(args, output_dir)
+        metadata = ui_structure.get("metadata", {})
+        print(f"Environment data saved to: {os.path.join(output_dir, 'ui_structure.json')}")
+        print(
+            "Generated GT-spine family environment: "
+            f"{metadata.get('canonical_page_count', 0)} canonical pages, "
+            f"{metadata.get('branch_page_count', 0)} branch pages, "
+            f"{metadata.get('total_pages', 0)} total."
+        )
+    else:
+        icon_data = load_icons_from_directory(args.icons_dir, required_icons, output_dir)
+        test_icons = [img for img, _ in icon_data]
+        test_funcs = [func for _, func in icon_data]
+
+        available_icons = len(test_funcs)
+        if available_icons < required_icons:
+            raise ValueError(
+                f"Insufficient number of icons! Need {required_icons}, but only have {available_icons}\n"
+                f"Current configuration:\n"
+                f"- Tree depth: {tree_depth}\n"
+                f"- Nodes per level: {nodes_per_level}"
+            )
+
+        print(f"Icon count check passed: Need {required_icons}, Available {available_icons}")
+
+        env = DynamicTopoEnv(
+            icon_images=test_icons,
+            func_descs=test_funcs,
+            tree_depth=tree_depth,
+            nodes_per_level=nodes_per_level,
+            is_random_node=is_random_node
+        )
+
+        json_path = env.save_environment_data(output_dir, seed=args.seed, extra_metadata=None)
+        print(f"Environment data saved to: {json_path}")
+
+        env.visualize_topology(os.path.join(os.path.dirname(json_path), 'ui_topology.png'))
+
+        print("\n=== Initial Icon Status ===")
+        print(f"Total icons: {len(env.ui_manager.total_icons)}")
+        print(f"Icon list: {[e.func_desc for e in env.ui_manager.total_icons]}")
+
+        print("\n=== Page Icon Distribution ===")
+        for page_id, page_data in env.transition_graph.nodes(data=True):
+            page = page_data['page']
+            normal_icons = [e.func_desc for e in page.elements if e.func_desc not in ['back', 'home']]
+            children = [v for u, v in env.transition_graph.edges(page_id)
+                       if env.transition_graph[u][v]['action'] not in ['back', 'home']]
+            print(f"\nPage {page_id}:")
+            print(f"Icons owned: {normal_icons}")
+            print(f"Connected child nodes: {children}")
+
+        obs_img, obs_layout = env.reset()
+
+        actions = ['icon_0', 'icon_1', 'back', 'home', 'icon_2', 'icon_3']
+        for action in actions:
+            print(f"Execute action: {action}")
+            (obs, layout), reward, done = env.step(action)
+            print(f"Reward: {reward}, Current page: {env.current_page}")
+
+        status = env.ui_manager.get_icon_status()
+        print(f"Icon status: {status}")

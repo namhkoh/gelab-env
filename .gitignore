@@ -17,6 +17,7 @@ Sequence/
 
 # Generated UI environments (regenerable from scripts)
 data_engine/ui_environment*/
+ui_environment_448/
 data_engine/assets/
 
 # Generated images (regenerable from scripts)
@@ -32,6 +33,7 @@ environment/demo/pages_old_*/
 
 # Presentation slides (not code)
 sr_slides/
+sr/
 
 # Backups
 datas_backup_*/

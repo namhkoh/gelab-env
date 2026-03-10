@@ -2,12 +2,12 @@
 Sim2Real Compose Pipeline (Stages 3-4): Detection-guided page composition.
 
 Takes GUIOdyssey trajectories, detects UI elements with OmniParser (YOLO+OCR),
-and uses GPT-5-mini to compose 448x448 GE-Lab pages from the actual cropped elements.
+and uses GPT-5-mini to compose GE-Lab pages (252x448 phone ratio) from the actual cropped elements.
 
 Pipeline:
   Stage 1 (Detect): YOLO + OCR detect UI elements on each screenshot
   Stage 2 (Crop): Crop actual icons/text from the screenshot
-  Stage 3 (Compose): GPT-5-mini arranges cropped elements on 448x448 canvas
+  Stage 3 (Compose): GPT-5-mini arranges cropped elements on canvas (252x448 phone ratio)
   Stage 4 (Structure): Build ui_structure.json + transition graph
 
 Prerequisites:
@@ -34,7 +34,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from openai import OpenAI
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from ultralytics import YOLO
 
 import warnings
@@ -43,7 +43,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-CANVAS_SIZE = (448, 448)
+OUTPUT_CANVAS_SIZE = (448, 448)  # GE-Lab-compatible square canvas
+OUTPUT_W, OUTPUT_H = OUTPUT_CANVAS_SIZE
 ICON_SIZE = 50
 NAV_BAR_HEIGHT = 45
 HEADER_HEIGHT = 45
@@ -184,6 +185,173 @@ def format_element_list(elements: List[dict], orig_size: Tuple[int, int]) -> str
     return "\n".join(lines)
 
 
+def _sanitize_filename(text: str, fallback: str) -> str:
+    cleaned = re.sub(r"[^0-9A-Za-z._-]+", "_", (text or "").strip()).strip("_")
+    return cleaned[:40] if cleaned else fallback
+
+
+def _unique_layout_name(label: str,
+                        elem_type: str,
+                        index: int,
+                        counts: Dict[str, int]) -> str:
+    base = _sanitize_filename(label, f"{elem_type}_{index:02d}")
+    suffix = counts.get(base, 0)
+    counts[base] = suffix + 1
+    return base if suffix == 0 else f"{base}_{suffix}"
+
+
+def _persist_extracted_assets(elements: List[dict], screenshot_name: str,
+                              assets_dir: str, step_info: dict) -> List[dict]:
+    """Persist extracted trajectory assets to disk and return asset-backed elements."""
+    page_asset_dir = os.path.join(
+        assets_dir,
+        f"step_{step_info.get('step_index', 0):02d}_{os.path.splitext(screenshot_name)[0]}",
+    )
+    os.makedirs(page_asset_dir, exist_ok=True)
+
+    asset_backed = []
+    for elem in elements:
+        label_stub = _sanitize_filename(elem.get("label", ""), f"elem_{elem['index']:02d}")
+        asset_name = f"{elem['index']:02d}_{elem['type']}_{label_stub}.png"
+        asset_path = os.path.join(page_asset_dir, asset_name)
+        elem["crop"].save(asset_path)
+
+        asset_elem = {k: v for k, v in elem.items() if k != "crop"}
+        asset_elem["asset_path"] = asset_path
+        asset_elem["asset_source"] = "trajectory_extracted"
+        asset_elem["source_screenshot"] = screenshot_name
+        asset_backed.append(asset_elem)
+
+    return asset_backed
+
+
+def _save_asset_manifest(output_dir: str, pages_detection_data: List[dict]):
+    """Save one manifest describing all extracted assets used for trajectory composition."""
+    manifest = []
+    for page in pages_detection_data:
+        for elem in page["elements"]:
+            manifest.append({
+                "page_id": page["page_id"],
+                "screenshot": page["screenshot_name"],
+                "step_index": page["step"].get("step_index"),
+                "type": elem.get("type"),
+                "label": elem.get("label"),
+                "bbox": elem.get("bbox"),
+                "asset_path": elem.get("asset_path"),
+                "asset_source": elem.get("asset_source"),
+            })
+
+    with open(os.path.join(output_dir, "trajectory_assets_manifest.json"), "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+
+def render_native_page(screenshot_path: str,
+                       elements: List[dict],
+                       orig_size: Tuple[int, int],
+                       output_size: Tuple[int, int] = OUTPUT_CANVAS_SIZE
+                       ) -> Tuple[Image.Image, dict, List[dict]]:
+    """Fit the original screenshot into the output canvas and scale element bboxes with it.
+
+    This preserves the native GUIOdyssey visual appearance while still producing a
+    GE-Lab-compatible layout dict in output pixel coordinates.
+    """
+    with Image.open(screenshot_path) as img_handle:
+        screenshot = img_handle.convert("RGB")
+    page_img, _, _, _ = _fit_image_to_box(screenshot, output_size, BG_WHITE)
+
+    layout = {}
+    scaled_elements = []
+    counts: Dict[str, int] = {}
+    for elem in elements:
+        bbox = elem.get("bbox") or []
+        if len(bbox) != 4:
+            continue
+        scaled_bbox = _scale_bbox_to_box(bbox, orig_size, output_size)
+        if scaled_bbox[2] - scaled_bbox[0] < 4 or scaled_bbox[3] - scaled_bbox[1] < 4:
+            continue
+        action_name = _unique_layout_name(
+            elem.get("label", ""),
+            elem.get("type", "elem"),
+            elem.get("index", len(scaled_elements)),
+            counts,
+        )
+        layout[action_name] = scaled_bbox
+        scaled_elements.append({
+            **elem,
+            "action_name": action_name,
+            "scaled_bbox": scaled_bbox,
+        })
+
+    return page_img, layout, scaled_elements
+
+
+def render_reconstructed_native_page(
+    screenshot_path: str,
+    elements: List[dict],
+    orig_size: Tuple[int, int],
+    output_size: Tuple[int, int] = OUTPUT_CANVAS_SIZE,
+) -> Tuple[Image.Image, dict, List[dict]]:
+    """Rebuild a page from a screenshot-derived background plus extracted crops.
+
+    The background stays visually native to the original GUIOdyssey page, but the
+    interactive/text regions are reintroduced explicitly from the persisted crops.
+    """
+    with Image.open(screenshot_path) as img_handle:
+        screenshot = img_handle.convert("RGB")
+
+    fitted_screenshot, _, _, _ = _fit_image_to_box(screenshot, output_size, BG_WHITE)
+    blurred_background = fitted_screenshot.filter(ImageFilter.GaussianBlur(radius=14))
+    background = fitted_screenshot.copy()
+
+    layout = {}
+    scaled_elements = []
+    counts: Dict[str, int] = {}
+    for elem in elements:
+        bbox = elem.get("bbox") or []
+        if len(bbox) != 4:
+            continue
+        scaled_bbox = _scale_bbox_to_box(bbox, orig_size, output_size)
+        if scaled_bbox[2] - scaled_bbox[0] < 4 or scaled_bbox[3] - scaled_bbox[1] < 4:
+            continue
+        action_name = _unique_layout_name(
+            elem.get("label", ""),
+            elem.get("type", "elem"),
+            elem.get("index", len(scaled_elements)),
+            counts,
+        )
+        layout[action_name] = scaled_bbox
+        scaled_elements.append({
+            **elem,
+            "action_name": action_name,
+            "scaled_bbox": scaled_bbox,
+        })
+
+    # Remove detected regions from the background skeleton before re-pasting crops.
+    for elem in sorted(scaled_elements, key=lambda item: (item["scaled_bbox"][2] - item["scaled_bbox"][0]) * (item["scaled_bbox"][3] - item["scaled_bbox"][1]), reverse=True):
+        x1, y1, x2, y2 = elem["scaled_bbox"]
+        pad = 2
+        bx1 = max(0, x1 - pad)
+        by1 = max(0, y1 - pad)
+        bx2 = min(output_size[0], x2 + pad)
+        by2 = min(output_size[1], y2 + pad)
+        patch = blurred_background.crop((bx1, by1, bx2, by2))
+        background.paste(patch, (bx1, by1))
+
+    composed = background.convert("RGBA")
+    for elem in sorted(scaled_elements, key=lambda item: item.get("index", 0)):
+        bbox = elem["scaled_bbox"]
+        width = max(1, bbox[2] - bbox[0])
+        height = max(1, bbox[3] - bbox[1])
+        asset_path = elem.get("asset_path")
+        if not asset_path or not os.path.exists(asset_path):
+            continue
+        with Image.open(asset_path) as asset_handle:
+            crop = asset_handle.convert("RGBA").resize((width, height), Image.LANCZOS)
+        composed.alpha_composite(crop, (bbox[0], bbox[1]))
+
+    return composed.convert("RGB"), layout, scaled_elements
+
+
 # ---------------------------------------------------------------------------
 # OpenAI API client
 # ---------------------------------------------------------------------------
@@ -210,40 +378,53 @@ def _encode_image_base64(image_path: str) -> str:
     return f"data:{mime};base64,{data}"
 
 
-RENDER_CODE_PROMPT = """\
-Write Python PIL code to recreate this mobile screenshot at its ORIGINAL resolution \
-({{orig_w}}x{{orig_h}} pixels), using the ACTUAL detected UI elements listed below. \
-The canvas will be resized to 448x448 afterwards — just work at the original size.
+# GE-Lab nav button style: pink "back" top-left, green "home" top-right
+# Dedicated nav strip at top so back/home don't occlude page content.
+NAV_BTN_W = 40
+NAV_BTN_H = 24
+NAV_STRIP_H = NAV_BTN_H + 8  # 4px padding top + bottom
+PHONE_CANVAS_H = OUTPUT_H - NAV_STRIP_H
+PHONE_CANVAS_W = min(OUTPUT_W, int(round(PHONE_CANVAS_H * 9 / 16)))
+CANVAS_SIZE = (PHONE_CANVAS_W, PHONE_CANVAS_H)
+CANVAS_W, CANVAS_H = CANVAS_SIZE
+PHONE_OFFSET_X = (OUTPUT_W - CANVAS_W) // 2
+PHONE_OFFSET_Y = NAV_STRIP_H
+GELAB_BACK_COLOR = (255, 200, 200)  # pink
+GELAB_HOME_COLOR = (200, 255, 200)  # green
+GELAB_BACK_BBOX = [4, 4, 4 + NAV_BTN_W, 4 + NAV_BTN_H]
+GELAB_HOME_BBOX = [OUTPUT_W - 4 - NAV_BTN_W, 4, OUTPUT_W - 4, 4 + NAV_BTN_H]
 
-Canvas size: {{orig_w}}x{{orig_h}} pixels (same as the original screenshot).
+STYLING_CODE_PROMPT = """\
+Write Python PIL code to draw the BACKGROUND and STRUCTURE of this mobile UI page.
+Canvas size: {{orig_w}}x{{orig_h}} pixels (blank white canvas).
 
-Detected UI elements (from OmniParser YOLO+OCR) with positions in original pixel coords:
+The actual UI elements (icons, buttons, text crops) will be pasted ON TOP of your code \
+automatically at their exact detected positions. You must NOT draw any content that \
+duplicates these detected elements.
+
+Detected elements that will be auto-pasted (DO NOT redraw these):
 {{element_list}}
 
-RULES:
-1. Use get_crop(index, w, h) to paste REAL cropped elements from the screenshot.
-2. Coordinates are in the ORIGINAL {{orig_w}}x{{orig_h}} space. Use the detected positions directly.
-3. Do NOT import anything. Do NOT define functions.
-4. Every pasted element MUST have a layout entry: layout["name"] = [x1, y1, x2, y2]
-5. All crops are RGBA, so always use: canvas.paste(img, (x, y), img)
-6. Use draw.rectangle/text/rounded_rectangle for backgrounds, headers, text.
+Your job is ONLY to draw:
+- Background fill color (match the screenshot's dominant color)
+- Status bar area at top (~50px, usually dark with time/signal icons)
+- Header/toolbar background colors and divider lines
+- Section card backgrounds (rounded rectangles behind groups of elements)
+- Content area backgrounds (e.g., dark area for image posts, colored banners)
+- Separator lines between sections
+
+DO NOT draw text labels, icons, buttons, or any content that matches the detected elements above.
+DO NOT use get_crop(). DO NOT add layout[] entries. DO NOT import anything.
 
 Available variables:
-- canvas: PIL Image ({{orig_w}}x{{orig_h}} RGB)
+- canvas: PIL Image ({{orig_w}}x{{orig_h}} RGB, starts as white)
 - draw: PIL ImageDraw object
-- get_crop(index, w, h): returns detected element [index] resized to w x h (RGBA)
 - font_sm (12pt), font_md (18pt), font_lg (24pt), font_xl (32pt)
-- layout: dict — fill with layout["element_name"] = [x1, y1, x2, y2]
-- Image, ImageDraw, range, len, enumerate, min, max, int, float, str, etc.
 
-Strategy:
-- Start by filling the background with the dominant color from the screenshot.
-- Paste each detected element at its ORIGINAL position using get_crop(index, w, h) \
-  where w and h are the element's original size from the detected bbox.
-- Add text labels, headers, and decorative elements as needed to fill gaps.
-- The code should reconstruct the screenshot faithfully using the real cropped elements.
+Output ONLY a ```python code block with drawing commands."""
 
-Output ONLY a ```python code block. Start with background, paste detected elements, add structure."""
+# Backward-compatible alias for the older direct rendering path.
+RENDER_CODE_PROMPT = STYLING_CODE_PROMPT
 
 # Legacy JSON prompt (used as fallback)
 PAGE_ANALYSIS_PROMPT = """\
@@ -436,16 +617,55 @@ def _detect_max_coordinate(code_str: str) -> int:
     cleaned = re.sub(r'radius\s*=\s*\d+', '', cleaned)
     # Find all remaining integers
     numbers = [int(n) for n in re.findall(r'\b(\d+)\b', cleaned)]
-    return max(numbers) if numbers else 448
+    return max(numbers) if numbers else CANVAS_H
+
+
+def _fit_size(src_size: Tuple[int, int], target_size: Tuple[int, int]) -> Tuple[int, int, float, int, int]:
+    """Fit src_size inside target_size while preserving aspect ratio."""
+    src_w, src_h = src_size
+    target_w, target_h = target_size
+    scale = min(target_w / max(src_w, 1), target_h / max(src_h, 1))
+    fitted_w = max(1, int(round(src_w * scale)))
+    fitted_h = max(1, int(round(src_h * scale)))
+    offset_x = (target_w - fitted_w) // 2
+    offset_y = (target_h - fitted_h) // 2
+    return fitted_w, fitted_h, scale, offset_x, offset_y
+
+
+def _fit_image_to_box(image: Image.Image,
+                      target_size: Tuple[int, int],
+                      bg_color: Tuple[int, int, int] = BG_WHITE
+                      ) -> Tuple[Image.Image, float, int, int]:
+    """Resize an image into a target box without stretching it."""
+    fitted_w, fitted_h, scale, offset_x, offset_y = _fit_size(image.size, target_size)
+    resized = image.resize((fitted_w, fitted_h), Image.LANCZOS)
+    canvas = Image.new("RGB", target_size, bg_color)
+    canvas.paste(resized, (offset_x, offset_y))
+    return canvas, scale, offset_x, offset_y
+
+
+def _scale_bbox_to_box(bbox: List[int],
+                       src_size: Tuple[int, int],
+                       target_size: Tuple[int, int],
+                       base_offset: Tuple[int, int] = (0, 0)) -> List[int]:
+    """Scale a bbox with the same fit-to-box transform used for the page image."""
+    _, _, scale, offset_x, offset_y = _fit_size(src_size, target_size)
+    base_x, base_y = base_offset
+    return [
+        int(round(bbox[0] * scale)) + offset_x + base_x,
+        int(round(bbox[1] * scale)) + offset_y + base_y,
+        int(round(bbox[2] * scale)) + offset_x + base_x,
+        int(round(bbox[3] * scale)) + offset_y + base_y,
+    ]
 
 
 def render_from_code(code_str: str, elements: List[dict],
                      orig_size: Tuple[int, int] = (720, 1280)
                      ) -> Tuple[Optional[Image.Image], Optional[dict]]:
-    """Execute GPT-generated PIL code at original resolution, then resize to 448x448.
+    """Execute GPT-generated PIL code at original resolution, then fit it to CANVAS_SIZE.
 
     GPT composes at the original phone resolution (e.g., 720x1280) using the real
-    detected coordinates, then we resize down to 448x448 and scale all layout bboxes.
+    detected coordinates, then we fit it into the GE-Lab viewport without stretching it.
     """
     ow, oh = orig_size
     canvas = Image.new("RGB", (ow, oh), BG_WHITE)
@@ -459,10 +679,16 @@ def render_from_code(code_str: str, elements: List[dict],
     font_xl = _try_load_font(32)
 
     def get_crop(index, w=50, h=50):
-        """Return the actual cropped element resized to w x h."""
+        """Return an extracted trajectory asset resized to w x h."""
         if 0 <= index < len(elements):
-            crop = elements[index]["crop"].convert("RGBA")
-            return crop.resize((int(w), int(h)), Image.LANCZOS)
+            elem = elements[index]
+            asset_path = elem.get("asset_path")
+            if asset_path and os.path.exists(asset_path):
+                crop = Image.open(asset_path).convert("RGBA")
+                return crop.resize((int(w), int(h)), Image.LANCZOS)
+            if "crop" in elem:
+                crop = elem["crop"].convert("RGBA")
+                return crop.resize((int(w), int(h)), Image.LANCZOS)
         ph = Image.new("RGBA", (int(w), int(h)), (200, 200, 200, 255))
         return ph
 
@@ -527,26 +753,17 @@ def render_from_code(code_str: str, elements: List[dict],
         else:
             return None, None
 
-    # Resize from original resolution to 448x448
-    canvas_448 = canvas.resize(CANVAS_SIZE, Image.LANCZOS)
+    canvas_resized, _, _, _ = _fit_image_to_box(canvas, CANVAS_SIZE, BG_WHITE)
 
-    # Scale layout bboxes from orig_size to 448x448
-    sx = CANVAS_SIZE[0] / ow
-    sy = CANVAS_SIZE[1] / oh
     scaled_layout = {}
     for key, bbox in layout.items():
-        scaled_layout[key] = [
-            int(bbox[0] * sx), int(bbox[1] * sy),
-            int(bbox[2] * sx), int(bbox[3] * sy),
-        ]
+        scaled_layout[key] = _scale_bbox_to_box(bbox, (ow, oh), CANVAS_SIZE)
 
-    # Ensure layout has at least back/home
-    if "back" not in scaled_layout:
-        scaled_layout["back"] = [20, 410, 100, 440]
-    if "home" not in scaled_layout:
-        scaled_layout["home"] = [348, 410, 428, 440]
+    # back/home are added by compose_page in the nav strip (not here)
+    scaled_layout.pop("back", None)
+    scaled_layout.pop("home", None)
 
-    return canvas_448, scaled_layout
+    return canvas_resized, scaled_layout
 
 
 def _sanitize_code(code_str: str) -> str:
@@ -774,14 +991,14 @@ def render_page(spec: dict, icon_pool: Dict[str, Image.Image],
     y_cursor = 0
 
     # --- Status bar ---
-    draw.rectangle([0, 0, 448, STATUS_BAR_HEIGHT], fill=(20, 20, 25))
+    draw.rectangle([0, 0, CANVAS_W, STATUS_BAR_HEIGHT], fill=(20, 20, 25))
     y_cursor = STATUS_BAR_HEIGHT
 
     # --- Header ---
     header = spec.get("header", {})
     if header.get("visible", False):
         h_color = tuple(header.get("color", list(HEADER_BLUE)))
-        draw.rectangle([0, y_cursor, 448, y_cursor + HEADER_HEIGHT], fill=h_color)
+        draw.rectangle([0, y_cursor, CANVAS_W, y_cursor + HEADER_HEIGHT], fill=h_color)
 
         # Back button
         if header.get("has_back_button", False):
@@ -901,22 +1118,22 @@ def render_page(spec: dict, icon_pool: Dict[str, Image.Image],
             y_cursor += 6
 
     # --- Navigation bar (always present) ---
-    nav_y = CANVAS_SIZE[1] - NAV_BAR_HEIGHT
-    draw.rectangle([0, nav_y, 448, 448], fill=NAV_BAR_COLOR)
+    nav_y = CANVAS_H - NAV_BAR_HEIGHT
+    draw.rectangle([0, nav_y, CANVAS_W, CANVAS_H], fill=NAV_BAR_COLOR)
 
     # Back button
-    bx1, by1 = 20, nav_y + 8
-    bw, bh = 80, 30
+    bx1, by1 = 10, nav_y + 8
+    bw, bh = 60, 30
     draw.rounded_rectangle([bx1, by1, bx1 + bw, by1 + bh], radius=4,
                            fill=(255, 200, 200))
-    draw.text((bx1 + 20, by1 + 7), "Back", fill=TEXT_BLACK, font=font_sm)
+    draw.text((bx1 + 10, by1 + 7), "Back", fill=TEXT_BLACK, font=font_sm)
     layout["back"] = [bx1, by1, bx1 + bw, by1 + bh]
 
     # Home button
-    hx1 = CANVAS_SIZE[0] - 100
+    hx1 = CANVAS_W - 70
     draw.rounded_rectangle([hx1, by1, hx1 + bw, by1 + bh], radius=4,
                            fill=(200, 255, 200))
-    draw.text((hx1 + 20, by1 + 7), "Home", fill=TEXT_BLACK, font=font_sm)
+    draw.text((hx1 + 10, by1 + 7), "Home", fill=TEXT_BLACK, font=font_sm)
     layout["home"] = [hx1, by1, hx1 + bw, by1 + bh]
 
     return img, layout
@@ -1022,21 +1239,22 @@ def _render_button(draw, comp, y_cursor, layout, font) -> int:
 def _render_keyboard(draw, y_cursor, layout, font) -> int:
     """Render a simplified keyboard."""
     kb_y = y_cursor + 3
-    draw.rectangle([0, kb_y, 448, kb_y + 95], fill=(210, 210, 215))
+    draw.rectangle([0, kb_y, CANVAS_W, kb_y + 95], fill=(210, 210, 215))
 
     rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"]
-    key_h = 26
+    key_h = 22
+    key_w = max(16, (CANVAS_W - 20) // 10)
     for r, row in enumerate(rows):
-        row_w = len(row) * 32
-        start_x = (448 - row_w) // 2
+        row_w = len(row) * key_w
+        start_x = (CANVAS_W - row_w) // 2
         for c, ch in enumerate(row):
-            kx = start_x + c * 32
+            kx = start_x + c * key_w
             ky = kb_y + 5 + r * (key_h + 4)
-            draw.rounded_rectangle([kx, ky, kx + 28, ky + key_h],
+            draw.rounded_rectangle([kx, ky, kx + key_w - 4, ky + key_h],
                                    radius=3, fill=(255, 255, 255))
-            draw.text((kx + 9, ky + 6), ch, fill=TEXT_BLACK, font=font)
+            draw.text((kx + 5, ky + 4), ch, fill=TEXT_BLACK, font=font)
 
-    layout["keyboard"] = [0, kb_y, 448, kb_y + 95]
+    layout["keyboard"] = [0, kb_y, CANVAS_W, kb_y + 95]
     return kb_y + 100
 
 
@@ -1048,7 +1266,10 @@ def build_structure(pages_data: List[dict], trajectory: dict,
                     output_dir: str) -> dict:
     """Build GE-Lab compatible structure files from rendered pages.
 
-    pages_data: list of {"page_id": str, "layout": dict, "spec": dict}
+    Produces ui_structure.json and ui_structure_layer.json matching the exact
+    GE-Lab format used by env_utils.py, generate_sft_data.py, and evaluate.py.
+
+    pages_data: list of {"page_id": str, "layout": dict}
     trajectory: GUIOdyssey annotation dict
     """
     steps = trajectory.get("steps", [])
@@ -1060,83 +1281,68 @@ def build_structure(pages_data: List[dict], trajectory: dict,
         "task": task_info.get("task", ""),
         "category": task_info.get("category", ""),
         "apps": task_info.get("app", []),
-        "num_pages": len(pages_data),
+        "total_pages": len(pages_data),
+        "canvas_size": list(OUTPUT_CANVAS_SIZE),
+        "phone_canvas_size": list(CANVAS_SIZE),
     }}
 
-    # Build pages with transitions
+    home_page_id = _detect_home_page_id(pages_data)
+
+    # Build pages with transitions (GE-Lab list format)
     for i, pdata in enumerate(pages_data):
         page_id = pdata["page_id"]
         layout = pdata["layout"]
+        step = pdata.get("step", steps[i] if i < len(steps) else {})
+        orig_size = tuple(pdata.get("orig_size", (720, 1280)))
 
-        # Determine transitions from trajectory steps
-        transitions = {}
-        if i < len(steps):
-            step = steps[i]
-            action = step.get("action", "")
-            instruction = step.get("low_level_instruction", "")
+        # Build layout dict with type: "normal" or "system"
+        layout_typed = {}
+        for k, bbox in layout.items():
+            ltype = "system" if k in ("back", "home") else "normal"
+            layout_typed[k] = {"bbox": bbox, "type": ltype}
 
-            if i + 1 < len(pages_data):
-                next_page = pages_data[i + 1]["page_id"]
+        # Build transitions as list: [{action, target_page, icon_bbox}]
+        transitions = []
+        used_system_targets = set()
+        if i + 1 < len(pages_data):
+            next_page = pages_data[i + 1]["page_id"]
+            target_elem = _find_action_target(step, layout, orig_size)
+            icon_bbox = layout.get(target_elem, [0, 0, 0, 0])
+            transitions.append({
+                "action": target_elem,
+                "target_page": next_page,
+                "icon_bbox": icon_bbox,
+            })
+            if target_elem in ("back", "home"):
+                used_system_targets.add(target_elem)
 
-                # Find the interactive element that was clicked
-                target_elem = _find_action_target(action, instruction, layout)
+        # Back transition (except root page)
+        if i > 0 and "back" not in used_system_targets:
+            back_bbox = layout.get("back", GELAB_BACK_BBOX)
+            transitions.append({
+                "action": "back",
+                "target_page": pages_data[i - 1]["page_id"],
+                "icon_bbox": back_bbox,
+            })
 
-                if action == "CLICK":
-                    transitions[target_elem] = {
-                        "target": next_page,
-                        "action_type": "CLICK",
-                        "instruction": instruction,
-                    }
-                elif action == "TYPE":
-                    text_content = step.get("info", "")
-                    if isinstance(text_content, list):
-                        text_content = str(text_content)
-                    transitions[target_elem] = {
-                        "target": next_page,
-                        "action_type": "TEXT",
-                        "text": text_content,
-                        "instruction": instruction,
-                    }
-                elif action == "SCROLL":
-                    transitions[target_elem] = {
-                        "target": next_page,
-                        "action_type": "SCROLL",
-                        "instruction": instruction,
-                    }
-                elif action in ("COMPLETE", "INCOMPLETE"):
-                    transitions["complete"] = {
-                        "target": None,
-                        "action_type": "COMPLETE",
-                        "instruction": instruction,
-                    }
-                else:
-                    transitions[target_elem] = {
-                        "target": next_page,
-                        "action_type": action,
-                        "instruction": instruction,
-                    }
-
-        # Back transitions (except root page)
-        if i > 0:
-            transitions["back"] = {
-                "target": pages_data[i - 1]["page_id"],
-                "action_type": "CLICK",
-            }
         # Home transition
-        transitions["home"] = {
-            "target": pages_data[0]["page_id"],
-            "action_type": "CLICK",
-        }
+        if "home" not in used_system_targets:
+            home_bbox = layout.get("home", GELAB_HOME_BBOX)
+            transitions.append({
+                "action": "home",
+                "target_page": home_page_id,
+                "icon_bbox": home_bbox,
+            })
 
         ui_structure["pages"][page_id] = {
             "image": f"{page_id}.png",
             "depth": i,
-            "layout": {k: {"bbox": v, "type": "normal"} for k, v in layout.items()},
+            "layout": layout_typed,
             "transitions": transitions,
         }
 
-    # Build layer structure (linear chain for trajectories)
-    layer = _build_layer_structure(pages_data)
+    # Build layer structure (matches GE-Lab ui_structure_layer.json format)
+    layer = _build_layer_structure(pages_data, ui_structure["pages"])
 
     # Save
     os.makedirs(output_dir, exist_ok=True)
@@ -1148,20 +1354,91 @@ def build_structure(pages_data: List[dict], trajectory: dict,
     return ui_structure
 
 
-def _find_action_target(action: str, instruction: str, layout: dict) -> str:
-    """Find the layout element most likely targeted by the action."""
-    if not layout or not instruction:
+def _detect_home_page_id(pages_data: List[dict]) -> str:
+    """Pick the most likely home/root page using the trajectory descriptions."""
+    for pdata in pages_data:
+        step = pdata.get("step", {})
+        desc = " ".join([
+            str(step.get("description", "")),
+            str(step.get("low_level_instruction", "")),
+            str(step.get("info", "")),
+        ]).lower()
+        if "home screen" in desc or "launcher" in desc:
+            return pdata["page_id"]
+    return pages_data[0]["page_id"] if pages_data else "page_0"
+
+
+def _bbox_iou(box1: List[int], box2: List[int]) -> float:
+    x1 = max(box1[0], box2[0])
+    y1 = max(box1[1], box2[1])
+    x2 = min(box1[2], box2[2])
+    y2 = min(box1[3], box2[3])
+    inter = max(0, x2 - x1) * max(0, y2 - y1)
+    area1 = max(0, box1[2] - box1[0]) * max(0, box1[3] - box1[1])
+    area2 = max(0, box2[2] - box2[0]) * max(0, box2[3] - box2[1])
+    union = area1 + area2 - inter + 1e-8
+    return inter / union
+
+
+def _bbox_center_distance(box1: List[int], box2: List[int]) -> float:
+    c1x = (box1[0] + box1[2]) / 2
+    c1y = (box1[1] + box1[3]) / 2
+    c2x = (box2[0] + box2[2]) / 2
+    c2y = (box2[1] + box2[3]) / 2
+    return ((c1x - c2x) ** 2 + (c1y - c2y) ** 2) ** 0.5
+
+
+def _find_action_target(step: dict, layout: dict,
+                        orig_size: Tuple[int, int]) -> str:
+    """Find the layout element most likely targeted by the real trajectory action."""
+    if not layout:
         return "unknown"
 
-    instruction_lower = instruction.lower()
-    best_score = 0
-    best_key = list(layout.keys())[0] if layout else "unknown"
+    action = str(step.get("action", "")).upper()
+    info = str(step.get("info", ""))
+    instruction = " ".join([
+        str(step.get("low_level_instruction", "")),
+        str(step.get("description", "")),
+        str(step.get("intention", "")),
+        info,
+    ]).lower()
 
+    if "KEY_HOME" in info or "home screen" in instruction:
+        return "home"
+    if "go back" in instruction or instruction.startswith("back ") or info == "BACK":
+        return "back"
+
+    sam2_bbox = step.get("sam2_bbox") or []
+    if action == "CLICK" and len(sam2_bbox) == 4:
+        scaled_bbox = _scale_bbox_to_box(
+            sam2_bbox, orig_size, CANVAS_SIZE, (PHONE_OFFSET_X, PHONE_OFFSET_Y)
+        )
+        best_key = None
+        best_iou = 0.0
+        best_distance = float("inf")
+        for key, bbox in layout.items():
+            if key in ("back", "home"):
+                continue
+            iou = _bbox_iou(scaled_bbox, bbox)
+            distance = _bbox_center_distance(scaled_bbox, bbox)
+            if iou > best_iou or (iou == best_iou and distance < best_distance):
+                best_key = key
+                best_iou = iou
+                best_distance = distance
+        if best_key is not None and (best_iou > 0 or best_distance <= 48):
+            return best_key
+
+    if action == "TEXT":
+        for preferred in ("search_bar", "keyboard"):
+            if preferred in layout:
+                return preferred
+
+    best_score = 0
+    best_key = next(iter(layout.keys()), "unknown")
     for key in layout:
         key_lower = key.lower().replace("_", " ")
-        score = SequenceMatcher(None, instruction_lower, key_lower).ratio()
-        # Boost score if key appears as substring in instruction
-        if key_lower in instruction_lower:
+        score = SequenceMatcher(None, instruction, key_lower).ratio()
+        if key_lower and key_lower in instruction:
             score += 0.3
         if score > best_score:
             best_score = score
@@ -1170,22 +1447,53 @@ def _find_action_target(action: str, instruction: str, layout: dict) -> str:
     return best_key
 
 
-def _build_layer_structure(pages_data: List[dict]) -> dict:
-    """Build a linear layer structure (trajectory = chain of pages)."""
+def _build_layer_structure(pages_data: List[dict],
+                           pages_full: Dict[str, dict]) -> dict:
+    """Build layer structure matching GE-Lab ui_structure_layer.json format.
+
+    Each node has: image, depth, layout, transitions (non-system only), subnodes.
+    """
     if not pages_data:
         return {"root": None, "metadata": {}}
 
-    def build_node(idx):
+    page_order = [pdata["page_id"] for pdata in pages_data]
+
+    def build_node(page_id, visited):
+        visited.add(page_id)
+        page_data = pages_full.get(page_id, {})
+
+        # Filter transitions to exclude system actions (back, home)
+        all_trans = page_data.get("transitions", [])
+        non_system = [t for t in all_trans if t["action"] not in ("back", "home")]
+
         node = {
-            "name": pages_data[idx]["page_id"],
-            "image": f"{pages_data[idx]['page_id']}.png",
+            "image": f"{page_id}.png",
+            "depth": page_data.get("depth", 0),
+            "layout": page_data.get("layout", {}),
+            "transitions": non_system,
             "subnodes": [],
         }
-        if idx + 1 < len(pages_data):
-            node["subnodes"].append(build_node(idx + 1))
+        for transition in non_system:
+            child_id = transition.get("target_page")
+            if child_id in pages_full and child_id not in visited:
+                node["subnodes"].append(build_node(child_id, visited))
         return node
 
-    return {"root": build_node(0), "metadata": {"type": "trajectory"}}
+    visited = set()
+    root_id = page_order[0]
+    root = build_node(root_id, visited)
+    for page_id in page_order[1:]:
+        if page_id not in visited:
+            root["subnodes"].append(build_node(page_id, visited))
+
+    return {
+        "root": root,
+        "metadata": {
+            "type": "trajectory",
+            "canvas_size": list(OUTPUT_CANVAS_SIZE),
+            "phone_canvas_size": list(CANVAS_SIZE),
+        },
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1227,11 +1535,233 @@ def _save_labeled_crops(elements: List[dict], orig_size: Tuple[int, int],
 
 
 # ---------------------------------------------------------------------------
+# Two-phase composition: GPT styling + deterministic positioning
+# ---------------------------------------------------------------------------
+
+def _build_step_context(trajectory: dict, step_idx: int) -> dict:
+    """Build trajectory-aware context for one page composition step."""
+    steps = trajectory.get("steps", [])
+    step = dict(steps[step_idx])
+    task_info = trajectory.get("task_info", {})
+
+    prev_step = steps[step_idx - 1] if step_idx > 0 else None
+    next_step = steps[step_idx + 1] if step_idx + 1 < len(steps) else None
+
+    step["task"] = task_info.get("task", "")
+    step["task_instruction"] = task_info.get("instruction", "")
+    step["apps"] = task_info.get("app", [])
+    step["category"] = task_info.get("category", "")
+    step["step_index"] = step_idx + 1
+    step["total_steps"] = len(steps)
+    step["prev_instruction"] = prev_step.get("low_level_instruction", "") if prev_step else ""
+    step["next_instruction"] = next_step.get("low_level_instruction", "") if next_step else ""
+    step["prev_action"] = prev_step.get("action", "") if prev_step else ""
+    step["next_action"] = next_step.get("action", "") if next_step else ""
+    return step
+
+def _generate_position_code(elements: List[dict], orig_size: Tuple[int, int]) -> str:
+    """Generate deterministic PIL code that pastes all crops at detected positions.
+
+    This code is auto-generated (not LLM) to guarantee correct positioning.
+    """
+    ow, oh = orig_size
+    lines = ["# --- Auto-generated: paste detected elements at original positions ---"]
+
+    for e in elements:
+        x1, y1, x2, y2 = e["bbox"]
+        ew, eh = x2 - x1, y2 - y1
+        if ew < 5 or eh < 5:
+            continue
+        idx = e["index"]
+        label = e["label"].replace('"', "'").replace(" ", "_").replace("/", "_")[:25]
+        asset_comment = e.get("asset_path", "").replace("\\", "/")
+
+        lines.append(
+            f'# asset_path: {asset_comment}\n'
+            f'try:\n'
+            f'    _c{idx} = get_crop({idx}, {ew}, {eh})\n'
+            f'    canvas.paste(_c{idx}, ({max(0, x1)}, {max(0, y1)}), _c{idx})\n'
+            f'except Exception:\n'
+            f'    pass\n'
+            f'layout["{label}"] = [{x1}, {y1}, {x2}, {y2}]'
+        )
+
+    # back/home drawn separately by compose_page after resize
+    return "\n\n".join(lines)
+
+
+def generate_styling_code(client: OpenAI, model_name: str,
+                          image_path: str, elements: List[dict],
+                          orig_size: Tuple[int, int],
+                          step_info: dict = None,
+                          max_retries: int = 3) -> Optional[str]:
+    """Ask GPT to generate background/styling code (no element content)."""
+    element_list = format_element_list(elements, orig_size)
+    prompt = STYLING_CODE_PROMPT.replace("{{orig_w}}", str(orig_size[0]))
+    prompt = prompt.replace("{{orig_h}}", str(orig_size[1]))
+    prompt = prompt.replace("{{element_list}}", element_list)
+
+    if step_info:
+        context_lines = []
+        if step_info.get("task"):
+            context_lines.append(f"Overall task: {step_info['task']}")
+        if step_info.get("task_instruction"):
+            context_lines.append(f"Task instruction: {step_info['task_instruction']}")
+        if step_info.get("apps"):
+            context_lines.append(f"Apps involved: {', '.join(step_info['apps'])}")
+        if step_info.get("step_index") and step_info.get("total_steps"):
+            context_lines.append(f"Trajectory step: {step_info['step_index']}/{step_info['total_steps']}")
+        if step_info.get("description"):
+            context_lines.append(f"Screen description: {step_info['description']}")
+        if step_info.get("low_level_instruction"):
+            context_lines.append(f"Current user intent on this page: {step_info['low_level_instruction']}")
+        if step_info.get("prev_instruction"):
+            context_lines.append(f"Previous step: {step_info['prev_instruction']}")
+        if step_info.get("next_instruction"):
+            context_lines.append(f"Next step: {step_info['next_instruction']}")
+        if context_lines:
+            prompt += "\n\nTrajectory context:\n" + "\n".join(f"- {line}" for line in context_lines)
+
+    prompt = (
+        "You MUST respond with ONLY a ```python code block. "
+        "No explanations, no markdown besides the code block.\n\n"
+        + prompt
+    )
+
+    for attempt in range(max_retries):
+        try:
+            response = _query_gpt(client, model_name, image_path, prompt)
+            code = _extract_code_block(response)
+            if code:
+                return _sanitize_code(code)
+            if attempt == 0:
+                _log_failed_response(response, image_path)
+                print(f" [no styling, retry]", end="", flush=True)
+        except Exception as e:
+            print(f"\n  API error: {e}")
+    return None
+
+
+def compose_page(client: OpenAI, model_name: str,
+                 elements: List[dict], orig_size: Tuple[int, int],
+                 screenshot_path: str, step_info: dict = None
+                 ) -> Tuple[Image.Image, dict, dict]:
+    """Compose a GE-Lab page: GPT styling + detected crops + GE-Lab nav.
+
+    Phase 1 (GPT): Generate background/styling on blank canvas — colors,
+        status bar, headers, section cards, dividers. No element content.
+    Phase 2 (deterministic): Paste real YOLO-detected crops at exact positions.
+    Phase 3 (deterministic): Draw GE-Lab back/home buttons at top.
+
+    Returns (image at OUTPUT_CANVAS_SIZE, layout dict with bboxes in OUTPUT_CANVAS_SIZE coords).
+    """
+    ow, oh = orig_size
+
+    # Phase 1: GPT styling on blank canvas
+    styling_source = "gpt"
+    styling_code = generate_styling_code(
+        client, model_name, screenshot_path, elements, orig_size, step_info
+    )
+    if styling_code is None:
+        bg = _extract_bg_color(elements, screenshot_path)
+        styling_code = f"draw.rectangle([0, 0, {ow}, {oh}], fill={bg})"
+        styling_source = "fallback_bg"
+
+    # Phase 2: Deterministic crop positioning
+    position_code = _generate_position_code(elements, orig_size)
+
+    # Combine: styling first, then crop pastes on top
+    full_code = styling_code + "\n\n" + position_code
+
+    # Execute on blank canvas at original resolution
+    render_status = "render_from_code"
+    page_img, layout = render_from_code(full_code, elements, orig_size)
+
+    if page_img is None:
+        # Fallback: just bg color + crops
+        page_img, layout = _fallback_compose(elements, orig_size, screenshot_path)
+        render_status = "fallback_compose"
+
+    # Phase 3: Compose final 448x448 canvas with a dedicated nav strip at top.
+    final = Image.new("RGB", OUTPUT_CANVAS_SIZE, (245, 245, 245))
+    final.paste(page_img, (PHONE_OFFSET_X, PHONE_OFFSET_Y))
+
+    # Shift all layout bboxes into the final GE-Lab canvas
+    shifted_layout = {}
+    for key, bbox in layout.items():
+        if key in ("back", "home"):
+            continue  # will be set below
+        shifted_layout[key] = [
+            bbox[0] + PHONE_OFFSET_X, bbox[1] + PHONE_OFFSET_Y,
+            bbox[2] + PHONE_OFFSET_X, bbox[3] + PHONE_OFFSET_Y,
+        ]
+
+    # Draw nav strip: white background + separator + rounded back/home buttons
+    draw_final = ImageDraw.Draw(final)
+    draw_final.rectangle([0, 0, OUTPUT_W, NAV_STRIP_H], fill=(255, 255, 255))
+    draw_final.line([0, NAV_STRIP_H - 1, OUTPUT_W, NAV_STRIP_H - 1], fill=(200, 200, 200))
+    font_nav = _try_load_font(12)
+
+    bx1, by1, bx2, by2 = GELAB_BACK_BBOX
+    draw_final.rounded_rectangle([bx1, by1, bx2, by2], radius=4, fill=GELAB_BACK_COLOR)
+    tw = draw_final.textlength("back", font=font_nav) if hasattr(draw_final, "textlength") else 24
+    draw_final.text((bx1 + (NAV_BTN_W - tw) / 2, by1 + (NAV_BTN_H - 12) / 2),
+                    "back", fill=TEXT_BLACK, font=font_nav)
+    shifted_layout["back"] = [bx1, by1, bx2, by2]
+
+    hx1, hy1, hx2, hy2 = GELAB_HOME_BBOX
+    draw_final.rounded_rectangle([hx1, hy1, hx2, hy2], radius=4, fill=GELAB_HOME_COLOR)
+    tw = draw_final.textlength("home", font=font_nav) if hasattr(draw_final, "textlength") else 28
+    draw_final.text((hx1 + (NAV_BTN_W - tw) / 2, hy1 + (NAV_BTN_H - 12) / 2),
+                    "home", fill=TEXT_BLACK, font=font_nav)
+    shifted_layout["home"] = [hx1, hy1, hx2, hy2]
+
+    code_artifact = {
+        "styling_source": styling_source,
+        "render_status": render_status,
+        "styling_code": styling_code,
+        "position_code": position_code,
+        "full_code": full_code,
+    }
+    return final, shifted_layout, code_artifact
+
+
+def _save_page_code(code_dir: str, page_id: str, screenshot_name: str,
+                    step_info: dict, code_artifact: dict):
+    """Persist the PIL code used to build one trajectory page."""
+    os.makedirs(code_dir, exist_ok=True)
+
+    header_lines = [
+        f"# page_id: {page_id}",
+        f"# screenshot: {screenshot_name}",
+        f"# step_index: {step_info.get('step_index', '?')}/{step_info.get('total_steps', '?')}",
+        f"# task: {step_info.get('task', '')}",
+        f"# current_instruction: {step_info.get('low_level_instruction', '')}",
+        f"# previous_instruction: {step_info.get('prev_instruction', '')}",
+        f"# next_instruction: {step_info.get('next_instruction', '')}",
+        f"# styling_source: {code_artifact.get('styling_source', '')}",
+        f"# render_status: {code_artifact.get('render_status', '')}",
+        "# This code targets the original screenshot resolution.",
+        "# The final runtime image is then fit into the 448x448 GE-Lab canvas with a top nav strip.",
+    ]
+
+    contents = "\n".join(header_lines) + "\n\n"
+    contents += "# --- GPT styling skeleton ---\n"
+    contents += code_artifact.get("styling_code", "").strip() + "\n\n"
+    contents += "# --- Deterministic element pastes ---\n"
+    contents += code_artifact.get("position_code", "").strip() + "\n"
+
+    code_path = os.path.join(code_dir, f"{page_id}.py")
+    with open(code_path, "w", encoding="utf-8") as f:
+        f.write(contents)
+
+
+# ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
 
 def run_pipeline(args):
-    # Initialize OpenAI client
+    # Initialize OpenAI client for GPT styling
     client = load_api_client()
     model_name = args.model_name
     print(f"Model: {model_name}")
@@ -1254,15 +1784,15 @@ def run_pipeline(args):
     print(f"Apps: {task_info.get('app', [])}")
     print(f"Steps: {len(steps)}")
 
-    # Process each step
+    # Stage 1-2: detect and extract trajectory assets first
     pages_dir = os.path.join(args.output_dir, "pages")
-    codes_dir = os.path.join(args.output_dir, "generated_code")
+    code_dir = os.path.join(args.output_dir, "generated_code")
+    assets_dir = os.path.join(args.output_dir, "extracted_assets")
     os.makedirs(pages_dir, exist_ok=True)
-    os.makedirs(codes_dir, exist_ok=True)
+    os.makedirs(code_dir, exist_ok=True)
+    os.makedirs(assets_dir, exist_ok=True)
 
-    pages_data = []
-    code_success = 0
-    fallback_count = 0
+    pages_detection_data = []
 
     for i, step in enumerate(steps):
         screenshot_name = step.get("screenshot", f"{episode_id}_{i}.png")
@@ -1272,7 +1802,8 @@ def run_pipeline(args):
             print(f"  [{i+1}/{len(steps)}] SKIP (screenshot missing: {screenshot_name})")
             continue
 
-        page_id = f"step_{i}"
+        page_id = f"page_{i}"
+        step_context = _build_step_context(trajectory, i)
 
         # Stage 1-2: Detect + crop UI elements from this screenshot
         print(f"  [{i+1}/{len(steps)}] {screenshot_name}", end="", flush=True)
@@ -1284,45 +1815,63 @@ def run_pipeline(args):
             _save_labeled_crops(elements, orig_size, screenshot_path,
                                 os.path.join(args.output_dir, "crops", page_id))
 
-        # Stage 3: GPT arranges cropped elements on 448x448 canvas
-        page_img = None
-        layout = None
+        asset_elements = _persist_extracted_assets(elements, screenshot_name, assets_dir, step_context)
+        print(f" [assets:{len(asset_elements)}]", end="", flush=True)
 
-        code_str = generate_page_code(
-            client, model_name, screenshot_path, elements, orig_size, step
+        pages_detection_data.append({
+            "page_id": page_id,
+            "screenshot_name": screenshot_name,
+            "screenshot_path": screenshot_path,
+            "orig_size": list(orig_size),
+            "step": step_context,
+            "elements": asset_elements,
+        })
+
+    _save_asset_manifest(args.output_dir, pages_detection_data)
+
+    # Stage 3-4: compose from extracted assets and build structure
+    pages_data = []
+    success_count = 0
+
+    for page in pages_detection_data:
+        page_id = page["page_id"]
+        screenshot_name = page["screenshot_name"]
+        screenshot_path = page["screenshot_path"]
+        orig_size = tuple(page["orig_size"])
+        step_context = page["step"]
+        elements = page["elements"]
+
+        # Stage 3: Compose page
+        #   Phase 1: GPT generates background/styling on blank canvas
+        #   Phase 2: Extracted trajectory assets pasted at exact positions
+        #   Phase 3: GE-Lab back/home buttons at top
+        page_img, layout, code_artifact = compose_page(
+            client, model_name, elements, orig_size, screenshot_path, step_context
         )
-        if code_str:
-            with open(os.path.join(codes_dir, f"{page_id}.py"), "w") as f:
-                f.write(code_str)
-            page_img, layout = render_from_code(code_str, elements, orig_size)
-
-        if page_img is not None:
-            print(f" [code] ({len(layout)} elems)")
-            code_success += 1
-        else:
-            # Fallback: scaled paste preserving spatial layout + background color
-            print(f" [fallback]", end="", flush=True)
-            page_img, layout = _fallback_compose(elements, orig_size, screenshot_path)
-            print(f" ({len(layout)} elems)")
-            fallback_count += 1
+        print(f"  compose {page_id} -> {len(layout)} layout elems")
+        success_count += 1
 
         page_img.save(os.path.join(pages_dir, f"{page_id}.png"))
+        _save_page_code(code_dir, page_id, screenshot_name, step_context, code_artifact)
 
         pages_data.append({
             "page_id": page_id,
             "layout": layout,
-            "spec": {},
+            "orig_size": list(orig_size),
+            "step": step_context,
         })
 
-    print(f"\nRendering: {code_success} code, {fallback_count} fallback")
+    print(f"\nComposed: {success_count}/{len(pages_data)} pages")
 
     # Stage 4: Build structure
     print(f"Building structure ({len(pages_data)} pages)...")
     structure = build_structure(pages_data, trajectory, args.output_dir)
 
     print(f"\nDone. Output: {args.output_dir}/")
-    print(f"  pages/           {len(pages_data)} PNG files")
-    print(f"  generated_code/  GPT PIL code")
+    print(f"  pages/             {len(pages_data)} PNG files ({OUTPUT_W}x{OUTPUT_H})")
+    print(f"  generated_code/    {len(pages_data)} PIL code files")
+    print(f"  extracted_assets/  saved extracted trajectory crops")
+    print(f"  trajectory_assets_manifest.json")
     print(f"  ui_structure.json")
     print(f"  ui_structure_layer.json")
 
@@ -1363,34 +1912,31 @@ def _fallback_compose(elements: List[dict],
     font_sm = _try_load_font(9)
 
     w, h = orig_size
-    x_scale = 448.0 / w
-    y_scale = 383.0 / h  # content area = 383px (y=20..403)
+    content_h = CANVAS_H - STATUS_BAR_HEIGHT - NAV_BAR_HEIGHT
+    x_scale = float(CANVAS_W) / w
+    y_scale = float(content_h) / h
 
     # Status bar
-    draw.rectangle([0, 0, 448, 20], fill=(15, 15, 20))
-
-    # Separate icons and text elements for better layout
-    icon_elems = [e for e in elements if e["type"] == "icon"]
-    text_elems = [e for e in elements if e["type"] == "text"]
+    draw.rectangle([0, 0, CANVAS_W, STATUS_BAR_HEIGHT], fill=(15, 15, 20))
 
     # Paste all elements at proportionally scaled positions
+    nav_top = CANVAS_H - NAV_BAR_HEIGHT
     for e in elements:
         x1, y1, x2, y2 = e["bbox"]
-        ew, eh = x2 - x1, y2 - y1
 
         # Scale positions
         sx1 = int(x1 * x_scale)
-        sy1 = int(y1 * y_scale) + 20
+        sy1 = int(y1 * y_scale) + STATUS_BAR_HEIGHT
         sx2 = int(x2 * x_scale)
-        sy2 = int(y2 * y_scale) + 20
+        sy2 = int(y2 * y_scale) + STATUS_BAR_HEIGHT
 
         sw, sh = max(sx2 - sx1, 8), max(sy2 - sy1, 8)
 
         # Clamp to content area
-        if sy1 >= 400:
+        if sy1 >= nav_top:
             continue
-        if sy2 > 403:
-            sy2 = 403
+        if sy2 > nav_top:
+            sy2 = nav_top
             sh = sy2 - sy1
 
         # Ensure minimum readability for small crops
@@ -1404,20 +1950,11 @@ def _fallback_compose(elements: List[dict],
             continue
 
         label = e["label"].replace(" ", "_")[:25]
-        # Avoid duplicate layout keys
         if label in layout:
             label = f"{label}_{e['index']}"
         layout[label] = [sx1, sy1, sx1 + sw, sy1 + sh]
 
-    # Nav bar
-    draw.rectangle([0, 403, 448, 448], fill=NAV_BAR_COLOR)
-    draw.rounded_rectangle([20, 410, 100, 440], radius=4, fill=(255, 200, 200))
-    draw.text((40, 417), "Back", fill=TEXT_BLACK, font=font_sm)
-    layout["back"] = [20, 410, 100, 440]
-    draw.rounded_rectangle([348, 410, 428, 440], radius=4, fill=(200, 255, 200))
-    draw.text((368, 417), "Home", fill=TEXT_BLACK, font=font_sm)
-    layout["home"] = [348, 410, 428, 440]
-
+    # back/home handled by compose_page nav strip (not here)
     return canvas, layout
 
 
@@ -1439,7 +1976,7 @@ def parse_args():
                         help="OmniParser weights directory")
     parser.add_argument("--model_name", type=str,
                         default="gpt-5-mini-2025-08-07",
-                        help="OpenAI model name for page composition")
+                        help="OpenAI model for styling code generation")
     parser.add_argument("--gpu", type=int, default=0, help="GPU for YOLO detection")
     parser.add_argument("--save_crops", action="store_true",
                         help="Save labeled crops and annotated screenshots for inspection")

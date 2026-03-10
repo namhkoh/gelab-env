@@ -527,7 +527,7 @@ The current synthetic icon pool has 259 icons (Animals + Business). The real-wor
 
 **Script**: `data_engine/sim2real_compose.py`
 
-Takes a GUIOdyssey trajectory and produces a complete GE-Lab environment where each page preserves the actual UI elements from the original screenshots. This goes beyond simple icon extraction — it recreates full pages with correct spatial layouts.
+Takes a GUIOdyssey trajectory and produces a complete GE-Lab environment where each page preserves the actual UI elements from the original screenshots. Uses a three-phase composition approach: GPT-5-mini generates background styling on a blank canvas, real cropped icons are pasted at their detected positions, and GE-Lab navigation buttons are added in a dedicated strip.
 
 ```bash
 pip install openai  # Required for GPT-5-mini API
@@ -539,19 +539,21 @@ python data_engine/sim2real_compose.py \
   --gpu 0
 ```
 
-**Pipeline stages per screenshot:**
-1. **Detect** — YOLO icon detection + EasyOCR text detection on the 720x1280 screenshot
-2. **Crop** — Extracts each detected element as an RGBA crop
-3. **Compose** — GPT-5-mini generates PIL code that arranges the real cropped elements on a 448x448 canvas using `get_crop(index, w, h)`. Falls back to proportional scaling if code generation fails.
-4. **Structure** — Builds `ui_structure.json` + `ui_structure_layer.json` from the trajectory annotations (transitions, actions, page chain)
+**Three-phase composition per screenshot:**
+1. **Detect + Crop** — YOLO icon detection + EasyOCR text detection on the 720x1280 screenshot, then extract each element as an RGBA crop
+2. **GPT Styling** — GPT-5-mini generates PIL code for background/structure only (colors, status bar, headers, section cards, dividers) on a blank canvas at the original resolution. The prompt explicitly lists all detected elements so GPT does not redraw them.
+3. **Deterministic Paste** — Auto-generated code pastes the real YOLO-detected crops at their exact scaled positions on top of the GPT-styled background. No LLM involved in positioning.
+4. **Nav Strip** — Page content is resized into a 252x416 area and placed below a 32px navigation strip containing GE-Lab-style pink "back" (top-left) and green "home" (top-right) buttons with rounded corners.
+5. **Structure** — Builds `ui_structure.json` + `ui_structure_layer.json` from the trajectory annotations (transitions, actions, page chain)
+
+The final output canvas is 252x448 (9:16 phone ratio matching GUIOdyssey's 720x1280).
 
 **Output:**
 ```
 data_engine/sim2real_envs/<name>/
-├── pages/              448x448 PNG files (one per trajectory step)
-├── generated_code/     GPT-generated PIL code per step
-├── ui_structure.json   GE-Lab compatible structure with transitions
-└── ui_structure_layer.json  Hierarchical structure
+├── pages/                    252x448 PNG files (one per trajectory step)
+├── ui_structure.json         GE-Lab compatible structure with transitions
+└── ui_structure_layer.json   Hierarchical structure
 ```
 
 **Key arguments:**
@@ -559,9 +561,10 @@ data_engine/sim2real_envs/<name>/
 |----------|---------|-------------|
 | `--trajectory_id` | (required) | GUIOdyssey episode ID |
 | `--output_dir` | `sim2real_envs/trajectory_001` | Output directory |
-| `--model_name` | `gpt-5-mini-2025-08-07` | OpenAI model for code generation |
+| `--model_name` | `gpt-5-mini-2025-08-07` | OpenAI model for styling code generation |
 | `--weights_dir` | `/ext_hdd2/nhkoh/OmniParser/weights` | OmniParser YOLO weights |
 | `--gpu` | `0` | GPU for YOLO detection |
+| `--save_crops` | (flag) | Save labeled crops and annotated screenshots for inspection |
 
 ---
 

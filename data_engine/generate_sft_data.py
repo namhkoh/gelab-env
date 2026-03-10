@@ -1,12 +1,9 @@
 """
 Generate SFT training data.
 
-Paper specifications (Appendix A.1):
-- Path data from subtrees 0-1 (with page_0 as valid endpoint)
-- Edge data from ALL subtrees (0-4)
-- 2,320 Icon Grounding + 2,320 Icon Captioning auxiliary samples
-
-Expected output: ~30,888 samples (24,878 path + 1,370 edge + 2,320 grounding + 2,320 captioning)
+Supports:
+- Legacy paper-aligned subtree environments
+- GT-spine-with-branches environments built from GUIOdyssey trajectories
 """
 
 import json
@@ -19,6 +16,28 @@ from env_utils import GELabEnvUtils
 
 class SFTDataGenerator(GELabEnvUtils):
     """Generate SFT training data."""
+
+    def is_gt_spine_topology(self):
+        return self.metadata.get("topology_type") == "gt_spine_branches"
+
+    def _goal_text(self):
+        task = str(self.metadata.get("trajectory_task") or self.metadata.get("task") or "").strip()
+        instruction = str(self.metadata.get("trajectory_instruction") or "").strip()
+        if task and instruction and instruction != task:
+            return f"Goal: {task} Context: {instruction}"
+        return f"Goal: {task or instruction}" if (task or instruction) else ""
+
+    def _task_label(self, fallback):
+        return self.metadata.get("trajectory_task") or self.metadata.get("task") or fallback
+
+    def _format_user_content(self, route_text, history):
+        parts = ["<image>"]
+        goal_text = self._goal_text()
+        if goal_text:
+            parts.append(goal_text)
+        parts.append(route_text)
+        parts.append(f"History: {history}")
+        return " ".join(parts)
 
     def generate_path_samples(self, subtrees, include_page_0=True):
         """
@@ -56,7 +75,8 @@ class SFTDataGenerator(GELabEnvUtils):
 
                     pair_count += 1
                     path_length = len(path)
-                    task = f"From {start} to {end}"
+                    route_text = f"Instruction: from {start} to {end}."
+                    task = self._task_label(f"From {start} to {end}")
                     source = f"sub{subtree_idx}_path"
                     history_steps = []
 
@@ -69,13 +89,14 @@ class SFTDataGenerator(GELabEnvUtils):
                                  for i, h in enumerate(history_steps)]
                             )
 
-                        user_content = f"<image>Instruction: from {start} to {end}. History: {history}"
+                        user_content = self._format_user_content(route_text, history)
                         assistant_content = self.format_click_action(action, page_id, bbox)
 
                         sample = {
                             "idx": idx,
                             "path": path_length,
                             "task": task,
+                            "route": f"From {start} to {end}",
                             "messages": [
                                 {"role": "user", "content": user_content},
                                 {"role": "assistant", "content": assistant_content},
@@ -94,13 +115,14 @@ class SFTDataGenerator(GELabEnvUtils):
                         [f"step{i+1}: click {h[1]} icon on {h[0]}"
                          for i, h in enumerate(history_steps)]
                     )
-                    user_content = f"<image>Instruction: from {start} to {end}. History: {final_history}"
+                    user_content = self._format_user_content(route_text, final_history)
                     assistant_content = self.format_complete_action()
 
                     sample = {
                         "idx": idx,
                         "path": path_length,
                         "task": task,
+                        "route": f"From {start} to {end}",
                         "messages": [
                             {"role": "user", "content": user_content},
                             {"role": "assistant", "content": assistant_content},
@@ -115,6 +137,74 @@ class SFTDataGenerator(GELabEnvUtils):
 
             print(f"    Subtree {subtree_idx}: {pair_count} pairs -> {sample_count} samples")
 
+        return samples
+
+    def generate_gt_spine_path_samples(self):
+        """Generate path samples directly from the GT-spine-plus-branches graph."""
+        samples = []
+        idx = 0
+        page_ids = self.get_sorted_page_ids()
+        pair_count = 0
+
+        for start in page_ids:
+            for end in page_ids:
+                if start == end:
+                    continue
+
+                path = self.get_path_with_actions(start, end)
+                if not path:
+                    continue
+
+                pair_count += 1
+                path_length = len(path)
+                route_text = f"Instruction: from {start} to {end} within the current app flow."
+                task = self._task_label(f"From {start} to {end}")
+                history_steps = []
+
+                for step_idx, (page_id, action, bbox) in enumerate(path):
+                    if step_idx == 0:
+                        history = "Null"
+                    else:
+                        history = "; ".join(
+                            [f"step{i+1}: click {h[1]} icon on {h[0]}" for i, h in enumerate(history_steps)]
+                        )
+
+                    sample = {
+                        "idx": idx,
+                        "path": path_length,
+                        "task": task,
+                        "route": f"From {start} to {end}",
+                        "messages": [
+                            {"role": "user", "content": self._format_user_content(route_text, history)},
+                            {"role": "assistant", "content": self.format_click_action(action, page_id, bbox)},
+                        ],
+                        "images": [os.path.join(self.pages_dir, self.pages[page_id]["image"])],
+                        "bbox_norm": self.bbox_to_normalized(bbox),
+                        "source": "gt_spine_path",
+                    }
+                    samples.append(sample)
+                    idx += 1
+                    history_steps.append((page_id, action))
+
+                final_history = "; ".join(
+                    [f"step{i+1}: click {h[1]} icon on {h[0]}" for i, h in enumerate(history_steps)]
+                ) or "Null"
+                samples.append({
+                    "idx": idx,
+                    "path": path_length,
+                    "task": task,
+                    "route": f"From {start} to {end}",
+                    "messages": [
+                        {"role": "user", "content": self._format_user_content(route_text, final_history)},
+                        {"role": "assistant", "content": self.format_complete_action()},
+                    ],
+                    "images": [os.path.join(self.pages_dir, self.pages[end]["image"])],
+                    "bbox_norm": [0, 0, 0, 0],
+                    "source": "gt_spine_path",
+                })
+                idx += 1
+
+        print(f"    GT spine paths: {pair_count} reachable pairs -> {len(samples)} samples")
         return samples
 
     def generate_edge_samples(self, subtrees):
@@ -134,17 +224,19 @@ class SFTDataGenerator(GELabEnvUtils):
 
             for page_id in subtree_pages:
                 for target, action, bbox in self.graph.get(page_id, []):
-                    task = f"From {page_id} to {target}"
+                    route_text = f"Instruction: from {page_id} to {target}."
+                    task = self._task_label(f"From {page_id} to {target}")
                     source = f"sub{subtree_idx}_edge"
 
                     # Sample 1: Click action at source page
-                    user_1 = f"<image>Instruction: from {page_id} to {target}. History: Null"
+                    user_1 = self._format_user_content(route_text, "Null")
                     assistant_1 = self.format_click_action(action, page_id, bbox)
 
                     sample_1 = {
                         "idx": idx,
                         "path": 1,
                         "task": task,
+                        "route": f"From {page_id} to {target}",
                         "messages": [
                             {"role": "user", "content": user_1},
                             {"role": "assistant", "content": assistant_1},
@@ -158,13 +250,14 @@ class SFTDataGenerator(GELabEnvUtils):
 
                     # Sample 2: Complete action at target page
                     history = f"step1: click {action} icon on {page_id}"
-                    user_2 = f"<image>Instruction: from {page_id} to {target}. History: {history}"
+                    user_2 = self._format_user_content(route_text, history)
                     assistant_2 = self.format_complete_action()
 
                     sample_2 = {
                         "idx": idx,
                         "path": 1,
                         "task": task,
+                        "route": f"From {page_id} to {target}",
                         "messages": [
                             {"role": "user", "content": user_2},
                             {"role": "assistant", "content": assistant_2},
@@ -180,15 +273,17 @@ class SFTDataGenerator(GELabEnvUtils):
             # Add entry transitions from page_0 to subtree
             for target, action, bbox in self.graph.get("page_0", []):
                 if self.page_to_subtree.get(target) == subtree_idx:
-                    task = f"From page_0 to {target}"
+                    route_text = f"Instruction: from page_0 to {target}."
+                    task = self._task_label(f"From page_0 to {target}")
                     source = f"sub{subtree_idx}_edge"
 
                     sample_1 = {
                         "idx": idx,
                         "path": 1,
                         "task": task,
+                        "route": f"From page_0 to {target}",
                         "messages": [
-                            {"role": "user", "content": f"<image>Instruction: from page_0 to {target}. History: Null"},
+                            {"role": "user", "content": self._format_user_content(route_text, "Null")},
                             {"role": "assistant", "content": self.format_click_action(action, "page_0", bbox)},
                         ],
                         "images": [os.path.join(self.pages_dir, "page_0.png")],
@@ -202,8 +297,9 @@ class SFTDataGenerator(GELabEnvUtils):
                         "idx": idx,
                         "path": 1,
                         "task": task,
+                        "route": f"From page_0 to {target}",
                         "messages": [
-                            {"role": "user", "content": f"<image>Instruction: from page_0 to {target}. History: step1: click {action} icon on page_0"},
+                            {"role": "user", "content": self._format_user_content(route_text, f"step1: click {action} icon on page_0")},
                             {"role": "assistant", "content": self.format_complete_action()},
                         ],
                         "images": [os.path.join(self.pages_dir, f"{target}.png")],
@@ -216,6 +312,51 @@ class SFTDataGenerator(GELabEnvUtils):
 
             print(f"    Subtree {subtree_idx}: {transition_count} transitions x 2 = {transition_count * 2} samples")
 
+        return samples
+
+    def generate_gt_spine_edge_samples(self):
+        """Generate one-step edge samples across the full GT-spine-plus-branches graph."""
+        samples = []
+        idx = 0
+        transition_count = 0
+
+        for page_id in self.get_sorted_page_ids():
+            for target, action, bbox in self.get_public_transitions(page_id):
+                route_text = f"Instruction: from {page_id} to {target} within the current app flow."
+                task = self._task_label(f"From {page_id} to {target}")
+
+                samples.append({
+                    "idx": idx,
+                    "path": 1,
+                    "task": task,
+                    "route": f"From {page_id} to {target}",
+                    "messages": [
+                        {"role": "user", "content": self._format_user_content(route_text, "Null")},
+                        {"role": "assistant", "content": self.format_click_action(action, page_id, bbox)},
+                    ],
+                    "images": [os.path.join(self.pages_dir, self.pages[page_id]["image"])],
+                    "bbox_norm": self.bbox_to_normalized(bbox),
+                    "source": "gt_spine_edge",
+                })
+                idx += 1
+
+                samples.append({
+                    "idx": idx,
+                    "path": 1,
+                    "task": task,
+                    "route": f"From {page_id} to {target}",
+                    "messages": [
+                        {"role": "user", "content": self._format_user_content(route_text, f"step1: click {action} icon on {page_id}")},
+                        {"role": "assistant", "content": self.format_complete_action()},
+                    ],
+                    "images": [os.path.join(self.pages_dir, self.pages[target]["image"])],
+                    "bbox_norm": [0, 0, 0, 0],
+                    "source": "gt_spine_edge",
+                })
+                idx += 1
+                transition_count += 1
+
+        print(f"    GT spine edges: {transition_count} transitions x 2 = {len(samples)} samples")
         return samples
 
     def generate_grounding_samples(self, num_samples=2320):
@@ -231,6 +372,8 @@ class SFTDataGenerator(GELabEnvUtils):
                 bbox = trans.get("icon_bbox", [0, 0, 0, 0])
                 all_icons.append((page_id, action, bbox))
 
+        if not all_icons:
+            return samples
         sampled = random.choices(all_icons, k=num_samples)
 
         for idx, (page_id, action, bbox) in enumerate(sampled):
@@ -264,6 +407,8 @@ class SFTDataGenerator(GELabEnvUtils):
                 bbox = trans.get("icon_bbox", [0, 0, 0, 0])
                 all_icons.append((page_id, action, bbox))
 
+        if not all_icons:
+            return samples
         sampled = random.choices(all_icons, k=num_samples)
 
         for idx, (page_id, action, bbox) in enumerate(sampled):
@@ -306,15 +451,22 @@ def main():
     generator = SFTDataGenerator(args.env_dir)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # Path samples from subtrees 0-1
-    print("Path samples from subtrees 0-1...")
-    path_samples = generator.generate_path_samples(subtrees=[0, 1])
-    print(f"  Total path samples: {len(path_samples)}")
+    if generator.is_gt_spine_topology():
+        print("Path samples from GT spine + branches...")
+        path_samples = generator.generate_gt_spine_path_samples()
+        print(f"  Total path samples: {len(path_samples)}")
 
-    # Edge samples from all subtrees
-    print("Edge samples from all subtrees (0-4)...")
-    edge_samples = generator.generate_edge_samples(subtrees=[0, 1, 2, 3, 4])
-    print(f"  Total edge samples: {len(edge_samples)}")
+        print("Edge samples from GT spine + branches...")
+        edge_samples = generator.generate_gt_spine_edge_samples()
+        print(f"  Total edge samples: {len(edge_samples)}")
+    else:
+        print("Path samples from subtrees 0-1...")
+        path_samples = generator.generate_path_samples(subtrees=[0, 1])
+        print(f"  Total path samples: {len(path_samples)}")
+
+        print("Edge samples from all subtrees (0-4)...")
+        edge_samples = generator.generate_edge_samples(subtrees=[0, 1, 2, 3, 4])
+        print(f"  Total edge samples: {len(edge_samples)}")
 
     # Grounding samples
     print("Grounding samples...")
