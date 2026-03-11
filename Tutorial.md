@@ -17,6 +17,8 @@ gelab-env/
 │   ├── prepare_continue_train_data.py  # Real-world data prep (AITW + Mind2Web -> 24k)
 │   ├── sim2real.py                 # Sim2Real: extract real icons from GUIOdyssey
 │   ├── sim2real_compose.py         # Sim2Real: detection-guided page composition (GPT-5-mini)
+│   ├── sim2real_tree.py            # Sim2Real: full GE-Lab tree from GUIOdyssey (grounded mode)
+│   ├── sim2real_label_icons.py     # Sim2Real: GPT-5-mini vision labeling of extracted icons
 │   ├── sim2real_envs/              # Output: composed GE-Lab environments (gitignored)
 │   ├── icons/                      # Synthetic icon pool (Animals/, Business/)
 │   └── real_icons/                 # Real-world icon pool (extracted, gitignored)
@@ -565,6 +567,110 @@ data_engine/sim2real_envs/<name>/
 | `--weights_dir` | `/ext_hdd2/nhkoh/OmniParser/weights` | OmniParser YOLO weights |
 | `--gpu` | `0` | GPU for YOLO detection |
 | `--save_crops` | (flag) | Save labeled crops and annotated screenshots for inspection |
+
+### 6.6 Tree: Full GE-Lab Environment from GUIOdyssey Screenshots
+
+**Script**: `data_engine/sim2real_tree.py`
+
+Generates a complete 231-page GE-Lab tree environment (matching the paper's topology) where every page is composed from real GUIOdyssey screenshots. Each page preserves all detected UI elements at their proportional positions, producing visually dense pages that look like real mobile apps.
+
+**How it works:**
+1. **YOLO+OCR detection** on all GUIOdyssey screenshots (cached for reuse)
+2. **Tree topology** built with paper-matching structure (depth 7, branching [5,3,2,2,1,1], 5 subtrees)
+3. **Screenshot assignment** — each tree node gets a real screenshot; all detected elements (~25 avg) are loaded
+4. **Nav icon selection** — N elements per page become clickable navigation targets (wired to child pages), the rest are visual decoration
+5. **Proportional layout** — elements are positioned by scaling their original screenshot coordinates to the 252x448 canvas
+6. **GPT background** — GPT-5-mini generates background styling (colors, toolbars, dividers) using the screenshot as visual reference
+7. **Nav strip** — GE-Lab back/home buttons added in a 32px top strip
+
+```bash
+pip install openai ultralytics easyocr
+
+export OPENAI_API_KEY="sk-..."
+
+# Full paper-scale tree (231 pages, ~20-40 min)
+python data_engine/sim2real_tree.py \
+  --screenshots_dir /ext_hdd2/nhkoh/GUI-Odyssey/screenshots \
+  --output_dir data_engine/sim2real_envs/tree_full \
+  --tree_depth 7 --nodes_per_level 5 3 2 2 1 1 \
+  --seed 42
+
+# Small test tree (3 pages, ~1 min)
+python data_engine/sim2real_tree.py \
+  --screenshots_dir /ext_hdd2/nhkoh/GUI-Odyssey/screenshots \
+  --output_dir data_engine/sim2real_envs/tree_test \
+  --tree_depth 2 --nodes_per_level 2 \
+  --seed 42
+```
+
+**Generate training data from the sim2real environment:**
+
+```bash
+# SFT data (path + edge + grounding + captioning)
+python data_engine/generate_sft_data.py \
+  --env_dir data_engine/sim2real_envs/tree_full \
+  --output_dir data_engine/sim2real_envs/tree_full
+
+# ST-RL data (path-only, subtrees 2-3)
+python data_engine/generate_st_rl_data.py \
+  --env_dir data_engine/sim2real_envs/tree_full \
+  --output_dir data_engine/sim2real_envs/tree_full
+
+# MT-RL data (multi-turn tasks, subtrees 2-3)
+python data_engine/generate_mt_rl_data.py \
+  --env_dir data_engine/sim2real_envs/tree_full \
+  --output_dir data_engine/sim2real_envs/tree_full
+```
+
+**Output:**
+```
+data_engine/sim2real_envs/tree_full/
+├── pages/                       231 PNG files (252x448)
+├── ui_structure.json            GE-Lab compatible structure
+├── ui_structure_layer.json      Hierarchical tree (5 subtrees x 46 pages)
+├── .detection_cache/            Cached YOLO+OCR results (reused across runs)
+│   ├── detection_cache.json     Per-screenshot element metadata
+│   └── crops/                   Extracted element crops
+├── sft_aligned.json             30,898 SFT samples
+├── st_rl_path_only.json         ST-RL training data
+└── mt_rl_aligned.json           MT-RL training data
+```
+
+**Key arguments:**
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--screenshots_dir` | (none) | GUIOdyssey screenshots directory (enables grounded mode) |
+| `--output_dir` | `sim2real_envs/tree_001` | Output directory |
+| `--tree_depth` | `4` | Tree depth (paper: 7) |
+| `--nodes_per_level` | `3 2 1` | Branching factor per level (paper: `5 3 2 2 1 1`) |
+| `--model_name` | `gpt-5-mini-2025-08-07` | OpenAI model for background generation |
+| `--gpu` | `0` | GPU for YOLO detection |
+| `--seed` | `42` | Random seed for reproducibility |
+| `--icon_dir` | `data_engine/real_icons` | Icon pool directory (icon-pool mode fallback) |
+
+**Note:** The detection cache (`.detection_cache/`) is stored inside the output directory. To speed up reruns with a different tree topology, copy it from a previous run:
+```bash
+mkdir -p new_output/.detection_cache
+cp -r old_output/.detection_cache/* new_output/.detection_cache/
+```
+
+### 6.7 Label Icons with GPT Vision
+
+**Script**: `data_engine/sim2real_label_icons.py`
+
+Labels the 1,509 extracted icons using GPT-5-mini vision. Creates 5x5 montage grids, sends them to GPT for identification, and saves labels to `icon_labels.json`. Resume-safe (saves after each batch).
+
+```bash
+export OPENAI_API_KEY="sk-..."
+
+# Label all icons (~10 min, resume-safe)
+python data_engine/sim2real_label_icons.py --batch_size 25
+
+# Re-label all icons from scratch
+python data_engine/sim2real_label_icons.py --batch_size 25 --overwrite
+```
+
+Output: `data_engine/real_icons/icon_labels.json` — maps filename to label (e.g., `"icon_00020_unknown.png": "facebook"`).
 
 ---
 

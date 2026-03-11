@@ -100,14 +100,17 @@ def label_batch(client, model_name: str,
     """Send montage to GPT vision and get labels for each icon."""
     n = len(filenames)
     prompt = (
-        f"This image shows a grid of {n} mobile app icons, numbered 1 to {n}.\n"
-        f"For each icon, provide a short label (1-3 words) describing what it is.\n"
-        f"Format: one line per icon, exactly like:\n"
+        f"This image shows a grid of {n} cropped UI elements from mobile apps, numbered 1 to {n}.\n"
+        f"For EACH one, provide a short label (1-3 words) describing what it is.\n"
+        f"Many are app logos (e.g. Facebook, Chrome, eBay), UI icons (search, settings, back arrow),\n"
+        f"or buttons. Some may be dark or small — try your best to identify them.\n"
+        f"Format: one line per item, exactly like:\n"
         f"1: search\n"
         f"2: settings gear\n"
-        f"3: facebook logo\n"
+        f"3: facebook\n"
         f"...\n"
-        f"If an icon is unclear or just text/noise, label it 'unknown'.\n"
+        f"Only label as 'unknown' if truly unrecognizable (solid color, noise, etc).\n"
+        f"Dark icons with visible shapes should still be labeled (e.g. 'dark menu icon').\n"
         f"Reply with ONLY the numbered labels, nothing else."
     )
 
@@ -124,7 +127,7 @@ def label_batch(client, model_name: str,
                         {"type": "image_url", "image_url": {"url": img_url}},
                     ],
                 }],
-                max_completion_tokens=1024,
+                max_completion_tokens=4096,
             )
             text = response.choices[0].message.content or ""
             labels = parse_labels(text, n)
@@ -160,7 +163,7 @@ def parse_labels(text: str, expected: int) -> Dict[int, str]:
             label = re.sub(r'[^a-z0-9_ ]', '', label).strip()
             if label:
                 labels[idx] = label
-    return labels if len(labels) >= expected * 0.5 else {}
+    return labels if len(labels) >= max(1, expected * 0.2) else {}
 
 
 def run(args):
