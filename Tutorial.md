@@ -447,230 +447,228 @@ The simulator produces:
 
 ## 6. Sim2Real Pipeline
 
-Extracts real-world UI icons from mobile screenshots (GUIOdyssey dataset) using OmniParser, producing a drop-in replacement icon pool for the GE-Lab environment.
+The Sim2Real pipeline replaces GE-Lab's synthetic UI pages (white backgrounds with vector icons) with realistic mobile app pages composed from real GUIOdyssey screenshots. The result is a drop-in replacement GE-Lab environment where every page looks like a real mobile app, while maintaining the same tree topology, subtree splits, and training data format.
 
-### 6.1 Prerequisites
+**What it does:** Takes 230 real mobile screenshots from GUIOdyssey, detects all UI elements with YOLO+OCR, then composes them into a 231-page GE-Lab tree where each page preserves the detected elements at their proportional positions.
 
-```bash
-# Install OmniParser dependencies (in gelab conda env)
-pip install ultralytics easyocr supervision==0.18.0 timm
-
-# Clone OmniParser and download weights
-git clone https://github.com/microsoft/OmniParser.git /ext_hdd2/nhkoh/OmniParser
-huggingface-cli download microsoft/OmniParser-v2.0 --local-dir /ext_hdd2/nhkoh/OmniParser/weights
+**Pipeline overview:**
+```
+GUIOdyssey Screenshots (720x1280)
+        |
+        v
+  [Step 1] YOLO + OCR detection  ──>  ~25 UI elements per screenshot
+        |
+        v
+  [Step 2] Build GE-Lab tree topology (231 pages, 5 subtrees)
+        |
+        v
+  [Step 3] For each page:
+           - Assign a screenshot's detected elements
+           - Scale element positions from 720x1280 to 252x448
+           - GPT-5-mini generates matching background
+           - Paste all element crops at scaled positions
+           - Add GE-Lab nav strip (back/home buttons)
+        |
+        v
+  [Step 4] Generate training data (SFT, ST-RL, MT-RL)
+        |
+        v
+  Ready for GE-Lab training pipeline (same as synthetic env)
 ```
 
-### 6.2 Download GUIOdyssey Subset
+### 6.1 Requirements
 
-The full dataset is ~93 GB. We download a small, diverse subset (~50 MB):
+**Hardware:**
+- 1 GPU with 4+ GB VRAM (for YOLO detection only; CPU also works with `--gpu -1`)
+
+**Software (inside gelab conda env):**
+```bash
+conda activate gelab
+pip install openai ultralytics easyocr
+```
+
+**Data:**
+- GUIOdyssey screenshots (230 PNGs, 720x1280, ~50 MB)
+- OmniParser YOLO weights for icon detection
+
+**API keys:**
+- `OPENAI_API_KEY` — required for GPT-5-mini (background generation + icon labeling)
+
+### 6.2 Step 1: Download GUIOdyssey Screenshots
+
+The full GUIOdyssey dataset is ~93 GB. We use a small, diverse subset of 18 episodes (230 screenshots) balanced across 6 app categories.
 
 ```bash
-# 1. Download annotation index
+# Download annotation index
 huggingface-cli download hflqf88888/GUIOdyssey all_annot.json \
-  --repo-type dataset --local-dir /ext_hdd2/nhkoh/GUI-Odyssey/
+  --repo-type dataset --local-dir /path/to/GUI-Odyssey/
 
-# 2. Select episodes (18 episodes, 230 screenshots, Small Phone 720x1280)
-#    Balanced across 6 categories: General_Tool, Information_Management,
-#    Media_Entertainment, Multi_Apps, Social_Sharing, Web_Shopping
-#    Selection script saves selected_episodes.json
-
-# 3. Download per-episode annotations (with sam2_bbox, descriptions)
-#    Source: hflqf88888/GUIOdyssey/annotations/{episode_id}.json
-
-# 4. Download screenshots (individual PNGs from OpenGVLab/GUI-Odyssey)
-#    Screenshots are in 100 shards: screenshots/data_0/ through data_99/
-#    Script scans shards to find needed files and downloads selectively
+# Download screenshots (18 episodes, 230 PNGs)
+# See data_engine/sim2real.py for the episode selection and download logic
 ```
 
-Resulting data layout:
+Expected layout:
 ```
-/ext_hdd2/nhkoh/GUI-Odyssey/       ~76 MB
-├── all_annot.json                  Full annotation index (8,334 episodes)
-├── selected_episodes.json          18 selected episode IDs
-├── annotations/                    18 detailed per-episode JSONs
-└── screenshots/                    230 PNGs (720x1280)
+/path/to/GUI-Odyssey/
+├── all_annot.json             Full annotation index (8,334 episodes)
+├── selected_episodes.json     18 selected episode IDs
+└── screenshots/               230 PNGs (720x1280)
+    ├── 0055763512444649_0.png
+    ├── 0055763512444649_1.png
+    └── ...
 ```
 
-### 6.3 Extract Icons
+### 6.3 Step 2: Download OmniParser Weights
 
 ```bash
-# Full pipeline: YOLO detection + EasyOCR + deduplication + organize
+pip install huggingface_hub
+huggingface-cli download microsoft/OmniParser-v2.0 \
+  --local-dir /path/to/OmniParser/weights
+```
+
+The YOLO model used is at `weights/icon_detect/model.pt`.
+
+### 6.4 Step 3: Generate the Sim2Real Environment
+
+This is the main step. It runs YOLO+OCR detection on all screenshots, builds the tree, and renders all 231 pages.
+
+```bash
+conda activate gelab
+export OPENAI_API_KEY="sk-..."
+
+python data_engine/sim2real_tree.py \
+  --screenshots_dir /path/to/GUI-Odyssey/screenshots \
+  --output_dir data_engine/sim2real_envs/tree_full \
+  --tree_depth 7 \
+  --nodes_per_level 5 3 2 2 1 1 \
+  --seed 42
+```
+
+**Expected runtime:** ~20-40 minutes (first run includes YOLO detection on 230 screenshots + 231 GPT API calls for backgrounds). Subsequent runs with the same output directory reuse the detection cache and finish much faster.
+
+**What each argument does:**
+| Argument | Value | Purpose |
+|----------|-------|---------|
+| `--screenshots_dir` | Path to GUIOdyssey PNGs | Source screenshots (enables grounded mode) |
+| `--output_dir` | Where to save the environment | Contains pages/, JSON structures, detection cache |
+| `--tree_depth` | `7` | Matches paper topology |
+| `--nodes_per_level` | `5 3 2 2 1 1` | Branching factor per level (produces 231 pages, 5 subtrees) |
+| `--seed` | `42` | Deterministic screenshot assignment |
+| `--model_name` | `gpt-5-mini-2025-08-07` | OpenAI model for background generation (default) |
+| `--gpu` | `0` | GPU for YOLO detection (`-1` for CPU) |
+
+**For a quick test** (3 pages, ~1 minute):
+```bash
+python data_engine/sim2real_tree.py \
+  --screenshots_dir /path/to/GUI-Odyssey/screenshots \
+  --output_dir data_engine/sim2real_envs/tree_test \
+  --tree_depth 2 --nodes_per_level 2 \
+  --seed 42
+```
+
+**Speeding up reruns:** The YOLO detection cache is stored in `<output_dir>/.detection_cache/`. To reuse it with a different tree topology:
+```bash
+mkdir -p new_output/.detection_cache
+cp -r old_output/.detection_cache/* new_output/.detection_cache/
+```
+
+### 6.5 Step 4: Generate Training Data
+
+Once the environment is generated, produce SFT/ST-RL/MT-RL training data using the same scripts as the synthetic environment:
+
+```bash
+# SFT data: 30,898 samples (path + edge + grounding + captioning)
+python data_engine/generate_sft_data.py \
+  --env_dir data_engine/sim2real_envs/tree_full \
+  --output_dir data_engine/sim2real_envs/tree_full
+
+# ST-RL data: path-only samples from subtrees 2-3
+python data_engine/generate_st_rl_data.py \
+  --env_dir data_engine/sim2real_envs/tree_full \
+  --output_dir data_engine/sim2real_envs/tree_full
+
+# MT-RL data: multi-turn tasks from subtrees 2-3
+python data_engine/generate_mt_rl_data.py \
+  --env_dir data_engine/sim2real_envs/tree_full \
+  --output_dir data_engine/sim2real_envs/tree_full
+
+# Test splits: ID/OOD Edge/Path
+python eval/generate_eval_splits.py \
+  --env_dir data_engine/sim2real_envs/tree_full \
+  --output_dir data_engine/sim2real_envs/tree_full
+```
+
+### 6.6 Output Structure
+
+After steps 3-4, the output directory contains a complete, self-contained GE-Lab environment:
+
+```
+data_engine/sim2real_envs/tree_full/
+├── pages/                       231 PNG files (252x448, real mobile UI pages)
+├── ui_structure.json            Flat page definitions with transitions and bboxes
+├── ui_structure_layer.json      Hierarchical tree (5 subtrees x 46 pages)
+├── sft_aligned.json             30,898 SFT samples
+├── st_rl_path_only.json         24,878 ST-RL path samples
+├── mt_rl_aligned.json           2,200 MT-RL tasks
+├── test_id_edge.json            ID edge test split
+├── test_id_path.json            ID path test split
+├── test_ood_edge.json           OOD edge test split
+├── test_ood_path.json           OOD path test split
+└── .detection_cache/            Cached YOLO+OCR results (reused across runs)
+    ├── detection_cache.json     Per-screenshot element metadata
+    └── crops/                   Extracted element crops (~6,000 PNGs)
+```
+
+This environment is fully compatible with the training scripts (`gui_scripts/sft_448.sh`, etc.) and evaluation (`eval/evaluate.py`). Point them at this directory instead of `datas/` to train on the sim2real environment.
+
+### 6.7 How It Works (Technical Details)
+
+**Per-page rendering pipeline:**
+
+1. **Detection (once, cached):** OmniParser's YOLOv8 detects UI elements (icons, buttons, logos) and EasyOCR detects text regions on each 720x1280 GUIOdyssey screenshot. Results are cached to `.detection_cache/` with cropped element images.
+
+2. **Tree topology:** A balanced tree is built with the specified depth and branching factors. Each node is assigned a screenshot from the detection pool. Screenshots with more detected elements are preferred for non-leaf nodes (which need navigation icons).
+
+3. **Element assignment:** ALL detected elements from the assigned screenshot are loaded for each page (avg ~25 per page). A subset are designated as navigation icons (wired to child pages via transitions); the rest are visual decoration that makes pages look realistic.
+
+4. **Proportional layout:** Each element's bounding box is scaled from the original screenshot resolution (720x1280) to the content canvas (252x416), preserving the spatial layout of the real app.
+
+5. **GPT background:** GPT-5-mini receives the original screenshot as a vision input and generates PIL code to draw background elements (toolbars, section cards, dividers, color fills). The prompt instructs it to draw ONLY the background, not the UI elements.
+
+6. **Crop paste:** All detected element crops are pasted on top of the GPT background at their scaled positions using alpha compositing.
+
+7. **Nav strip:** A 32px navigation strip with pink "back" and green "home" buttons is added at the top, matching the standard GE-Lab nav controls.
+
+### 6.8 Supplementary: Extract Icons and Label with GPT Vision
+
+These steps are **optional** — they are not required for the tree pipeline but produce useful artifacts.
+
+**Extract icons from screenshots** (`data_engine/sim2real.py`):
+```bash
 python data_engine/sim2real.py \
-  --screenshots_dir /ext_hdd2/nhkoh/GUI-Odyssey/screenshots \
-  --omniparser_weights /ext_hdd2/nhkoh/OmniParser/weights \
+  --screenshots_dir /path/to/GUI-Odyssey/screenshots \
+  --omniparser_weights /path/to/OmniParser/weights \
   --output_dir data_engine/real_icons \
   --skip_caption --gpu 0
-
-# Quick run (no dedup, no organize):
-python data_engine/sim2real.py --skip_caption --skip_dedup --skip_organize --gpu 0
 ```
+Output: `data_engine/real_icons/RealWorld/PNG/*.png` (1,509 unique icons)
 
-Pipeline stages:
-1. **YOLO detection** — OmniParser's YOLOv8 detects icon bounding boxes
-2. **EasyOCR** — Extracts text labels from detected regions
-3. **Merge** — Combines YOLO + OCR detections, resolves overlaps
-4. **Crop** — Extracts 50x50 icon PNGs from screenshots
-5. **Deduplicate** — Perceptual hashing removes near-duplicates (hamming distance <= 5)
-6. **Organize** — Places icons in `RealWorld/PNG/` directory (tree.py compatible)
-
-Output: `data_engine/real_icons/RealWorld/PNG/*.png` (1,509 unique icons from 230 screenshots)
-
-### 6.4 Use Real Icons in GE-Lab
-
-The extracted icons are compatible with `tree.py`'s icon loading (`*/PNG/*.png` glob pattern). To generate a GE-Lab environment with real-world icons:
-
+**Label icons with GPT vision** (`data_engine/sim2real_label_icons.py`):
 ```bash
-python data_engine/tree.py --seed 42 --icon_dir data_engine/real_icons
+export OPENAI_API_KEY="sk-..."
+python data_engine/sim2real_label_icons.py --batch_size 25
 ```
+Creates 5x5 montage grids, sends to GPT-5-mini vision for identification. Resume-safe (saves after each batch). Output: `data_engine/real_icons/icon_labels.json` (e.g., `"icon_00020_unknown.png": "facebook"`).
 
-The current synthetic icon pool has 259 icons (Animals + Business). The real-world pool has 1,509 icons extracted from mobile apps (Chrome, Instagram, Amazon, YouTube, etc.), providing significantly more visual diversity.
-
-### 6.5 Compose: Detection-Guided Page Composition
-
-**Script**: `data_engine/sim2real_compose.py`
-
-Takes a GUIOdyssey trajectory and produces a complete GE-Lab environment where each page preserves the actual UI elements from the original screenshots. Uses a three-phase composition approach: GPT-5-mini generates background styling on a blank canvas, real cropped icons are pasted at their detected positions, and GE-Lab navigation buttons are added in a dedicated strip.
-
+**Compose single trajectory** (`data_engine/sim2real_compose.py`):
 ```bash
-pip install openai  # Required for GPT-5-mini API
-
 export OPENAI_API_KEY="sk-..."
 python data_engine/sim2real_compose.py \
   --trajectory_id 0492550243730272 \
   --output_dir data_engine/sim2real_envs/trajectory_001 \
   --gpu 0
 ```
-
-**Three-phase composition per screenshot:**
-1. **Detect + Crop** — YOLO icon detection + EasyOCR text detection on the 720x1280 screenshot, then extract each element as an RGBA crop
-2. **GPT Styling** — GPT-5-mini generates PIL code for background/structure only (colors, status bar, headers, section cards, dividers) on a blank canvas at the original resolution. The prompt explicitly lists all detected elements so GPT does not redraw them.
-3. **Deterministic Paste** — Auto-generated code pastes the real YOLO-detected crops at their exact scaled positions on top of the GPT-styled background. No LLM involved in positioning.
-4. **Nav Strip** — Page content is resized into a 252x416 area and placed below a 32px navigation strip containing GE-Lab-style pink "back" (top-left) and green "home" (top-right) buttons with rounded corners.
-5. **Structure** — Builds `ui_structure.json` + `ui_structure_layer.json` from the trajectory annotations (transitions, actions, page chain)
-
-The final output canvas is 252x448 (9:16 phone ratio matching GUIOdyssey's 720x1280).
-
-**Output:**
-```
-data_engine/sim2real_envs/<name>/
-├── pages/                    252x448 PNG files (one per trajectory step)
-├── ui_structure.json         GE-Lab compatible structure with transitions
-└── ui_structure_layer.json   Hierarchical structure
-```
-
-**Key arguments:**
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--trajectory_id` | (required) | GUIOdyssey episode ID |
-| `--output_dir` | `sim2real_envs/trajectory_001` | Output directory |
-| `--model_name` | `gpt-5-mini-2025-08-07` | OpenAI model for styling code generation |
-| `--weights_dir` | `/ext_hdd2/nhkoh/OmniParser/weights` | OmniParser YOLO weights |
-| `--gpu` | `0` | GPU for YOLO detection |
-| `--save_crops` | (flag) | Save labeled crops and annotated screenshots for inspection |
-
-### 6.6 Tree: Full GE-Lab Environment from GUIOdyssey Screenshots
-
-**Script**: `data_engine/sim2real_tree.py`
-
-Generates a complete 231-page GE-Lab tree environment (matching the paper's topology) where every page is composed from real GUIOdyssey screenshots. Each page preserves all detected UI elements at their proportional positions, producing visually dense pages that look like real mobile apps.
-
-**How it works:**
-1. **YOLO+OCR detection** on all GUIOdyssey screenshots (cached for reuse)
-2. **Tree topology** built with paper-matching structure (depth 7, branching [5,3,2,2,1,1], 5 subtrees)
-3. **Screenshot assignment** — each tree node gets a real screenshot; all detected elements (~25 avg) are loaded
-4. **Nav icon selection** — N elements per page become clickable navigation targets (wired to child pages), the rest are visual decoration
-5. **Proportional layout** — elements are positioned by scaling their original screenshot coordinates to the 252x448 canvas
-6. **GPT background** — GPT-5-mini generates background styling (colors, toolbars, dividers) using the screenshot as visual reference
-7. **Nav strip** — GE-Lab back/home buttons added in a 32px top strip
-
-```bash
-pip install openai ultralytics easyocr
-
-export OPENAI_API_KEY="sk-..."
-
-# Full paper-scale tree (231 pages, ~20-40 min)
-python data_engine/sim2real_tree.py \
-  --screenshots_dir /ext_hdd2/nhkoh/GUI-Odyssey/screenshots \
-  --output_dir data_engine/sim2real_envs/tree_full \
-  --tree_depth 7 --nodes_per_level 5 3 2 2 1 1 \
-  --seed 42
-
-# Small test tree (3 pages, ~1 min)
-python data_engine/sim2real_tree.py \
-  --screenshots_dir /ext_hdd2/nhkoh/GUI-Odyssey/screenshots \
-  --output_dir data_engine/sim2real_envs/tree_test \
-  --tree_depth 2 --nodes_per_level 2 \
-  --seed 42
-```
-
-**Generate training data from the sim2real environment:**
-
-```bash
-# SFT data (path + edge + grounding + captioning)
-python data_engine/generate_sft_data.py \
-  --env_dir data_engine/sim2real_envs/tree_full \
-  --output_dir data_engine/sim2real_envs/tree_full
-
-# ST-RL data (path-only, subtrees 2-3)
-python data_engine/generate_st_rl_data.py \
-  --env_dir data_engine/sim2real_envs/tree_full \
-  --output_dir data_engine/sim2real_envs/tree_full
-
-# MT-RL data (multi-turn tasks, subtrees 2-3)
-python data_engine/generate_mt_rl_data.py \
-  --env_dir data_engine/sim2real_envs/tree_full \
-  --output_dir data_engine/sim2real_envs/tree_full
-```
-
-**Output:**
-```
-data_engine/sim2real_envs/tree_full/
-├── pages/                       231 PNG files (252x448)
-├── ui_structure.json            GE-Lab compatible structure
-├── ui_structure_layer.json      Hierarchical tree (5 subtrees x 46 pages)
-├── .detection_cache/            Cached YOLO+OCR results (reused across runs)
-│   ├── detection_cache.json     Per-screenshot element metadata
-│   └── crops/                   Extracted element crops
-├── sft_aligned.json             30,898 SFT samples
-├── st_rl_path_only.json         ST-RL training data
-└── mt_rl_aligned.json           MT-RL training data
-```
-
-**Key arguments:**
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--screenshots_dir` | (none) | GUIOdyssey screenshots directory (enables grounded mode) |
-| `--output_dir` | `sim2real_envs/tree_001` | Output directory |
-| `--tree_depth` | `4` | Tree depth (paper: 7) |
-| `--nodes_per_level` | `3 2 1` | Branching factor per level (paper: `5 3 2 2 1 1`) |
-| `--model_name` | `gpt-5-mini-2025-08-07` | OpenAI model for background generation |
-| `--gpu` | `0` | GPU for YOLO detection |
-| `--seed` | `42` | Random seed for reproducibility |
-| `--icon_dir` | `data_engine/real_icons` | Icon pool directory (icon-pool mode fallback) |
-
-**Note:** The detection cache (`.detection_cache/`) is stored inside the output directory. To speed up reruns with a different tree topology, copy it from a previous run:
-```bash
-mkdir -p new_output/.detection_cache
-cp -r old_output/.detection_cache/* new_output/.detection_cache/
-```
-
-### 6.7 Label Icons with GPT Vision
-
-**Script**: `data_engine/sim2real_label_icons.py`
-
-Labels the 1,509 extracted icons using GPT-5-mini vision. Creates 5x5 montage grids, sends them to GPT for identification, and saves labels to `icon_labels.json`. Resume-safe (saves after each batch).
-
-```bash
-export OPENAI_API_KEY="sk-..."
-
-# Label all icons (~10 min, resume-safe)
-python data_engine/sim2real_label_icons.py --batch_size 25
-
-# Re-label all icons from scratch
-python data_engine/sim2real_label_icons.py --batch_size 25 --overwrite
-```
-
-Output: `data_engine/real_icons/icon_labels.json` — maps filename to label (e.g., `"icon_00020_unknown.png": "facebook"`).
+Produces a linear (non-tree) GE-Lab environment from a single GUIOdyssey trajectory, useful for debugging and visualization.
 
 ---
 
