@@ -30,6 +30,11 @@ This document describes the **identical-state detection and unified graph** beha
 3. **Attach additional icons/actions**  
    When the same state is revisited, we do **not** create a new node. We add the newly observed layout entries (if any new names) and the new spine transition to the existing page’s `layout` and `transitions`. One representative image per merged node is kept.
 
+**Implementation details (for reviewers)**
+
+- **Layout union**: In the merge branch, `_build_spine_with_merge` copies layout elements from the merged-away family into the existing page’s `layout` (names not already present; same name with different bbox keeps the first-seen). The newly appended transition’s action name is also ensured to exist in the page’s `layout` so that transitions and layout stay consistent.
+- **source_steps**: Created when a new page is added (`source_steps: [family_idx]`). On merge, we append the current `family_idx` to the existing page’s `source_steps` (see `existing_page.setdefault("source_steps", [])` and `src_list.append(family_idx)` in `tree.py`). The saved `ui_structure.json` includes `source_steps` per page.
+
 **Limitation**
 
 - Fingerprinting is **exact-match layout** (name + bbox). It may miss semantically identical states under small spatial or naming differences.
@@ -44,3 +49,11 @@ This document describes the **identical-state detection and unified graph** beha
 - `page_0` has two spine transitions: `launcher_button` → `page_1` and `content_region` → `page_6`, and `source_steps: [0, 5]`.
 
 Run `scripts/run_real_complex.py` to reproduce. See `tests/data_engine/test_tree_unified_graph.py` for unit and integration tests.
+
+---
+
+## Fixes applied (review feedback)
+
+- **page_counter collision**: After merge, branch page IDs now use `max(existing page indices) + 1` instead of `len(pages)`, so the first branch page no longer overwrites an existing spine page (e.g. `page_17` in an 18-step trajectory).
+- **canvas_size key**: Trajectory metadata now sets both `output_canvas_size` and `canvas_size`; `env_utils.py` reads `canvas_size` for bbox normalization.
+- **Layout vs transition consistency**: Saved page `layout` uses the mutated layout (after `_choose_click_target`) so transition action names (e.g. `launcher_button`, `input_field`) exist in the page’s `layout`. On merge, the newly appended transition’s action name is added to the existing page’s `layout` if missing.

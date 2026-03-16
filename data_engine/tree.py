@@ -1407,6 +1407,35 @@ def _build_spine_with_merge(
         if fp in fp2page:
             existing_id = fp2page[fp]
             effective_spine_id.append(existing_id)
+            existing_page = pages[existing_id]
+
+            # Merge additional layout elements from this family into the existing page.
+            # If a name already exists with the same bbox, skip; if bbox differs, keep the existing one
+            # (we treat the first-seen layout as canonical for that name).
+            existing_layout = existing_page.get("layout", {})
+            typed_new_layout = _typed_layout(layout)
+            for name, obj in typed_new_layout.items():
+                if name in SYSTEM_LAYOUT_KEYS:
+                    continue
+                new_bbox = obj.get("bbox")
+                if name in existing_layout:
+                    old_bbox = existing_layout[name].get("bbox")
+                    if isinstance(old_bbox, list) and isinstance(new_bbox, list) and old_bbox == new_bbox:
+                        continue
+                    # Different bbox for same name: keep the original mapping and ignore the new one for now.
+                    continue
+                existing_layout[name] = obj
+
+            # Track all source step indices that map to this unified state.
+            src_list = existing_page.setdefault("source_steps", [])
+            if not src_list:
+                # Seed with the original source_step_index if present.
+                base_idx = existing_page.get("source_step_index")
+                if base_idx is not None:
+                    src_list.append(base_idx)
+            if family_idx not in src_list:
+                src_list.append(family_idx)
+
             prev_id = effective_spine_id[family_idx - 1]
             for t in pages[prev_id]["transitions"]:
                 if t["target_page"] == page_id:
@@ -1421,16 +1450,23 @@ def _build_spine_with_merge(
                     "transition_role": "spine",
                 })
                 tree_children.setdefault(existing_id, []).append(next_page_id)
+            # Ensure the new transition's action name exists in layout (transitions reference mutated layout).
+            if family.get("canonical_action_name") and family["canonical_action_name"] not in existing_layout:
+                existing_layout[family["canonical_action_name"]] = {
+                    "bbox": list(family.get("canonical_action_bbox") or []),
+                }
             continue
 
         effective_spine_id.append(page_id)
         fp2page[fp] = page_id
+        # Use mutated layout (family["layout"]) so transition action names exist in saved layout.
         page_record = {
             "image": f"{page_id}.png",
             "depth": family_idx,
-            "layout": _typed_layout(layout),
+            "layout": _typed_layout(family["layout"]),
             "transitions": [],
             "source_step_index": family_idx,
+            "source_steps": [family_idx],
             "page_family_id": family.get("page_family_id", f"family_{family_idx:03d}"),
             "is_canonical": True,
             "branch_parent_page": None,
@@ -1946,7 +1982,8 @@ def generate_trajectory_family_environment(args, output_dir: str) -> dict:
             page_path = os.path.join(pages_dir, f"{page_id}.png")
             family["canonical_image"].save(page_path)
     branch_pages = []
-    page_counter = len(pages)
+    # Use max existing page index + 1 to avoid colliding with spine page IDs after merge.
+    page_counter = (max(int(p.split("_")[1]) for p in pages) + 1) if pages else 0
     max_branches = max(0, int(getattr(args, "branches_per_step", 2)))
     for family_idx, family in enumerate(families[:-1]):
         canonical_page_id = family["page_id"]
@@ -2003,6 +2040,7 @@ def generate_trajectory_family_environment(args, output_dir: str) -> dict:
         "page_family_count": len(families),
         "total_pages": len(pages),
         "output_canvas_size": list(families[0]["canvas_size"]),
+        "canvas_size": list(families[0]["canvas_size"]),  # env_utils expects this for bbox normalization
         "branch_pages_per_step": max_branches,
         "visual_mode": "crop_reconstructed_native",
         "canonical_render_mode": "extracted_crops",
