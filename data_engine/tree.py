@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import os
 import json
 import time
-from megfile import smart_glob, smart_open, smart_path_join
 from io import BytesIO
 from PIL import ImageFont
 import glob
@@ -35,6 +34,38 @@ class UIPage:
         self.elements = elements
         self.layout = layout
         self.parent = parent
+
+
+# --------------------------
+# Item 1: Unified graph — state fingerprint for identical-state detection
+# --------------------------
+SYSTEM_LAYOUT_KEYS = frozenset({"back", "home", "page_title"})
+
+
+def state_fingerprint_page(page: UIPage) -> str:
+    """Canonical fingerprint for a UIPage (synthetic). Same layout => same state.
+    Ignores back, home, page_title so that only content icons define the state."""
+    parts = []
+    for name, bbox in sorted(page.layout.items()):
+        if name in SYSTEM_LAYOUT_KEYS:
+            continue
+        bbox_tuple = tuple(bbox) if hasattr(bbox, "__iter__") else bbox
+        parts.append((name, bbox_tuple))
+    return json.dumps(parts, sort_keys=True)
+
+
+def state_fingerprint_layout(layout: Dict[str, List[int]]) -> str:
+    """Canonical fingerprint for a serialized layout dict (trajectory / JSON).
+    Same layout => same state. Use for deduplicating nodes when building the graph."""
+    parts = []
+    for name, bbox in sorted(layout.items()):
+        if name in SYSTEM_LAYOUT_KEYS:
+            continue
+        if isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
+            parts.append((name, tuple(int(x) for x in bbox[:4])))
+        else:
+            parts.append((name, tuple(bbox) if hasattr(bbox, "__iter__") else (0, 0, 0, 0)))
+    return json.dumps(parts, sort_keys=True)
 
 
 def fit_image_to_canvas(image: Image.Image, size: Tuple[int, int]) -> Image.Image:
@@ -1352,6 +1383,76 @@ def _typed_layout(layout: Dict[str, List[int]]) -> Dict[str, dict]:
     }
 
 
+def _build_spine_with_merge(
+    families: List[dict],
+    spine_page_ids: List[str],
+) -> Tuple[Dict[str, dict], Dict[str, List[str]], List[str]]:
+    """
+    Build spine pages and edges with identical-state merge.
+    Families must have: page_id, layout, canonical_action_name, canonical_action_bbox (set for non-last).
+    Returns (pages, tree_children, effective_spine_id). No I/O.
+    """
+    tree_children: Dict[str, List[str]] = {}
+    pages: Dict[str, dict] = {}
+    fp2page: Dict[str, str] = {}
+    effective_spine_id: List[str] = []
+
+    for family_idx, family in enumerate(families):
+        page_id = family["page_id"]
+        next_page_id = spine_page_ids[family_idx + 1] if family_idx + 1 < len(spine_page_ids) else None
+        # Use pre-mutation layout for fingerprint so merge is by content, not by _choose_click_target additions
+        layout = family.get("_original_layout", family["layout"])
+        fp = state_fingerprint_layout(layout)
+
+        if fp in fp2page:
+            existing_id = fp2page[fp]
+            effective_spine_id.append(existing_id)
+            prev_id = effective_spine_id[family_idx - 1]
+            for t in pages[prev_id]["transitions"]:
+                if t["target_page"] == page_id:
+                    t["target_page"] = existing_id
+                    break
+            tree_children[prev_id] = [existing_id if c == page_id else c for c in tree_children[prev_id]]
+            if next_page_id is not None:
+                pages[existing_id]["transitions"].append({
+                    "action": family["canonical_action_name"],
+                    "target_page": next_page_id,
+                    "icon_bbox": family["canonical_action_bbox"],
+                    "transition_role": "spine",
+                })
+                tree_children.setdefault(existing_id, []).append(next_page_id)
+            continue
+
+        effective_spine_id.append(page_id)
+        fp2page[fp] = page_id
+        page_record = {
+            "image": f"{page_id}.png",
+            "depth": family_idx,
+            "layout": _typed_layout(layout),
+            "transitions": [],
+            "source_step_index": family_idx,
+            "page_family_id": family.get("page_family_id", f"family_{family_idx:03d}"),
+            "is_canonical": True,
+            "branch_parent_page": None,
+            "branch_parent_action": None,
+            "merge_target_page": next_page_id,
+        }
+        if next_page_id is not None:
+            page_record["transitions"].append({
+                "action": family["canonical_action_name"],
+                "target_page": next_page_id,
+                "icon_bbox": family["canonical_action_bbox"],
+                "transition_role": "spine",
+            })
+            tree_children[page_id] = [next_page_id]
+        else:
+            tree_children[page_id] = []
+        pages[page_id] = page_record
+
+    tree_children = {k: v for k, v in tree_children.items() if k in pages}
+    return pages, tree_children, effective_spine_id
+
+
 def _dedupe_name(name: str, counts: Dict[str, int]) -> str:
     suffix = counts.get(name, 0)
     counts[name] = suffix + 1
@@ -1439,6 +1540,12 @@ def _choose_click_target(family: dict) -> Tuple[str, List[int]]:
         info_text,
     ]).lower()
     canvas_size = tuple(family["canvas_size"])
+    if "scaled_elements" not in family and "layout" in family:
+        layout = family["layout"]
+        family["scaled_elements"] = [
+            {"action_name": name, "scaled_bbox": bbox if isinstance(bbox, (list, tuple)) else bbox.get("bbox", [0, 0, 10, 10])}
+            for name, bbox in layout.items()
+        ]
 
     if "KEY_HOME" in info_text or "home screen" in instruction:
         return _add_metadata_action(family, "launcher_button", _metadata_action_bbox("launcher_button", canvas_size))
@@ -1675,8 +1782,19 @@ def _visualize_serialized_graph(pages: Dict[str, dict], output_path: str):
 
 
 def _build_gt_layer_tree(root_id: str, pages: Dict[str, dict], tree_children: Dict[str, List[str]]) -> dict:
-    def build_node(page_id: str) -> dict:
+    def build_node(page_id: str, visited: Optional[set] = None) -> dict:
+        if visited is None:
+            visited = set()
+        if page_id in visited:
+            return None
+        visited.add(page_id)
         page = pages[page_id]
+        subnodes = []
+        for child_id in tree_children.get(page_id, []):
+            if child_id not in visited:
+                child_node = build_node(child_id, visited)
+                if child_node is not None:
+                    subnodes.append(child_node)
         return {
             "image": page["image"],
             "depth": page["depth"],
@@ -1687,23 +1805,32 @@ def _build_gt_layer_tree(root_id: str, pages: Dict[str, dict], tree_children: Di
             "is_canonical": page.get("is_canonical", False),
             "branch_parent_page": page.get("branch_parent_page"),
             "merge_target_page": page.get("merge_target_page"),
-            "subnodes": [build_node(child_id) for child_id in tree_children.get(page_id, [])],
+            "subnodes": subnodes,
         }
 
     return build_node(root_id)
 
 
-def generate_trajectory_family_environment(args, output_dir: str) -> dict:
-    from sim2real_compose import (
-        OUTPUT_CANVAS_SIZE,
-        _build_step_context,
-        _persist_extracted_assets,
-        _save_asset_manifest,
-        detect_and_crop,
-        load_detection_models,
-        render_reconstructed_native_page,
-    )
+def _save_trajectory_asset_manifest(output_dir: str, pages_detection_data: List[dict]) -> None:
+    """Save manifest of extracted assets (used when trajectory uses detection or cache)."""
+    manifest = []
+    for page in pages_detection_data:
+        for elem in page.get("elements", []):
+            manifest.append({
+                "page_id": page.get("page_id"),
+                "screenshot": page.get("screenshot_name"),
+                "step_index": page.get("step", {}).get("step_index"),
+                "type": elem.get("type"),
+                "label": elem.get("label"),
+                "bbox": elem.get("bbox"),
+                "asset_path": elem.get("asset_path"),
+                "asset_source": elem.get("asset_source"),
+            })
+    with open(os.path.join(output_dir, "trajectory_assets_manifest.json"), "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
 
+
+def generate_trajectory_family_environment(args, output_dir: str) -> dict:
     trajectory = _load_trajectory_annotation(args.trajectory_id, args.annotations_dir)
     steps = trajectory.get("steps", [])
     if not steps:
@@ -1716,7 +1843,7 @@ def generate_trajectory_family_environment(args, output_dir: str) -> dict:
     os.makedirs(assets_dir, exist_ok=True)
     os.makedirs(family_cache_dir, exist_ok=True)
 
-    yolo_model, ocr_reader = load_detection_models(args.omniparser_weights, 0)
+    yolo_model, ocr_reader = None, None
 
     families = []
     pages_detection_data = []
@@ -1743,10 +1870,13 @@ def generate_trajectory_family_environment(args, output_dir: str) -> dict:
                 })
                 continue
 
-        step_context = _build_step_context(trajectory, step_idx)
-        elements, orig_size = detect_and_crop(screenshot_path, yolo_model, ocr_reader)
-        asset_elements = _persist_extracted_assets(elements, screenshot_name, assets_dir, step_context)
-        canonical_image, layout, scaled_elements = render_reconstructed_native_page(
+        if yolo_model is None:
+            import sim2real_compose as _sim2real
+            yolo_model, ocr_reader = _sim2real.load_detection_models(args.omniparser_weights, 0)
+        step_context = _sim2real._build_step_context(trajectory, step_idx)
+        elements, orig_size = _sim2real.detect_and_crop(screenshot_path, yolo_model, ocr_reader)
+        asset_elements = _sim2real._persist_extracted_assets(elements, screenshot_name, assets_dir, step_context)
+        canonical_image, layout, scaled_elements = _sim2real.render_reconstructed_native_page(
             screenshot_path,
             asset_elements,
             orig_size,
@@ -1758,7 +1888,7 @@ def generate_trajectory_family_environment(args, output_dir: str) -> dict:
             "screenshot_name": screenshot_name,
             "screenshot_path": screenshot_path,
             "orig_size": list(orig_size),
-            "canvas_size": list(OUTPUT_CANVAS_SIZE),
+            "canvas_size": list(_sim2real.OUTPUT_CANVAS_SIZE),
             "step": step_context,
             "elements": asset_elements,
             "scaled_elements": scaled_elements,
@@ -1780,15 +1910,26 @@ def generate_trajectory_family_environment(args, output_dir: str) -> dict:
             "elements": asset_elements,
         })
 
-    _save_asset_manifest(output_dir, pages_detection_data)
+    _save_trajectory_asset_manifest(output_dir, pages_detection_data)
+
+    for family in families:
+        if "scaled_elements" not in family and "layout" in family:
+            layout = family["layout"]
+            family["scaled_elements"] = [
+                {
+                    "action_name": name,
+                    "scaled_bbox": list(bbox) if isinstance(bbox, (list, tuple)) else list(bbox.get("bbox", [0, 0, 10, 10])),
+                }
+                for name, bbox in layout.items()
+            ]
+
+    # Snapshot layout before _choose_click_target mutates it (e.g. _add_metadata_action); merge uses this.
+    for family in families:
+        layout = family.get("layout", {})
+        family["_original_layout"] = {k: list(v) if isinstance(v, (list, tuple)) else v for k, v in layout.items()}
 
     spine_page_ids = [family["page_id"] for family in families]
-    tree_children: Dict[str, List[str]] = {page_id: [] for page_id in spine_page_ids}
-    pages: Dict[str, dict] = {}
-    branch_pages = []
-
     for family_idx, family in enumerate(families):
-        page_id = family["page_id"]
         next_page_id = spine_page_ids[family_idx + 1] if family_idx + 1 < len(spine_page_ids) else None
         if next_page_id is not None:
             action_name, action_bbox = _choose_click_target(family)
@@ -1798,35 +1939,20 @@ def generate_trajectory_family_environment(args, output_dir: str) -> dict:
             family["canonical_action_name"] = None
             family["canonical_action_bbox"] = None
 
-        page_path = os.path.join(pages_dir, f"{page_id}.png")
-        family["canonical_image"].save(page_path)
-        page_record = {
-            "image": f"{page_id}.png",
-            "depth": family_idx,
-            "layout": _typed_layout(family["layout"]),
-            "transitions": [],
-            "source_step_index": family_idx,
-            "page_family_id": family["page_family_id"],
-            "is_canonical": True,
-            "branch_parent_page": None,
-            "branch_parent_action": None,
-            "merge_target_page": next_page_id,
-        }
-        if next_page_id is not None:
-            page_record["transitions"].append({
-                "action": family["canonical_action_name"],
-                "target_page": next_page_id,
-                "icon_bbox": family["canonical_action_bbox"],
-                "transition_role": "spine",
-            })
-            tree_children[page_id].append(next_page_id)
-        pages[page_id] = page_record
-
-    page_counter = len(families)
+    pages, tree_children, effective_spine_id = _build_spine_with_merge(families, spine_page_ids)
+    for family in families:
+        page_id = family["page_id"]
+        if page_id in pages:
+            page_path = os.path.join(pages_dir, f"{page_id}.png")
+            family["canonical_image"].save(page_path)
+    branch_pages = []
+    page_counter = len(pages)
     max_branches = max(0, int(getattr(args, "branches_per_step", 2)))
     for family_idx, family in enumerate(families[:-1]):
         canonical_page_id = family["page_id"]
-        merge_target_page = spine_page_ids[family_idx + 1]
+        if canonical_page_id not in pages:
+            continue
+        merge_target_page = effective_spine_id[family_idx + 1]
         branch_actions = _select_branch_actions(family, max_branches)
         if not branch_actions:
             continue
@@ -1871,6 +1997,7 @@ def generate_trajectory_family_environment(args, output_dir: str) -> dict:
         "topology_type": "gt_spine_branches",
         "root_page_id": spine_page_ids[0],
         "spine_page_ids": spine_page_ids,
+        "effective_spine_page_ids": effective_spine_id,
         "canonical_page_count": len(spine_page_ids),
         "branch_page_count": len(branch_pages),
         "page_family_count": len(families),
@@ -1914,13 +2041,13 @@ if __name__ == "__main__":
                         choices=["live", "metadata"],
                         help="When using trajectory icons, extract directly from the selected GUIOdyssey trajectory or reuse a prebuilt metadata file")
     parser.add_argument("--omniparser_weights", type=str,
-                        default="/ext_hdd2/nhkoh/OmniParser/weights",
+                        default="/ext_hdd/nhkoh/OmniParser/weights",
                         help="OmniParser weights directory used for live trajectory icon extraction")
     parser.add_argument("--annotations_dir", type=str,
-                        default="/ext_hdd2/nhkoh/GUI-Odyssey/annotations",
+                        default="/ext_hdd/nhkoh/dataset/GUIOdyssey/annotations",
                         help="GUIOdyssey annotations directory used when --icon_source trajectory")
     parser.add_argument("--screenshots_dir", type=str,
-                        default="/ext_hdd2/nhkoh/GUI-Odyssey/screenshots",
+                        default="/ext_hdd/nhkoh/dataset/GUIOdyssey/screenshots",
                         help="GUIOdyssey screenshots directory used when --icon_source trajectory")
     parser.add_argument("--output_dir", type=str, default=None,
                         help="Optional output directory. Defaults to a timestamped directory under ui_environment_448/")

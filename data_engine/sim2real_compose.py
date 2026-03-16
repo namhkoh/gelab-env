@@ -11,7 +11,7 @@ Pipeline:
   Stage 4 (Structure): Build ui_structure.json + transition graph
 
 Prerequisites:
-    - OmniParser weights at /ext_hdd2/nhkoh/OmniParser/weights/
+    - OmniParser weights at /ext_hdd/nhkoh/OmniParser/weights/
     - GUIOdyssey annotations + screenshots downloaded
     - OPENAI_API_KEY environment variable set
 
@@ -72,7 +72,7 @@ _yolo_model = None
 _ocr_reader = None
 
 
-def load_detection_models(weights_dir: str = "/ext_hdd2/nhkoh/OmniParser/weights",
+def load_detection_models(weights_dir: str = "/ext_hdd/nhkoh/OmniParser/weights",
                           gpu: int = 0):
     """Load YOLO icon detector and EasyOCR reader."""
     global _yolo_model, _ocr_reader
@@ -1963,16 +1963,16 @@ def parse_args():
     parser.add_argument("--trajectory_id", type=str, required=True,
                         help="GUIOdyssey episode ID to process")
     parser.add_argument("--screenshots_dir", type=str,
-                        default="/ext_hdd2/nhkoh/GUI-Odyssey/screenshots",
+                        default="/ext_hdd/nhkoh/dataset/GUIOdyssey/screenshots",
                         help="Directory with GUIOdyssey screenshots")
     parser.add_argument("--annotations_dir", type=str,
-                        default="/ext_hdd2/nhkoh/GUI-Odyssey/annotations",
+                        default="/ext_hdd/nhkoh/dataset/GUIOdyssey/annotations",
                         help="Directory with GUIOdyssey annotation JSONs")
     parser.add_argument("--output_dir", type=str,
                         default="data_engine/sim2real_envs/trajectory_001",
                         help="Output directory for the generated environment")
     parser.add_argument("--weights_dir", type=str,
-                        default="/ext_hdd2/nhkoh/OmniParser/weights",
+                        default="/ext_hdd/nhkoh/OmniParser/weights",
                         help="OmniParser weights directory")
     parser.add_argument("--model_name", type=str,
                         default="gpt-5-mini-2025-08-07",

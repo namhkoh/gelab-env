@@ -101,6 +101,19 @@ Real GUI environments (desktop software, mobile apps, web apps) are complex and 
 - Rule-based rewards to train LVLM-powered agents.
 - Supports studies on generalization, exploration, and error recovery.
 
+### Unified graph & real GUI trajectories
+
+- **Identical-state unified graph (Item 1)**  
+  - Pages that represent the **same screen state** (same set of non-system elements and bboxes) are **merged into a single node**.  
+  - When a state is revisited, we **do not create a new page node**; instead we attach any **additional actions/icons** to the existing node (union of `layout` / `transitions`), and record all contributing steps via `source_steps`.  
+  - This yields a more compact, realistic navigation graph where redundant states are shared across trajectories.
+
+- **Real GUIOdyssey trajectories (trajectory mode)**  
+  - `data_engine/tree.py` can build GT-spine-with-branches environments directly from **GUIOdyssey** annotations.  
+  - Helper scripts under `scripts/` (e.g., `run_trajectory_real_guiodyssey.py`, `run_real_one_shot.py`, `run_real_complex.py`) demonstrate:  
+    - running trajectory mode with **real annotations + placeholder screenshots** (no OmniParser), and  
+    - verifying identical-state merge behavior on real multi-step tasks.
+
 ## Get Started
 
 This project has two main parts:
