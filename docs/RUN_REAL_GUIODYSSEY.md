@@ -57,3 +57,24 @@ python3 scripts/run_trajectory_real_guiodyssey.py --episode_id 2493102722960871
     - Extract the HF screenshot zips on the server, or
     - Use `--use_placeholder_screenshots` / `run_real_one_shot.py` to first validate the pipeline with “real annotations + placeholder images”.
 - To use **actual pixels**, prepare a screenshots directory and configure the OmniParser weights path.
+
+---
+
+## Data paths on the shared server
+
+Code defaults use `/ext_hdd2/nhkoh/...`; on the shared server only `/ext_hdd` is mounted.
+
+| Purpose | Verified path |
+|--------|----------------|
+| nhkoh home | `/ext_hdd/nhkoh` |
+| GUIOdyssey data | `/ext_hdd/nhkoh/dataset/GUIOdyssey/` |
+| Screenshots | `/ext_hdd/nhkoh/dataset/GUIOdyssey/screenshots/` (split archives; extract for PNGs) |
+| OmniParser weights | Under `/ext_hdd/nhkoh` (confirm path) |
+
+Example for trajectory mode:
+
+```bash
+--screenshots_dir /ext_hdd/nhkoh/dataset/GUIOdyssey/screenshots
+--annotations_dir /ext_hdd/nhkoh/dataset/GUIOdyssey/annotations
+--omniparser_weights /ext_hdd/nhkoh/OmniParser/weights
+```
