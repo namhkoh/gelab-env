@@ -189,6 +189,169 @@ def detect_and_crop(screenshot_path: str, yolo_model, ocr_reader,
     return elements, (w, h)
 
 
+def _clip_bbox_to_image(bbox: List[int], image_size: Tuple[int, int]) -> Optional[List[int]]:
+    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return None
+    width, height = image_size
+    try:
+        x1, y1, x2, y2 = [int(round(float(v))) for v in bbox]
+    except Exception:
+        return None
+    x1, x2 = sorted((x1, x2))
+    y1, y2 = sorted((y1, y2))
+    x1 = min(max(0, x1), width)
+    y1 = min(max(0, y1), height)
+    x2 = min(max(0, x2), width)
+    y2 = min(max(0, y2), height)
+    if x2 - x1 < 5 or y2 - y1 < 5:
+        return None
+    return [x1, y1, x2, y2]
+
+
+def _annotation_label(entry: dict, fallback: str) -> str:
+    candidates = list(entry.get("xml_desc") or [])
+    functionality = str(entry.get("functionality", "") or "").strip()
+    if functionality:
+        candidates.append(functionality)
+    for candidate in candidates:
+        cleaned = " ".join(str(candidate or "").strip().split())
+        if cleaned:
+            return cleaned[:80]
+    return fallback
+
+
+def _is_generic_element_label(label: str) -> bool:
+    normalized = re.sub(r"[^0-9a-z]+", " ", str(label or "").lower()).strip()
+    return (
+        not normalized
+        or normalized == "unknown"
+        or normalized.startswith("icon ")
+        or normalized.startswith("clickable ")
+        or normalized.startswith("element ")
+    )
+
+
+def _load_clickable_elements_from_element_anno(screenshot_path: str,
+                                               screenshot_name: str,
+                                               element_anno_dir: str) -> List[dict]:
+    if not element_anno_dir:
+        return []
+    anno_path = os.path.join(element_anno_dir, f"{Path(screenshot_name).stem}.json")
+    if not os.path.exists(anno_path):
+        return []
+
+    try:
+        with open(anno_path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+    except Exception:
+        return []
+
+    with Image.open(screenshot_path) as img_handle:
+        image = img_handle.convert("RGB")
+
+    clickable_elements = []
+    for idx, entry in enumerate(payload.get("clickable_elements") or []):
+        bbox = _clip_bbox_to_image(entry.get("bbox") or [], image.size)
+        if bbox is None:
+            continue
+        label = _annotation_label(entry, f"clickable_{idx:02d}")
+        clickable_elements.append({
+            "index": idx,
+            "label": label,
+            "bbox": bbox,
+            "crop": image.crop(tuple(bbox)),
+            "type": "clickable",
+            "conf": 1.0,
+            "bbox_source": "element_anno",
+            "element_anno_path": anno_path,
+        })
+    return clickable_elements
+
+
+def _prioritize_element_anno_bboxes(detected_elements: List[dict],
+                                    screenshot_path: str,
+                                    screenshot_name: str,
+                                    element_anno_dir: str) -> Tuple[List[dict], dict]:
+    clickable_elements = _load_clickable_elements_from_element_anno(
+        screenshot_path,
+        screenshot_name,
+        element_anno_dir,
+    )
+    if not clickable_elements:
+        return detected_elements, {"loaded": 0, "matched": 0, "added": 0}
+
+    with Image.open(screenshot_path) as img_handle:
+        image = img_handle.convert("RGB")
+
+    used_clickables = set()
+    merged_elements = []
+    matched = 0
+
+    for elem in detected_elements:
+        elem_bbox = elem.get("bbox") or [0, 0, 0, 0]
+        best_idx = None
+        best_iou = -1.0
+        best_distance = float("inf")
+        elem_w = max(1, int(elem_bbox[2]) - int(elem_bbox[0])) if len(elem_bbox) == 4 else 1
+        elem_h = max(1, int(elem_bbox[3]) - int(elem_bbox[1])) if len(elem_bbox) == 4 else 1
+        max_dim = max(elem_w, elem_h)
+
+        for idx, clickable in enumerate(clickable_elements):
+            clickable_bbox = clickable["bbox"]
+            iou = _bbox_iou(elem_bbox, clickable_bbox)
+            distance = _bbox_center_distance(elem_bbox, clickable_bbox)
+            close_enough = iou >= 0.08 or distance <= max(48.0, max_dim * 0.75)
+            if not close_enough:
+                continue
+            if iou > best_iou or (abs(iou - best_iou) < 1e-8 and distance < best_distance):
+                best_idx = idx
+                best_iou = iou
+                best_distance = distance
+
+        updated = dict(elem)
+        if best_idx is not None:
+            clickable = clickable_elements[best_idx]
+            clickable_bbox = clickable["bbox"]
+            updated["bbox"] = list(clickable_bbox)
+            updated["crop"] = image.crop(tuple(clickable_bbox))
+            if _is_generic_element_label(updated.get("label", "")):
+                updated["label"] = clickable.get("label", updated.get("label", ""))
+            updated["bbox_source"] = "element_anno"
+            updated["element_anno_path"] = clickable.get("element_anno_path", "")
+            used_clickables.add(best_idx)
+            matched += 1
+        else:
+            updated.setdefault("bbox_source", "detector")
+        merged_elements.append(updated)
+
+    added = 0
+    for idx, clickable in enumerate(clickable_elements):
+        if idx in used_clickables:
+            continue
+        clickable_bbox = clickable["bbox"]
+        duplicate = False
+        for elem in merged_elements:
+            existing_bbox = elem.get("bbox") or [0, 0, 0, 0]
+            if _bbox_iou(clickable_bbox, existing_bbox) >= 0.55:
+                duplicate = True
+                break
+        if duplicate:
+            continue
+        extra = dict(clickable)
+        extra["index"] = len(merged_elements)
+        merged_elements.append(extra)
+        added += 1
+
+    for new_idx, elem in enumerate(merged_elements):
+        elem["index"] = new_idx
+
+    return merged_elements, {
+        "loaded": len(clickable_elements),
+        "matched": matched,
+        "added": added,
+    }
+
+
 def format_element_list(elements: List[dict], orig_size: Tuple[int, int]) -> str:
     """Format detected elements as text for the GPT prompt."""
     w, h = orig_size
@@ -2413,6 +2576,18 @@ def _process_trajectory(trajectory: dict,
         print(f"  [{i + 1}/{len(steps)}] {screenshot_name}", end="", flush=True)
         elements, orig_size = detect_and_crop(screenshot_path, yolo_model, ocr_reader)
         print(f" ({len(elements)} detected)", end="", flush=True)
+        elements, anno_stats = _prioritize_element_anno_bboxes(
+            elements,
+            screenshot_path,
+            screenshot_name,
+            getattr(args, "element_anno_dir", ""),
+        )
+        if anno_stats.get("loaded", 0):
+            print(
+                f" [anno clickable:{anno_stats['loaded']} matched:{anno_stats['matched']} added:{anno_stats['added']}]",
+                end="",
+                flush=True,
+            )
 
         if args.save_crops:
             _save_labeled_crops(
@@ -2638,6 +2813,9 @@ def parse_args():
     parser.add_argument("--annotations_dir", type=str,
                         default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno",
                         help="Directory with AMEX instruction annotation JSONs")
+    parser.add_argument("--element_anno_dir", type=str,
+                        default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/element_anno",
+                        help="Directory with per-screenshot element annotation JSONs")
     parser.add_argument("--output_dir", type=str,
                         default="data_engine/sim2real_envs/amex_sft",
                         help="Output root directory for generated trajectory environments")

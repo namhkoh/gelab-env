@@ -59,6 +59,7 @@ MARGIN = 10
 DEFAULT_STATE_MATCH_THRESHOLD = 0.82
 DEFAULT_LAYOUT_MATCH_IOU = 0.72
 DEFAULT_LLM_PAGE_MATCH_TOP_K = 3
+DEFAULT_ELEMENT_ANNO_DIR = "/ext_hdd2/tsyou/AMEX_dataset/AMEX/element_anno"
 
 ACTION_KIND_MAP = {
     "TAP": "TAP",
@@ -191,6 +192,206 @@ def detect_and_crop(screenshot_path: str, yolo_model, ocr_reader,
     return elements, (w, h)
 
 
+def _clip_bbox_to_image(bbox: List[int], image_size: Tuple[int, int]) -> Optional[List[int]]:
+    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return None
+    width, height = image_size
+    try:
+        x1, y1, x2, y2 = [int(round(float(v))) for v in bbox]
+    except Exception:
+        return None
+    x1, x2 = sorted((x1, x2))
+    y1, y2 = sorted((y1, y2))
+    x1 = min(max(0, x1), width)
+    y1 = min(max(0, y1), height)
+    x2 = min(max(0, x2), width)
+    y2 = min(max(0, y2), height)
+    if x2 - x1 < 5 or y2 - y1 < 5:
+        return None
+    return [x1, y1, x2, y2]
+
+
+def _annotation_label(entry: dict, fallback: str) -> str:
+    candidates = list(entry.get("xml_desc") or [])
+    functionality = str(entry.get("functionality", "") or "").strip()
+    if functionality:
+        candidates.append(functionality)
+    for candidate in candidates:
+        cleaned = " ".join(str(candidate or "").strip().split())
+        if cleaned:
+            return cleaned[:80]
+    return fallback
+
+
+def _is_generic_element_label(label: str) -> bool:
+    normalized = re.sub(r"[^0-9a-z]+", " ", str(label or "").lower()).strip()
+    return (
+        not normalized
+        or normalized == "unknown"
+        or normalized.startswith("icon ")
+        or normalized.startswith("clickable ")
+        or normalized.startswith("element ")
+    )
+
+
+def _source_image_key(screenshot_name: str) -> str:
+    return Path(str(screenshot_name or "")).stem.lower()
+
+
+def _load_clickable_elements_from_element_anno(screenshot_path: str,
+                                               screenshot_name: str,
+                                               element_anno_dir: str) -> List[dict]:
+    if not element_anno_dir:
+        return []
+    anno_path = os.path.join(element_anno_dir, f"{Path(screenshot_name).stem}.json")
+    if not os.path.exists(anno_path):
+        return []
+
+    try:
+        with open(anno_path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+    except Exception:
+        return []
+
+    with Image.open(screenshot_path) as img_handle:
+        image = img_handle.convert("RGB")
+
+    clickable_elements = []
+    for idx, entry in enumerate(payload.get("clickable_elements") or []):
+        bbox = _clip_bbox_to_image(entry.get("bbox") or [], image.size)
+        if bbox is None:
+            continue
+        label = _annotation_label(entry, f"clickable_{idx:02d}")
+        clickable_elements.append({
+            "index": idx,
+            "label": label,
+            "bbox": bbox,
+            "crop": image.crop(tuple(bbox)),
+            "type": "clickable",
+            "conf": 1.0,
+            "bbox_source": "element_anno",
+            "element_anno_path": anno_path,
+        })
+    return clickable_elements
+
+
+def _compute_image_file_hash(image_path: str) -> str:
+    if not image_path or not os.path.exists(image_path):
+        return ""
+    try:
+        with Image.open(image_path) as img_handle:
+            return _average_hash(img_handle.convert("RGB"))
+    except Exception:
+        return ""
+
+
+def _prioritize_element_anno_bboxes(detected_elements: List[dict],
+                                    screenshot_path: str,
+                                    screenshot_name: str,
+                                    element_anno_dir: str) -> Tuple[List[dict], dict]:
+    clickable_elements = _load_clickable_elements_from_element_anno(
+        screenshot_path,
+        screenshot_name,
+        element_anno_dir,
+    )
+    if not clickable_elements:
+        return detected_elements, {"loaded": 0, "matched": 0, "added": 0, "relocated": 0}
+
+    with Image.open(screenshot_path) as img_handle:
+        image = img_handle.convert("RGB")
+
+    used_clickables = set()
+    merged_elements = []
+    matched = 0
+    relocated = 0
+
+    for elem in detected_elements:
+        elem_bbox = elem.get("bbox") or [0, 0, 0, 0]
+        best_idx = None
+        best_iou = -1.0
+        best_distance = float("inf")
+        elem_w = max(1, int(elem_bbox[2]) - int(elem_bbox[0])) if len(elem_bbox) == 4 else 1
+        elem_h = max(1, int(elem_bbox[3]) - int(elem_bbox[1])) if len(elem_bbox) == 4 else 1
+        max_dim = max(elem_w, elem_h)
+
+        for idx, clickable in enumerate(clickable_elements):
+            clickable_bbox = clickable["bbox"]
+            iou = _bbox_iou(elem_bbox, clickable_bbox)
+            distance = _bbox_center_distance(elem_bbox, clickable_bbox)
+            close_enough = iou >= 0.08 or distance <= max(48.0, max_dim * 0.75)
+            if not close_enough:
+                continue
+            if iou > best_iou or (abs(iou - best_iou) < 1e-8 and distance < best_distance):
+                best_idx = idx
+                best_iou = iou
+                best_distance = distance
+
+        updated = dict(elem)
+        if best_idx is not None:
+            clickable = clickable_elements[best_idx]
+            clickable_bbox = clickable["bbox"]
+            updated["bbox"] = list(clickable_bbox)
+            updated["crop"] = image.crop(tuple(clickable_bbox))
+            if _is_generic_element_label(updated.get("label", "")):
+                updated["label"] = clickable.get("label", updated.get("label", ""))
+            updated["bbox_source"] = "element_anno"
+            updated["element_anno_path"] = clickable.get("element_anno_path", "")
+            used_clickables.add(best_idx)
+            matched += 1
+        else:
+            updated.setdefault("bbox_source", "detector")
+        merged_elements.append(updated)
+
+    added = 0
+    occupied_bboxes = [
+        [int(v) for v in elem.get("bbox", [0, 0, 0, 0])]
+        for elem in merged_elements
+        if isinstance(elem.get("bbox"), (list, tuple)) and len(elem.get("bbox")) == 4
+    ]
+    for idx, clickable in enumerate(clickable_elements):
+        if idx in used_clickables:
+            continue
+        clickable_bbox = [int(v) for v in clickable["bbox"]]
+        duplicate = False
+        for elem in merged_elements:
+            existing_bbox = elem.get("bbox") or [0, 0, 0, 0]
+            if _bbox_iou(clickable_bbox, existing_bbox) >= 0.55:
+                duplicate = True
+                break
+        if duplicate:
+            continue
+
+        placed_bbox = clickable_bbox
+        if any(_bboxes_overlap(clickable_bbox, box, padding=8) for box in occupied_bboxes):
+            placed_bbox = _find_non_overlapping_bbox(
+                clickable_bbox,
+                occupied_bboxes,
+                image.size,
+                padding=10,
+            )
+
+        extra = dict(clickable)
+        extra["index"] = len(merged_elements)
+        extra["bbox"] = [int(v) for v in placed_bbox]
+        if placed_bbox != clickable_bbox:
+            extra["bbox_source"] = "element_anno_relocated"
+            extra["relocated_from_bbox"] = clickable_bbox
+            relocated += 1
+        merged_elements.append(extra)
+        occupied_bboxes.append(extra["bbox"])
+        added += 1
+
+    for new_idx, elem in enumerate(merged_elements):
+        elem["index"] = new_idx
+
+    return merged_elements, {
+        "loaded": len(clickable_elements),
+        "matched": matched,
+        "added": added,
+        "relocated": relocated,
+    }
+
+
 def format_element_list(elements: List[dict], orig_size: Tuple[int, int]) -> str:
     """Format detected elements as text for the GPT prompt."""
     w, h = orig_size
@@ -239,9 +440,10 @@ def _quantize_bbox(bbox: List[int], canvas_size: Tuple[int, int]) -> Tuple[int, 
 
 
 def _layout_signature(layout: dict,
-                      canvas_size: Tuple[int, int] = OUTPUT_CANVAS_SIZE,
+                      canvas_size: Optional[Tuple[int, int]] = None,
                       include_system: bool = False) -> List[Tuple[str, Tuple[int, int, int, int]]]:
     """Serialize a layout into a coarse, order-invariant signature for state matching."""
+    canvas_size = canvas_size or OUTPUT_CANVAS_SIZE
     signature = []
     for key, bbox in layout.items():
         if not include_system and key in ("back", "home"):
@@ -313,10 +515,11 @@ def _token_similarity(tokens_a: List[str], tokens_b: List[str]) -> float:
 
 
 def _page_layout_summary(layout: dict,
-                         canvas_size: Tuple[int, int] = OUTPUT_CANVAS_SIZE,
+                         canvas_size: Optional[Tuple[int, int]] = None,
                          primary_app: str = "",
                          llm_semantics: Optional[dict] = None) -> dict:
     """Extract coarse page semantics used for page-family merging and reporting."""
+    canvas_size = canvas_size or OUTPUT_CANVAS_SIZE
     _, canvas_h = canvas_size
     title_candidates = []
     nav_candidates = []
@@ -859,10 +1062,32 @@ GELAB_BACK_BBOX = [4, 4, 4 + NAV_BTN_W, 4 + NAV_BTN_H]
 GELAB_HOME_BBOX = [OUTPUT_W - 4 - NAV_BTN_W, 4, OUTPUT_W - 4, 4 + NAV_BTN_H]
 
 
+def _configure_canvas_geometry(output_width: int, output_height: int):
+    """Update all derived canvas globals so the pipeline is not locked to 448x448."""
+    global OUTPUT_CANVAS_SIZE, OUTPUT_W, OUTPUT_H
+    global PHONE_CANVAS_H, PHONE_CANVAS_W, CANVAS_SIZE, CANVAS_W, CANVAS_H
+    global PHONE_OFFSET_X, PHONE_OFFSET_Y, GELAB_BACK_BBOX, GELAB_HOME_BBOX
+
+    output_width = max(int(output_width), NAV_BTN_W * 2 + 24)
+    output_height = max(int(output_height), NAV_STRIP_H + 80)
+
+    OUTPUT_CANVAS_SIZE = (output_width, output_height)
+    OUTPUT_W, OUTPUT_H = OUTPUT_CANVAS_SIZE
+    PHONE_CANVAS_H = max(OUTPUT_H - NAV_STRIP_H, 1)
+    PHONE_CANVAS_W = OUTPUT_W
+    CANVAS_SIZE = (PHONE_CANVAS_W, PHONE_CANVAS_H)
+    CANVAS_W, CANVAS_H = CANVAS_SIZE
+    PHONE_OFFSET_X = 0
+    PHONE_OFFSET_Y = NAV_STRIP_H
+    GELAB_BACK_BBOX = [4, 4, 4 + NAV_BTN_W, 4 + NAV_BTN_H]
+    GELAB_HOME_BBOX = [OUTPUT_W - 4 - NAV_BTN_W, 4, OUTPUT_W - 4, 4 + NAV_BTN_H]
+
+
 def _build_position_layout_entries(elements: List[dict],
                                    orig_size: Tuple[int, int],
-                                   target_size: Tuple[int, int] = CANVAS_SIZE) -> List[dict]:
+                                   target_size: Optional[Tuple[int, int]] = None) -> List[dict]:
     """Create deterministic, unique element layout entries for one rendered page."""
+    target_size = target_size or CANVAS_SIZE
     counts: Dict[str, int] = {}
     entries: List[dict] = []
 
@@ -900,8 +1125,9 @@ def _build_position_layout_entries(elements: List[dict],
 
 def _sync_rendered_elements_with_layout(rendered_elements: List[dict],
                                         layout: dict,
-                                        canvas_size: Tuple[int, int] = OUTPUT_CANVAS_SIZE) -> List[dict]:
+                                        canvas_size: Optional[Tuple[int, int]] = None) -> List[dict]:
     """Update tracked rendered elements so their boxes match the latest layout dict."""
+    canvas_size = canvas_size or OUTPUT_CANVAS_SIZE
     synced = []
     seen = set()
     for elem in rendered_elements:
@@ -2749,9 +2975,11 @@ def _merge_layouts_into_canonical(canonical_layout: dict,
                                   incoming_layout: dict,
                                   counts: Dict[str, int],
                                   match_iou_threshold: float,
-                                  canvas_size: Tuple[int, int] = CANVAS_SIZE,
-                                  prefer_position: bool = False) -> Tuple[dict, Dict[str, str], List[dict]]:
+                                  canvas_size: Optional[Tuple[int, int]] = None,
+                                  prefer_position: bool = False,
+                                  allow_new_keys: bool = True) -> Tuple[dict, Dict[str, str], List[dict]]:
     """Merge another AMEX page layout into a canonical state and return key remapping."""
+    canvas_size = canvas_size or CANVAS_SIZE
     merged_layout = dict(canonical_layout)
     key_mapping = {}
     relocation_notes = []
@@ -2792,6 +3020,26 @@ def _merge_layouts_into_canonical(canonical_layout: dict,
             key_mapping[incoming_key] = best_key
             continue
 
+        if not allow_new_keys:
+            fallback_ok = False
+            if best_key is not None:
+                best_bbox = merged_layout.get(best_key, [0, 0, 0, 0])
+                fallback_ok = (
+                    best_score >= max(0.34, match_iou_threshold * 0.55)
+                    or _bbox_iou(incoming_bbox, best_bbox) >= 0.12
+                    or _bbox_center_distance(incoming_bbox, best_bbox) <= 28.0
+                )
+            if best_key is not None and fallback_ok:
+                key_mapping[incoming_key] = best_key
+            relocation_notes.append({
+                "incoming_key": incoming_key,
+                "canonical_key": key_mapping.get(incoming_key, ""),
+                "from_bbox": [int(v) for v in incoming_bbox],
+                "to_bbox": [int(v) for v in merged_layout.get(key_mapping[incoming_key], incoming_bbox)] if incoming_key in key_mapping else [int(v) for v in incoming_bbox],
+                "reason": "same_source_image_skip_new_key",
+            })
+            continue
+
         # Otherwise keep the new element so merged states accumulate all valid actions.
         new_key = _unique_layout_name(incoming_key, "merged", len(merged_layout), counts)
         occupied = [
@@ -2820,7 +3068,8 @@ def _is_root_trace_page(page: dict) -> bool:
 
 def _merge_rendered_elements_into_canonical(canonical_page: dict,
                                             incoming_page: dict,
-                                            key_mapping: Dict[str, str]) -> List[dict]:
+                                            key_mapping: Dict[str, str],
+                                            allow_new_keys: bool = True) -> List[dict]:
     """Merge tracked rendered element assets so canonical images can reflect union pages."""
     canonical_elements = []
     by_name = {}
@@ -2862,6 +3111,8 @@ def _merge_rendered_elements_into_canonical(canonical_page: dict,
         if target_name in by_name:
             by_name[target_name]["bbox"] = [int(v) for v in target_bbox]
             continue
+        if not allow_new_keys:
+            continue
 
         placed_bbox = [int(v) for v in target_bbox]
         if root_union and _has_valid_bbox(placed_bbox):
@@ -2887,6 +3138,25 @@ def _merge_rendered_elements_into_canonical(canonical_page: dict,
     return canonical_elements
 
 
+def _page_source_matches_candidate(page: dict, candidate: dict) -> bool:
+    profile = page.get("state_profile", {})
+    source_key = str(profile.get("source_image_key", "") or "").strip().lower()
+    source_hash = str(profile.get("source_image_hash", "") or "").strip()
+    candidate_keys = {
+        str(key or "").strip().lower()
+        for key in candidate.get("source_image_keys", [])
+        if key
+    }
+    candidate_hashes = {
+        str(hash_value or "").strip()
+        for hash_value in candidate.get("source_image_hashes", [])
+        if hash_value
+    }
+    if source_key and source_key in candidate_keys:
+        return True
+    return bool(source_hash and source_hash in candidate_hashes)
+
+
 def _page_state_profile(page: dict) -> dict:
     page_img = page.get("image")
     llm_semantics = page.get("llm_semantics") or {}
@@ -2907,6 +3177,8 @@ def _page_state_profile(page: dict) -> dict:
         ]),
         "visual_hash": _average_hash(page_img) if isinstance(page_img, Image.Image) else "",
         "layout_summary": layout_summary,
+        "source_image_key": _source_image_key(page.get("screenshot_name", "")),
+        "source_image_hash": str(page.get("source_image_hash", "") or ""),
     }
 
 
@@ -2936,6 +3208,7 @@ def _find_matching_state(page: dict,
                     "mode": "root_union",
                     "reason": "trajectory_page_0_union",
                     "geometry": _layout_position_similarity(page.get("layout", {}), candidate.get("layout", {})),
+                    "same_source_image": _page_source_matches_candidate(page, candidate),
                 }
                 candidate.setdefault("merge_candidates", []).append({
                     "page_id": page.get("page_id"),
@@ -2944,6 +3217,35 @@ def _find_matching_state(page: dict,
                 })
                 return candidate
         return None
+
+    same_source_match = None
+    same_source_geometry = None
+    same_source_score = -1.0
+    for candidate in canonical_pages:
+        if candidate.get("is_root_union", False):
+            continue
+        if not _page_source_matches_candidate(page, candidate):
+            continue
+        geometry = _layout_position_similarity(page.get("layout", {}), candidate.get("layout", {}))
+        score = geometry["mean_score"] + geometry["matched_ratio"]
+        if score > same_source_score:
+            same_source_match = candidate
+            same_source_geometry = geometry
+            same_source_score = score
+
+    if same_source_match is not None:
+        page["_merge_strategy"] = {
+            "mode": "same_source_image",
+            "reason": "identical_source_screenshot",
+            "geometry": same_source_geometry or {},
+            "same_source_image": True,
+        }
+        same_source_match.setdefault("merge_candidates", []).append({
+            "page_id": page.get("page_id"),
+            "confidence": 1.0,
+            "pair_verified": False,
+        })
+        return same_source_match
 
     best_match = None
     best_geometry = None
@@ -3013,6 +3315,14 @@ def _deduplicate_pages(pages_data: List[dict],
             page["aliases"] = [page["page_id"]]
             page["trace_steps"] = [page.get("step", {}).get("step_index")]
             page["trajectory_ids"] = [page.get("trajectory_id", "")]
+            page["source_image_keys"] = []
+            source_image_key = page["state_profile"].get("source_image_key", "")
+            if source_image_key:
+                page["source_image_keys"].append(source_image_key)
+            page["source_image_hashes"] = []
+            source_image_hash = page["state_profile"].get("source_image_hash", "")
+            if source_image_hash:
+                page["source_image_hashes"].append(source_image_hash)
             base_image_source = page.get("base_image")
             if not isinstance(base_image_source, Image.Image):
                 base_image_source = page.get("image")
@@ -3038,6 +3348,7 @@ def _deduplicate_pages(pages_data: List[dict],
         # Later duplicate states only contribute extra layout/actions into the canonical node.
         merge_strategy = page.get("_merge_strategy", {})
         prefer_position = merge_strategy.get("mode") == "position_match"
+        same_source_image = bool(merge_strategy.get("same_source_image")) or _page_source_matches_candidate(page, matched)
         merge_threshold = layout_match_iou if prefer_position else min(layout_match_iou, 0.58)
         canvas_size = tuple(getattr(matched.get("image"), "size", CANVAS_SIZE))
         merged_layout, key_mapping, relocation_notes = _merge_layouts_into_canonical(
@@ -3047,9 +3358,15 @@ def _deduplicate_pages(pages_data: List[dict],
             merge_threshold,
             canvas_size=canvas_size,
             prefer_position=prefer_position,
+            allow_new_keys=not same_source_image,
         )
         matched["layout"] = merged_layout
-        matched["rendered_elements"] = _merge_rendered_elements_into_canonical(matched, page, key_mapping)
+        matched["rendered_elements"] = _merge_rendered_elements_into_canonical(
+            matched,
+            page,
+            key_mapping,
+            allow_new_keys=not same_source_image,
+        )
         matched["rendered_elements"] = _sync_rendered_elements_with_layout(
             matched.get("rendered_elements", []),
             matched.get("layout", {}),
@@ -3073,6 +3390,12 @@ def _deduplicate_pages(pages_data: List[dict],
         matched["trace_steps"].append(page.get("step", {}).get("step_index"))
         if page.get("trajectory_id") and page.get("trajectory_id") not in matched["trajectory_ids"]:
             matched["trajectory_ids"].append(page.get("trajectory_id"))
+        source_image_key = page["state_profile"].get("source_image_key", "")
+        if source_image_key and source_image_key not in matched.get("source_image_keys", []):
+            matched.setdefault("source_image_keys", []).append(source_image_key)
+        source_image_hash = page["state_profile"].get("source_image_hash", "")
+        if source_image_hash and source_image_hash not in matched.get("source_image_hashes", []):
+            matched.setdefault("source_image_hashes", []).append(source_image_hash)
         matched["trace_action_mappings"][page["page_id"]] = key_mapping
         similarity = _page_similarity_details(page, matched)
         geometry = _layout_position_similarity(page.get("layout", {}), matched.get("layout", {}))
@@ -3088,6 +3411,7 @@ def _deduplicate_pages(pages_data: List[dict],
             "logical_name_score": round(similarity["logical_name_score"], 4),
             "position_match": geometry,
             "reason": merge_strategy.get("reason", "merged and expanded canonical node"),
+            "same_source_image": same_source_image,
             "relocated_elements": relocation_notes,
         })
         page_id_map[page["page_id"]] = matched["page_id"]
@@ -3892,7 +4216,8 @@ def _scale_action_point_to_canvas(step: dict,
 
 
 def _normalize_bbox_to_canvas(bbox: List[int],
-                              canvas_size: Tuple[int, int] = OUTPUT_CANVAS_SIZE) -> List[int]:
+                              canvas_size: Optional[Tuple[int, int]] = None) -> List[int]:
+    canvas_size = canvas_size or OUTPUT_CANVAS_SIZE
     if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
         return [0, 0, 0, 0]
     width = max(canvas_size[0], 1)
@@ -3906,7 +4231,8 @@ def _normalize_bbox_to_canvas(bbox: List[int],
 
 
 def _normalize_point_to_canvas(point: List[int],
-                               canvas_size: Tuple[int, int] = OUTPUT_CANVAS_SIZE) -> List[int]:
+                               canvas_size: Optional[Tuple[int, int]] = None) -> List[int]:
+    canvas_size = canvas_size or OUTPUT_CANVAS_SIZE
     if not isinstance(point, (list, tuple)) or len(point) != 2:
         return [0, 0]
     width = max(canvas_size[0], 1)
@@ -4731,7 +5057,7 @@ def _save_page_code(code_dir: str, page_id: str, screenshot_name: str,
         f"# styling_source: {code_artifact.get('styling_source', '')}",
         f"# render_status: {code_artifact.get('render_status', '')}",
         "# This code targets the original screenshot resolution.",
-        "# The final runtime image is then wrapped into the 448x448 GE-Lab canvas with a top nav strip.",
+        f"# The final runtime image is then wrapped into the {OUTPUT_W}x{OUTPUT_H} GE-Lab canvas with a top nav strip.",
     ]
 
     contents = "\n".join(header_lines) + "\n\n"
@@ -4794,10 +5120,13 @@ def _collect_annotation_jobs(args) -> List[Tuple[str, str]]:
 # ---------------------------------------------------------------------------
 
 def run_pipeline(args):
+    _configure_canvas_geometry(args.output_width, args.output_height)
+
     # Initialize OpenAI client for GPT styling
     client = load_api_client()
     model_name = args.model_name
     print(f"Model: {model_name}")
+    print(f"Canvas: {OUTPUT_W}x{OUTPUT_H} (phone {CANVAS_W}x{CANVAS_H} + nav {NAV_STRIP_H}px)")
 
     # Load detection models (YOLO + OCR)
     yolo_model, ocr_reader = load_detection_models(args.weights_dir, args.gpu)
@@ -4854,6 +5183,19 @@ def run_pipeline(args):
             print(f"  [{i+1}/{len(steps)}] {screenshot_name}", end="", flush=True)
             elements, orig_size = detect_and_crop(screenshot_path, yolo_model, ocr_reader)
             print(f" ({len(elements)} detected)", end="", flush=True)
+            elements, anno_stats = _prioritize_element_anno_bboxes(
+                elements,
+                screenshot_path,
+                screenshot_name,
+                getattr(args, "element_anno_dir", ""),
+            )
+            if anno_stats.get("loaded", 0):
+                print(
+                    f" [anno clickable:{anno_stats['loaded']} matched:{anno_stats['matched']} added:{anno_stats['added']} relocated:{anno_stats['relocated']}]",
+                    end="",
+                    flush=True,
+                )
+            source_image_hash = _compute_image_file_hash(screenshot_path)
 
             if args.save_crops:
                 _save_labeled_crops(elements, orig_size, screenshot_path,
@@ -4875,6 +5217,7 @@ def run_pipeline(args):
                 "trajectory_local_page_index": i,
                 "screenshot_name": screenshot_name,
                 "screenshot_path": screenshot_path,
+                "source_image_hash": source_image_hash,
                 "orig_size": list(orig_size),
                 "step": step_context,
                 "elements": asset_elements,
@@ -4926,6 +5269,7 @@ def run_pipeline(args):
             "next_trace_page_id": page.get("next_trace_page_id", page_id),
             "screenshot_name": screenshot_name,
             "screenshot_path": screenshot_path,
+            "source_image_hash": page.get("source_image_hash", ""),
             "elements": elements,
             "rendered_elements": rendered_elements,
             "base_image": base_image,
@@ -5079,6 +5423,9 @@ def parse_args():
     parser.add_argument("--weights_dir", type=str,
                         default="/ext_hdd2/nhkoh/OmniParser/weights",
                         help="OmniParser weights directory")
+    parser.add_argument("--element_anno_dir", type=str,
+                        default=DEFAULT_ELEMENT_ANNO_DIR,
+                        help="Directory with AMEX element annotation JSONs")
     parser.add_argument("--model_name", type=str,
                         default="gpt-5-mini-2025-08-07",
                         help="OpenAI model for styling code generation")
@@ -5102,6 +5449,10 @@ def parse_args():
                         help="Minimum state similarity for page deduplication")
     parser.add_argument("--layout_match_iou", type=float, default=DEFAULT_LAYOUT_MATCH_IOU,
                         help="Minimum layout-element similarity when merging duplicate states")
+    parser.add_argument("--output_width", type=int, default=OUTPUT_W,
+                        help="Final rendered canvas width")
+    parser.add_argument("--output_height", type=int, default=OUTPUT_H,
+                        help="Final rendered canvas height")
     parser.add_argument("--disable_llm_page_semantics", action="store_true",
                         help="Disable per-page GPT semantic labeling for page_family/application/logical_page_name")
     parser.add_argument("--disable_llm_pair_matching", action="store_true",
