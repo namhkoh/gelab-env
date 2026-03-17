@@ -670,6 +670,16 @@ python data_engine/sim2real_compose.py \
 ```
 Produces a linear (non-tree) GE-Lab environment from a single GUIOdyssey trajectory, useful for debugging and visualization.
 
+**Compose single AMEX trajectory** (`data_engine/amex_sim2real_compose.py`):
+```bash
+export OPENAI_API_KEY="sk-..."
+python data_engine/amex_sim2real_compose_action_coord.py \
+  --trajectory_id 2024_3_18_17_19_e8ba0101cbc74242b48af70a57dafdf5 \
+  --output_dir data_engine/sim2real_envs/trajectory_001 \
+  --gpu 0
+```
+Produces a GE-Lab screenshots with scaled action coordinates from AMEX trajectory datasets.
+
 ---
 
 ## 7. Environment Setup

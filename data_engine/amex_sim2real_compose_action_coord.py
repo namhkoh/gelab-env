@@ -1,25 +1,39 @@
 """
 Sim2Real Compose Pipeline (Stages 3-4): Detection-guided page composition.
 
-Takes GUIOdyssey trajectories, detects UI elements with OmniParser (YOLO+OCR),
+Takes AMEX trajectories, detects UI elements with OmniParser (YOLO+OCR),
 and uses GPT-5-mini to compose GE-Lab pages (252x448 phone ratio) from the actual cropped elements.
 
 Pipeline:
   Stage 1 (Detect): YOLO + OCR detect UI elements on each screenshot
   Stage 2 (Crop): Crop actual icons/text from the screenshot
   Stage 3 (Compose): GPT-5-mini arranges cropped elements on canvas (252x448 phone ratio)
-  Stage 4 (Structure): Build ui_structure.json + transition graph
+  Stage 4 (Structure): Build ui_structure.json + ui_structure_layer.json with AMEX action coordinates
 
 Prerequisites:
     - OmniParser weights at /ext_hdd2/nhkoh/OmniParser/weights/
-    - GUIOdyssey annotations + screenshots downloaded
+    - AMEX annotations + screenshots downloaded
     - OPENAI_API_KEY environment variable set
 
 Usage:
     export OPENAI_API_KEY="sk-..."
     python data_engine/sim2real_compose.py \
-        --trajectory_id 0055763512444649 \
-        --output_dir data_engine/sim2real_envs/shopping_001
+    --trajectory_id 2024_3_18_17_19_e8ba0101cbc74242b48af70a57dafdf5 \
+    --output_dir data_engine/sim2real_envs/trajectory_001 \
+    --gpu 0
+
+
+Outputs:
+    - `pages/`: rendered GE-Lab page PNGs
+    - `generated_code/`: saved GPT styling code + deterministic paste code per page
+    - `extracted_assets/`: cropped UI assets extracted from each AMEX screenshot
+    - `trajectory_assets_manifest.json`: manifest for extracted assets
+    - `ui_structure.json`: minimal page structure with stored action and action_coord
+    - `ui_structure_layer.json`: layer/tree view of the same page graph
+    - `action_coord/`: overlay images for inspecting stored action points
+
+If `--trajectory_id` is omitted, one output subdirectory is created per AMEX episode.
+
 """
 
 import argparse
@@ -40,10 +54,14 @@ from ultralytics import YOLO
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+# The main change here are:
+# 1) AMEX annotation/screenshot loading and metadata handling.
+# 2) Action-coordinate preservation from raw AMEX touch/lift annotations.
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-OUTPUT_CANVAS_SIZE = (448, 448)  # GE-Lab-compatible square canvas
+OUTPUT_CANVAS_SIZE = (252, 448)  # Portrait canvas without side gutters
 OUTPUT_W, OUTPUT_H = OUTPUT_CANVAS_SIZE
 ICON_SIZE = 50
 NAV_BAR_HEIGHT = 45
@@ -252,7 +270,7 @@ def render_native_page(screenshot_path: str,
                        ) -> Tuple[Image.Image, dict, List[dict]]:
     """Fit the original screenshot into the output canvas and scale element bboxes with it.
 
-    This preserves the native GUIOdyssey visual appearance while still producing a
+    This preserves the native AMEX visual appearance while still producing a
     GE-Lab-compatible layout dict in output pixel coordinates.
     """
     with Image.open(screenshot_path) as img_handle:
@@ -293,7 +311,7 @@ def render_reconstructed_native_page(
 ) -> Tuple[Image.Image, dict, List[dict]]:
     """Rebuild a page from a screenshot-derived background plus extracted crops.
 
-    The background stays visually native to the original GUIOdyssey page, but the
+    The background stays visually native to the original AMEX page, but the
     interactive/text regions are reintroduced explicitly from the persisted crops.
     """
     with Image.open(screenshot_path) as img_handle:
@@ -384,10 +402,10 @@ NAV_BTN_W = 40
 NAV_BTN_H = 24
 NAV_STRIP_H = NAV_BTN_H + 8  # 4px padding top + bottom
 PHONE_CANVAS_H = OUTPUT_H - NAV_STRIP_H
-PHONE_CANVAS_W = min(OUTPUT_W, int(round(PHONE_CANVAS_H * 9 / 16)))
+PHONE_CANVAS_W = OUTPUT_W
 CANVAS_SIZE = (PHONE_CANVAS_W, PHONE_CANVAS_H)
 CANVAS_W, CANVAS_H = CANVAS_SIZE
-PHONE_OFFSET_X = (OUTPUT_W - CANVAS_W) // 2
+PHONE_OFFSET_X = 0
 PHONE_OFFSET_Y = NAV_STRIP_H
 GELAB_BACK_COLOR = (255, 200, 200)  # pink
 GELAB_HOME_COLOR = (200, 255, 200)  # green
@@ -429,7 +447,7 @@ RENDER_CODE_PROMPT = STYLING_CODE_PROMPT
 # Legacy JSON prompt (used as fallback)
 PAGE_ANALYSIS_PROMPT = """\
 You are a UI layout analyst. Given this mobile screenshot, describe the UI layout \
-as a JSON object for rendering on a 448x448 pixel canvas.
+as a JSON object for rendering on a 252x448 portrait canvas.
 
 Output ONLY valid JSON with this schema:
 {
@@ -636,36 +654,40 @@ def _fit_image_to_box(image: Image.Image,
                       target_size: Tuple[int, int],
                       bg_color: Tuple[int, int, int] = BG_WHITE
                       ) -> Tuple[Image.Image, float, int, int]:
-    """Resize an image into a target box without stretching it."""
-    fitted_w, fitted_h, scale, offset_x, offset_y = _fit_size(image.size, target_size)
-    resized = image.resize((fitted_w, fitted_h), Image.LANCZOS)
+    """Resize an image to fill the target canvas without side gutters."""
+    resized = image.resize(target_size, Image.LANCZOS)
     canvas = Image.new("RGB", target_size, bg_color)
-    canvas.paste(resized, (offset_x, offset_y))
-    return canvas, scale, offset_x, offset_y
+    canvas.paste(resized, (0, 0))
+    return canvas, 1.0, 0, 0
 
 
 def _scale_bbox_to_box(bbox: List[int],
                        src_size: Tuple[int, int],
                        target_size: Tuple[int, int],
                        base_offset: Tuple[int, int] = (0, 0)) -> List[int]:
-    """Scale a bbox with the same fit-to-box transform used for the page image."""
-    _, _, scale, offset_x, offset_y = _fit_size(src_size, target_size)
+    """Scale a bbox with the same full-canvas resize used for the page image."""
+    src_w = max(src_size[0], 1)
+    src_h = max(src_size[1], 1)
+    dst_w = max(target_size[0], 1)
+    dst_h = max(target_size[1], 1)
+    scale_x = float(dst_w) / float(src_w)
+    scale_y = float(dst_h) / float(src_h)
     base_x, base_y = base_offset
     return [
-        int(round(bbox[0] * scale)) + offset_x + base_x,
-        int(round(bbox[1] * scale)) + offset_y + base_y,
-        int(round(bbox[2] * scale)) + offset_x + base_x,
-        int(round(bbox[3] * scale)) + offset_y + base_y,
+        int(round(bbox[0] * scale_x)) + base_x,
+        int(round(bbox[1] * scale_y)) + base_y,
+        int(round(bbox[2] * scale_x)) + base_x,
+        int(round(bbox[3] * scale_y)) + base_y,
     ]
 
 
 def render_from_code(code_str: str, elements: List[dict],
                      orig_size: Tuple[int, int] = (720, 1280)
                      ) -> Tuple[Optional[Image.Image], Optional[dict]]:
-    """Execute GPT-generated PIL code at original resolution, then fit it to CANVAS_SIZE.
+    """Execute GPT-generated PIL code at original resolution, then resize it to CANVAS_SIZE.
 
     GPT composes at the original phone resolution (e.g., 720x1280) using the real
-    detected coordinates, then we fit it into the GE-Lab viewport without stretching it.
+    detected coordinates, then we resize it into the GE-Lab viewport without side gutters.
     """
     ow, oh = orig_size
     canvas = Image.new("RGB", (ow, oh), BG_WHITE)
@@ -959,7 +981,7 @@ def get_random_icon(icon_pool: Dict[str, Image.Image], used: set) -> Optional[Im
 
 
 # ---------------------------------------------------------------------------
-# Page Renderer: JSON spec -> 448x448 PIL image + layout dict
+# Page Renderer: JSON spec -> portrait PIL image + layout dict
 # ---------------------------------------------------------------------------
 
 def _try_load_font(size: int):
@@ -972,9 +994,60 @@ def _try_load_font(size: int):
     return ImageFont.load_default()
 
 
+def _ensure_system_layout(layout: Optional[dict]) -> dict:
+    """Ensure every composed page exposes GE-Lab back/home controls in layout."""
+    # Action-aware variant: force system controls into layout so PRESS_BACK /
+    # PRESS_HOME can resolve to concrete boxes even if the source screenshot
+    # did not contain explicit GE-Lab navigation widgets.
+    normalized_layout = {}
+    for key, bbox in (layout or {}).items():
+        if isinstance(bbox, (list, tuple)) and len(bbox) == 4:
+            normalized_layout[key] = [int(v) for v in bbox]
+    normalized_layout["back"] = list(GELAB_BACK_BBOX)
+    normalized_layout["home"] = list(GELAB_HOME_BBOX)
+    return normalized_layout
+
+
+def _draw_system_nav_overlay(image: Image.Image) -> Image.Image:
+    """Draw the fixed GE-Lab top navigation strip with back/home buttons."""
+    if image.mode != "RGB":
+        canvas = image.convert("RGB")
+    else:
+        canvas = image.copy()
+
+    if canvas.size != OUTPUT_CANVAS_SIZE:
+        fitted, _, paste_x, paste_y = _fit_image_to_box(canvas, OUTPUT_CANVAS_SIZE, BG_WHITE)
+        resized_canvas = Image.new("RGB", OUTPUT_CANVAS_SIZE, BG_WHITE)
+        resized_canvas.paste(fitted, (paste_x, paste_y))
+        canvas = resized_canvas
+
+    draw = ImageDraw.Draw(canvas)
+    font = _try_load_font(12)
+
+    draw.rectangle([0, 0, OUTPUT_W, NAV_STRIP_H], fill=(245, 245, 248))
+    draw.rounded_rectangle(GELAB_BACK_BBOX, radius=6, fill=GELAB_BACK_COLOR, outline=(220, 170, 170))
+    draw.rounded_rectangle(GELAB_HOME_BBOX, radius=6, fill=GELAB_HOME_COLOR, outline=(160, 210, 160))
+    draw.text((GELAB_BACK_BBOX[0] + 8, GELAB_BACK_BBOX[1] + 6), "back", fill=TEXT_BLACK, font=font)
+    draw.text((GELAB_HOME_BBOX[0] + 6, GELAB_HOME_BBOX[1] + 6), "home", fill=TEXT_BLACK, font=font)
+
+    phone_frame = [
+        PHONE_OFFSET_X - 1,
+        PHONE_OFFSET_Y - 1,
+        PHONE_OFFSET_X + CANVAS_W,
+        PHONE_OFFSET_Y + CANVAS_H,
+    ]
+    draw.rounded_rectangle(phone_frame, radius=10, outline=(220, 220, 226), width=1)
+    return canvas
+
+
+def _ensure_system_nav_controls(image: Image.Image, layout: Optional[dict]) -> Tuple[Image.Image, dict]:
+    """Finalize a page so the rendered image and layout both include back/home."""
+    return _draw_system_nav_overlay(image), _ensure_system_layout(layout)
+
+
 def render_page(spec: dict, icon_pool: Dict[str, Image.Image],
                 metadata: List[dict], used_icons: set) -> Tuple[Image.Image, dict]:
-    """Render a page specification to a 448x448 image.
+    """Render a page specification to the configured portrait canvas.
 
     Returns (image, layout_dict) where layout_dict maps element IDs to bboxes.
     """
@@ -1264,108 +1337,295 @@ def _render_keyboard(draw, y_cursor, layout, font) -> int:
 
 def build_structure(pages_data: List[dict], trajectory: dict,
                     output_dir: str) -> dict:
-    """Build GE-Lab compatible structure files from rendered pages.
-
-    Produces ui_structure.json and ui_structure_layer.json matching the exact
-    GE-Lab format used by env_utils.py, generate_sft_data.py, and evaluate.py.
-
-    pages_data: list of {"page_id": str, "layout": dict}
-    trajectory: GUIOdyssey annotation dict
-    """
+    """Build per-trajectory UI structure files with aligned AMEX action coordinates."""
+    # Compared with the AMEX baseline structure builder, this version
+    # keeps one AMEX step's action geometry, then injects fallback back/home
+    # transitions so GE-Lab always has navigable system actions.
     steps = trajectory.get("steps", [])
-    task_info = trajectory.get("task_info", {})
 
     ui_structure = {"pages": {}, "metadata": {
-        "source": "sim2real_compose",
+        "source": "amex_sim2real_compose_sft",
         "episode_id": trajectory.get("episode_id", ""),
-        "task": task_info.get("task", ""),
-        "category": task_info.get("category", ""),
-        "apps": task_info.get("app", []),
+        "instruction": trajectory.get("instruction", ""),
         "total_pages": len(pages_data),
         "canvas_size": list(OUTPUT_CANVAS_SIZE),
         "phone_canvas_size": list(CANVAS_SIZE),
+        "nav_strip_height": NAV_STRIP_H,
     }}
 
     home_page_id = _detect_home_page_id(pages_data)
 
-    # Build pages with transitions (GE-Lab list format)
     for i, pdata in enumerate(pages_data):
         page_id = pdata["page_id"]
-        layout = pdata["layout"]
+        layout = _ensure_system_layout(pdata["layout"])
+        pdata["layout"] = layout
         step = pdata.get("step", steps[i] if i < len(steps) else {})
         orig_size = tuple(pdata.get("orig_size", (720, 1280)))
 
-        # Build layout dict with type: "normal" or "system"
         layout_typed = {}
-        for k, bbox in layout.items():
-            ltype = "system" if k in ("back", "home") else "normal"
-            layout_typed[k] = {"bbox": bbox, "type": ltype}
+        for key, bbox in layout.items():
+            layout_typed[key] = {
+                "bbox": bbox,
+                "type": "system" if key in ("back", "home") else "normal",
+            }
 
-        # Build transitions as list: [{action, target_page, icon_bbox}]
         transitions = []
         used_system_targets = set()
-        if i + 1 < len(pages_data):
-            next_page = pages_data[i + 1]["page_id"]
-            target_elem = _find_action_target(step, layout, orig_size)
-            icon_bbox = layout.get(target_elem, [0, 0, 0, 0])
-            transitions.append({
-                "action": target_elem,
-                "target_page": next_page,
-                "icon_bbox": icon_bbox,
-            })
-            if target_elem in ("back", "home"):
-                used_system_targets.add(target_elem)
 
-        # Back transition (except root page)
+        next_page = pdata.get("next_trace_page_id", page_id)
+        if next_page:
+            transition = _resolve_transition(step, layout, orig_size, next_page)
+            transitions.append(transition)
+            if transition.get("action") in ("back", "home"):
+                used_system_targets.add(transition["action"])
+
         if i > 0 and "back" not in used_system_targets:
-            back_bbox = layout.get("back", GELAB_BACK_BBOX)
-            transitions.append({
-                "action": "back",
-                "target_page": pages_data[i - 1]["page_id"],
-                "icon_bbox": back_bbox,
-            })
+            transitions.append(_build_system_transition(
+                raw_action="PRESS_BACK",
+                action="back",
+                target_page=pages_data[i - 1]["page_id"],
+                icon_bbox=layout.get("back", GELAB_BACK_BBOX),
+            ))
 
-        # Home transition
         if "home" not in used_system_targets:
-            home_bbox = layout.get("home", GELAB_HOME_BBOX)
-            transitions.append({
-                "action": "home",
-                "target_page": home_page_id,
-                "icon_bbox": home_bbox,
-            })
+            transitions.append(_build_system_transition(
+                raw_action="PRESS_HOME",
+                action="home",
+                target_page=home_page_id,
+                icon_bbox=layout.get("home", GELAB_HOME_BBOX),
+            ))
 
         ui_structure["pages"][page_id] = {
             "image": f"{page_id}.png",
             "depth": i,
             "layout": layout_typed,
-            "transitions": transitions,
+            "transitions": _serialize_transitions_minimal(transitions),
         }
+        _save_action_debug_overlay(
+            os.path.join(output_dir, "pages", f"{page_id}.png"),
+            os.path.join(output_dir, "action_coord", f"{page_id}.png"),
+            transitions,
+        )
 
-    # Build layer structure (matches GE-Lab ui_structure_layer.json format)
     layer = _build_layer_structure(pages_data, ui_structure["pages"])
 
-    # Save
     os.makedirs(output_dir, exist_ok=True)
-    with open(os.path.join(output_dir, "ui_structure.json"), "w") as f:
+    with open(os.path.join(output_dir, "ui_structure.json"), "w", encoding="utf-8") as f:
         json.dump(ui_structure, f, indent=2)
-    with open(os.path.join(output_dir, "ui_structure_layer.json"), "w") as f:
+    with open(os.path.join(output_dir, "ui_structure_layer.json"), "w", encoding="utf-8") as f:
         json.dump(layer, f, indent=2)
 
     return ui_structure
 
 
 def _detect_home_page_id(pages_data: List[dict]) -> str:
-    """Pick the most likely home/root page using the trajectory descriptions."""
+    """Pick the most likely launcher/root page for a trajectory."""
+    launcher_tokens = ("launcher", "home screen", "app drawer")
     for pdata in pages_data:
         step = pdata.get("step", {})
+        package_name = str(step.get("package_name", "")).lower()
         desc = " ".join([
             str(step.get("description", "")),
             str(step.get("low_level_instruction", "")),
             str(step.get("info", "")),
+            package_name,
         ]).lower()
-        if "home screen" in desc or "launcher" in desc:
+        if any(token in desc for token in launcher_tokens):
             return pdata["page_id"]
     return pages_data[0]["page_id"] if pages_data else "page_0"
+
+
+def _bbox_center_point(bbox: List[int]) -> List[int]:
+    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return [0, 0]
+    x1, y1, x2, y2 = [int(v) for v in bbox]
+    if x1 == x2 == y1 == y2 == 0:
+        return [0, 0]
+    return [int(round((x1 + x2) / 2.0)), int(round((y1 + y2) / 2.0))]
+
+
+def _is_valid_point(point: List[int]) -> bool:
+    return isinstance(point, (list, tuple)) and len(point) == 2 and not (int(point[0]) == 0 and int(point[1]) == 0)
+
+
+def _is_valid_bbox(bbox: List[int]) -> bool:
+    return isinstance(bbox, (list, tuple)) and len(bbox) == 4 and any(int(v) != 0 for v in bbox)
+
+
+def _stored_transition_action(transition: dict) -> str:
+    """Preserve the raw dataset action string when available."""
+    raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
+    return raw_action if raw_action else str(transition.get("action", "") or "")
+
+
+def _debug_action_name(transition: dict) -> str:
+    raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
+    if raw_action == "TASK_COMPLETE":
+        return "COMPLETE"
+    if raw_action == "TASK_IMPOSSIBLE":
+        return "IMPOSSIBLE"
+    if raw_action:
+        return raw_action.replace("_", " ")
+    return str(transition.get("action", "") or "").strip().upper().replace("_", " ")
+
+
+def _stored_transition_action_coord(transition: dict) -> List[int]:
+    """Pick one canvas-space point that best represents the stored action."""
+    # Action-coordinate addition: ui_structure.json stores one representative
+    # point per transition, so we collapse richer AMEX geometry down to the
+    # best click/swipe anchor in final canvas coordinates.
+    raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
+    canvas_action_point = _safe_coord_pair(transition.get("canvas_action_point") or [])
+    canvas_action_bbox = transition.get("canvas_action_bbox") or [0, 0, 0, 0]
+    icon_bbox = transition.get("icon_bbox") or [0, 0, 0, 0]
+
+    if raw_action in ("TYPE", "TEXT", "PRESS_ENTER"):
+        return [0, 0]
+    if raw_action in ("TASK_COMPLETE", "TASK_IMPOSSIBLE"):
+        return [0, 0]
+
+    if raw_action in ("SWIPE", "SCROLL", "TAP", "CLICK"):
+        if _is_valid_point(canvas_action_point):
+            return [int(canvas_action_point[0]), int(canvas_action_point[1])]
+        if _is_valid_bbox(canvas_action_bbox):
+            return _bbox_center_point(canvas_action_bbox)
+
+    if raw_action in ("PRESS_BACK", "PRESS_HOME") and _is_valid_bbox(icon_bbox):
+        return _bbox_center_point(icon_bbox)
+
+    if _is_valid_bbox(icon_bbox):
+        return _bbox_center_point(icon_bbox)
+    if _is_valid_point(canvas_action_point):
+        return [int(canvas_action_point[0]), int(canvas_action_point[1])]
+    if _is_valid_bbox(canvas_action_bbox):
+        return _bbox_center_point(canvas_action_bbox)
+    return [0, 0]
+
+
+def _debug_bbox_for_transition(transition: dict, action_coord: List[int]) -> List[int]:
+    raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
+    canvas_action_bbox = transition.get("canvas_action_bbox") or [0, 0, 0, 0]
+    icon_bbox = transition.get("icon_bbox") or [0, 0, 0, 0]
+
+    if raw_action in ("TYPE", "TEXT", "PRESS_ENTER"):
+        return [0, 0, 0, 0]
+    if raw_action in ("TASK_COMPLETE", "TASK_IMPOSSIBLE"):
+        return [0, 0, 0, 0]
+    if raw_action in ("SWIPE", "SCROLL") and _is_valid_bbox(canvas_action_bbox):
+        return [int(v) for v in canvas_action_bbox]
+    if _is_valid_bbox(icon_bbox):
+        return [int(v) for v in icon_bbox]
+    if _is_valid_bbox(canvas_action_bbox):
+        return [int(v) for v in canvas_action_bbox]
+    if _is_valid_point(action_coord):
+        px, py = int(action_coord[0]), int(action_coord[1])
+        radius = 8
+        return [px - radius, py - radius, px + radius, py + radius]
+    return [0, 0, 0, 0]
+
+
+def _serialize_transition_minimal(transition: dict) -> dict:
+    """Keep only the final action plus one canvas-space action coordinate."""
+    # This minimal serializer is specific to the action_coord branch; the
+    # baseline compose script did not need to preserve action points per page.
+    raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
+    icon_bbox = transition.get("icon_bbox", [0, 0, 0, 0])
+    if raw_action in ("TYPE", "TEXT", "PRESS_ENTER"):
+        icon_bbox = [0, 0, 0, 0]
+    action_coord = _stored_transition_action_coord(transition)
+    item = {
+        "action": _stored_transition_action(transition),
+        "target_page": transition.get("target_page", ""),
+    }
+    if _is_valid_point(action_coord):
+        item["action_coord"] = [int(action_coord[0]), int(action_coord[1])]
+    if isinstance(icon_bbox, (list, tuple)) and len(icon_bbox) == 4 and _is_valid_bbox(icon_bbox):
+        item["icon_bbox"] = [int(v) for v in icon_bbox]
+
+    type_text = str(transition.get("type_text", "") or "").strip()
+    if raw_action in ("TYPE", "TEXT", "PRESS_ENTER") and type_text:
+        item["type_text"] = type_text
+
+    return item
+
+
+def _serialize_transitions_minimal(transitions: List[dict]) -> List[dict]:
+    return [_serialize_transition_minimal(transition) for transition in transitions or []]
+
+
+def _debug_transition_label(idx: int, transition: dict) -> str:
+    action = _debug_action_name(transition)
+    raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
+    if raw_action in ("TYPE", "TEXT"):
+        type_text = str(transition.get("type_text", "") or "").strip()
+        if type_text:
+            shortened = type_text if len(type_text) <= 24 else f"{type_text[:21]}..."
+            return f"{idx}:{action} {shortened}"
+    if raw_action == "PRESS_ENTER":
+        type_text = str(transition.get("type_text", "") or "").strip()
+        if type_text:
+            shortened = type_text if len(type_text) <= 24 else f"{type_text[:21]}..."
+            return f"{idx}:{action} {shortened}"
+    return f"{idx}:{action}"
+
+
+def _should_draw_non_spatial_debug_label(transition: dict) -> bool:
+    raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
+    return raw_action in ("TYPE", "TEXT", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE")
+
+
+def _save_action_debug_overlay(page_image_path: str,
+                               output_path: str,
+                               transitions: List[dict]):
+    """Render an overlay showing the stored action point/box for quick inspection."""
+    if not os.path.exists(page_image_path):
+        return
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with Image.open(page_image_path) as img_handle:
+        image = img_handle.convert("RGB")
+    draw = ImageDraw.Draw(image)
+    font = _try_load_font(12)
+
+    palette = [
+        ((230, 57, 70), (255, 230, 233)),
+        ((29, 78, 216), (227, 238, 255)),
+        ((22, 163, 74), (229, 255, 237)),
+        ((217, 119, 6), (255, 245, 224)),
+        ((126, 34, 206), (243, 232, 255)),
+    ]
+    non_spatial_label_y = NAV_STRIP_H + 8
+
+    for idx, transition in enumerate(transitions or []):
+        edge_color, label_bg = palette[idx % len(palette)]
+        action_coord = _stored_transition_action_coord(transition)
+        debug_bbox = _debug_bbox_for_transition(transition, action_coord)
+        label = _debug_transition_label(idx, transition)
+
+        if _is_valid_bbox(debug_bbox):
+            draw.rectangle(debug_bbox, outline=edge_color, width=3)
+        if _is_valid_point(action_coord):
+            px, py = int(action_coord[0]), int(action_coord[1])
+            draw.rectangle([px - 4, py - 4, px + 4, py + 4], fill=edge_color, outline=(255, 255, 255), width=1)
+
+            text_bbox = draw.textbbox((0, 0), label, font=font)
+            text_w = text_bbox[2] - text_bbox[0]
+            text_h = text_bbox[3] - text_bbox[1]
+            lx = min(max(4, px + 8), max(4, image.size[0] - text_w - 6))
+            ly = min(max(4, py - text_h - 8), max(4, image.size[1] - text_h - 6))
+            draw.rectangle([lx - 2, ly - 2, lx + text_w + 2, ly + text_h + 2], fill=label_bg, outline=edge_color, width=1)
+            draw.text((lx, ly), label, fill=edge_color, font=font)
+        elif _should_draw_non_spatial_debug_label(transition):
+            text_bbox = draw.textbbox((0, 0), label, font=font)
+            text_w = text_bbox[2] - text_bbox[0]
+            text_h = text_bbox[3] - text_bbox[1]
+            lx = 6
+            ly = min(non_spatial_label_y, max(6, image.size[1] - text_h - 6))
+            draw.rectangle([lx - 2, ly - 2, lx + text_w + 2, ly + text_h + 2], fill=label_bg, outline=edge_color, width=1)
+            draw.text((lx, ly), label, fill=edge_color, font=font)
+            non_spatial_label_y = ly + text_h + 8
+
+    image.save(output_path)
 
 
 def _bbox_iou(box1: List[int], box2: List[int]) -> float:
@@ -1388,52 +1648,271 @@ def _bbox_center_distance(box1: List[int], box2: List[int]) -> float:
     return ((c1x - c2x) ** 2 + (c1y - c2y) ** 2) ** 0.5
 
 
-def _find_action_target(step: dict, layout: dict,
-                        orig_size: Tuple[int, int]) -> str:
-    """Find the layout element most likely targeted by the real trajectory action."""
-    if not layout:
-        return "unknown"
+def _normalize_raw_action_name(raw_action: str) -> str:
+    return str(raw_action or "").strip()
 
-    action = str(step.get("action", "")).upper()
-    info = str(step.get("info", ""))
-    instruction = " ".join([
+
+def _step_text(step: dict) -> str:
+    return " ".join([
         str(step.get("low_level_instruction", "")),
         str(step.get("description", "")),
         str(step.get("intention", "")),
-        info,
+        str(step.get("info", "")),
+        str(step.get("type_text", "")),
+        str(step.get("package_name", "")),
     ]).lower()
+
+
+def _normalize_step_point(step: dict,
+                          coord: List[int],
+                          orig_size: Tuple[int, int]) -> Optional[Tuple[int, int]]:
+    """Map AMEX device coordinates into the original screenshot coordinate system."""
+    # AMEX-specific: touch/lift coordinates are recorded in device space, so
+    # we first undo that scale before projecting into the GE-Lab canvas.
+    if not isinstance(coord, (list, tuple)) or len(coord) != 2:
+        return None
+
+    x, y = int(coord[0]), int(coord[1])
+    if x == 0 and y == 0:
+        return None
+
+    device_dim = step.get("device_dim") or []
+    if isinstance(device_dim, (list, tuple)) and len(device_dim) == 2:
+        dw, dh = device_dim
+        if dw and dh:
+            sx = float(orig_size[0]) / float(dw)
+            sy = float(orig_size[1]) / float(dh)
+            return int(round(x * sx)), int(round(y * sy))
+
+    return int(round(x)), int(round(y))
+
+
+def _scale_step_coord_to_canvas(step: dict,
+                                coord: List[int],
+                                orig_size: Tuple[int, int]) -> List[int]:
+    point = _normalize_step_point(step, coord, orig_size)
+    if point is None:
+        return [0, 0]
+    scaled = _scale_bbox_to_box(
+        [point[0], point[1], point[0], point[1]],
+        orig_size,
+        CANVAS_SIZE,
+        (PHONE_OFFSET_X, PHONE_OFFSET_Y),
+    )
+    return [scaled[0], scaled[1]]
+
+
+def _scale_bbox_from_step_to_canvas(step: dict,
+                                    bbox: List[int],
+                                    orig_size: Tuple[int, int]) -> List[int]:
+    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return [0, 0, 0, 0]
+    if bbox == [0, 0, 0, 0]:
+        return [0, 0, 0, 0]
+
+    top_left = _normalize_step_point(step, [bbox[0], bbox[1]], orig_size)
+    bottom_right = _normalize_step_point(step, [bbox[2], bbox[3]], orig_size)
+    if top_left is None or bottom_right is None:
+        return [0, 0, 0, 0]
+
+    normalized_bbox = [
+        min(top_left[0], bottom_right[0]),
+        min(top_left[1], bottom_right[1]),
+        max(top_left[0], bottom_right[0]),
+        max(top_left[1], bottom_right[1]),
+    ]
+    return _scale_bbox_to_box(
+        normalized_bbox,
+        orig_size,
+        CANVAS_SIZE,
+        (PHONE_OFFSET_X, PHONE_OFFSET_Y),
+    )
+
+
+def _infer_gesture_direction(step: dict, raw_action: str, orig_size: Tuple[int, int]) -> str:
+    raw_action = _normalize_raw_action_name(raw_action)
+    if raw_action not in ("SWIPE", "SCROLL"):
+        return ""
+
+    touch_point = _normalize_step_point(step, step.get("touch_coord") or [], orig_size)
+    lift_point = _normalize_step_point(step, step.get("lift_coord") or [], orig_size)
+    if touch_point is not None and lift_point is not None:
+        dx = lift_point[0] - touch_point[0]
+        dy = lift_point[1] - touch_point[1]
+        if abs(dy) >= abs(dx):
+            return "down" if dy > 0 else "up"
+        return "right" if dx > 0 else "left"
+
+    instruction = _step_text(step)
+    for direction in ("down", "up", "left", "right"):
+        if f"scroll {direction}" in instruction or f"swipe {direction}" in instruction:
+            return direction
+    return ""
+
+
+def _safe_coord_pair(coord: List[int]) -> List[int]:
+    if not isinstance(coord, (list, tuple)) or len(coord) != 2:
+        return [0, 0]
+    return [int(coord[0]), int(coord[1])]
+
+
+def _point_box(point: Tuple[int, int], radius: int = 12) -> List[int]:
+    px, py = point
+    return [px - radius, py - radius, px + radius, py + radius]
+
+
+def _build_action_bbox(step: dict, raw_action: str) -> List[int]:
+    raw_action = _normalize_raw_action_name(raw_action)
+    touch = _safe_coord_pair(step.get("touch_coord") or [])
+    lift = _safe_coord_pair(step.get("lift_coord") or [])
+
+    if raw_action in ("TYPE", "PRESS_BACK", "PRESS_HOME", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE"):
+        return [0, 0, 0, 0]
+    if touch == [0, 0]:
+        return [0, 0, 0, 0]
+    if lift == [0, 0]:
+        lift = touch
+    return [
+        min(touch[0], lift[0]),
+        min(touch[1], lift[1]),
+        max(touch[0], lift[0]),
+        max(touch[1], lift[1]),
+    ]
+
+
+def _build_action_point(step: dict, raw_action: str) -> List[int]:
+    raw_action = _normalize_raw_action_name(raw_action)
+    if raw_action in ("TYPE", "PRESS_BACK", "PRESS_HOME", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE"):
+        return [0, 0]
+    return _safe_coord_pair(step.get("touch_coord") or [])
+
+
+def _scale_action_bbox_to_canvas(step: dict,
+                                 raw_action: str,
+                                 orig_size: Tuple[int, int]) -> List[int]:
+    return _scale_bbox_from_step_to_canvas(step, _build_action_bbox(step, raw_action), orig_size)
+
+
+def _scale_action_point_to_canvas(step: dict,
+                                  raw_action: str,
+                                  orig_size: Tuple[int, int]) -> List[int]:
+    return _scale_step_coord_to_canvas(step, _build_action_point(step, raw_action), orig_size)
+
+
+def _bbox_contains_point(bbox: List[int], point: Tuple[int, int]) -> bool:
+    return bbox[0] <= point[0] <= bbox[2] and bbox[1] <= point[1] <= bbox[3]
+
+
+def _is_layout_target(target: Optional[str], layout: dict) -> bool:
+    return bool(target) and target in layout
+
+
+def _resolve_tap_target(step: dict,
+                        layout: dict,
+                        orig_size: Tuple[int, int]) -> Optional[str]:
+    point = _scale_step_coord_to_canvas(step, step.get("touch_coord") or [], orig_size)
+    if point == [0, 0]:
+        return None
+
+    point_tuple = (point[0], point[1])
+    for key, bbox in layout.items():
+        if _bbox_contains_point(bbox, point_tuple):
+            return key
+    return None
+
+
+def _find_closest_layout_key(layout: dict,
+                             target_box: List[int],
+                             allow_system: bool = False) -> Tuple[Optional[str], float, float]:
+    best_key = None
+    best_iou = 0.0
+    best_distance = float("inf")
+
+    for key, bbox in layout.items():
+        if not allow_system and key in ("back", "home"):
+            continue
+        iou = _bbox_iou(target_box, bbox)
+        distance = _bbox_center_distance(target_box, bbox)
+        if iou > best_iou or (iou == best_iou and distance < best_distance):
+            best_key = key
+            best_iou = iou
+            best_distance = distance
+
+    return best_key, best_iou, best_distance
+
+
+def _find_action_target(step: dict, layout: dict,
+                        orig_size: Tuple[int, int]) -> str:
+    """Find the layout element or gesture most likely targeted by a raw AMEX step."""
+    if not layout:
+        return "unknown"
+
+    action = _normalize_raw_action_name(step.get("action", "")).upper()
+    info = str(step.get("info", ""))
+    instruction = _step_text(step)
 
     if "KEY_HOME" in info or "home screen" in instruction:
         return "home"
     if "go back" in instruction or instruction.startswith("back ") or info == "BACK":
         return "back"
 
-    sam2_bbox = step.get("sam2_bbox") or []
-    if action == "CLICK" and len(sam2_bbox) == 4:
-        scaled_bbox = _scale_bbox_to_box(
-            sam2_bbox, orig_size, CANVAS_SIZE, (PHONE_OFFSET_X, PHONE_OFFSET_Y)
+    touch_point = _scale_step_coord_to_canvas(step, step.get("touch_coord") or [], orig_size)
+    lift_point = _scale_step_coord_to_canvas(step, step.get("lift_coord") or [], orig_size)
+
+    if action in ("TAP", "CLICK") and touch_point != [0, 0]:
+        best_key, best_iou, best_distance = _find_closest_layout_key(
+            layout, _point_box((touch_point[0], touch_point[1])), allow_system=True
         )
-        best_key = None
-        best_iou = 0.0
-        best_distance = float("inf")
-        for key, bbox in layout.items():
-            if key in ("back", "home"):
-                continue
-            iou = _bbox_iou(scaled_bbox, bbox)
-            distance = _bbox_center_distance(scaled_bbox, bbox)
-            if iou > best_iou or (iou == best_iou and distance < best_distance):
-                best_key = key
-                best_iou = iou
-                best_distance = distance
         if best_key is not None and (best_iou > 0 or best_distance <= 48):
             return best_key
 
-    if action == "TEXT":
-        for preferred in ("search_bar", "keyboard"):
+    if action in ("TYPE", "TEXT"):
+        for preferred in ("search_bar", "search", "input", "text_field", "keyboard"):
+            if preferred in layout:
+                return preferred
+        if "search" in instruction:
+            for key in layout:
+                if "search" in key.lower():
+                    return key
+
+    if action == "PRESS_ENTER":
+        if "search" in instruction:
+            for key in layout:
+                if "search" in key.lower():
+                    return key
+        for preferred in ("keyboard", "search_bar", "input", "text_field"):
             if preferred in layout:
                 return preferred
 
-    best_score = 0
+    if action in ("SWIPE", "SCROLL"):
+        if touch_point != [0, 0] and lift_point != [0, 0]:
+            start_box = _point_box((touch_point[0], touch_point[1]), radius=18)
+            end_box = _point_box((lift_point[0], lift_point[1]), radius=18)
+            best_start, start_iou, start_distance = _find_closest_layout_key(
+                layout, start_box, allow_system=False
+            )
+            best_end, end_iou, end_distance = _find_closest_layout_key(
+                layout, end_box, allow_system=False
+            )
+            if best_start is not None and (start_iou > 0 or start_distance <= 72):
+                return best_start
+            if best_end is not None and (end_iou > 0 or end_distance <= 72):
+                return best_end
+
+        direction = _infer_gesture_direction(step, action, orig_size)
+        if direction:
+            return f"swipe_{direction}"
+
+    if action == "PRESS_BACK":
+        return "back"
+    if action == "PRESS_HOME":
+        return "home"
+    if action == "TASK_COMPLETE":
+        return "complete"
+    if action == "TASK_IMPOSSIBLE":
+        return "impossible"
+
+    best_score = 0.0
     best_key = next(iter(layout.keys()), "unknown")
     for key in layout:
         key_lower = key.lower().replace("_", " ")
@@ -1447,12 +1926,87 @@ def _find_action_target(step: dict, layout: dict,
     return best_key
 
 
+def _resolve_transition(step: dict,
+                        layout: dict,
+                        orig_size: Tuple[int, int],
+                        target_page: str) -> dict:
+    # Action-coordinate addition: keep both the semantic target label and the
+    # raw/canvas AMEX geometry so downstream code can use exact action points.
+    raw_action = _normalize_raw_action_name(step.get("action", ""))
+    resolved_target = _find_action_target(step, layout, orig_size)
+    strict_tap_target = None
+    if raw_action in ("TAP", "CLICK"):
+        strict_tap_target = _resolve_tap_target(step, layout, orig_size)
+
+    canvas_action_bbox = _scale_action_bbox_to_canvas(step, raw_action, orig_size)
+    canvas_action_point = _scale_action_point_to_canvas(step, raw_action, orig_size)
+
+    transition = {
+        "raw_action": raw_action,
+        "action": resolved_target,
+        "target_page": target_page,
+        "canvas_action_bbox": canvas_action_bbox,
+        "canvas_action_point": canvas_action_point,
+        "icon_bbox": layout.get(resolved_target, [0, 0, 0, 0]),
+        "type_text": str(step.get("type_text", "")),
+    }
+
+    if raw_action in ("TAP", "CLICK"):
+        if strict_tap_target is not None:
+            transition["action"] = strict_tap_target
+            transition["icon_bbox"] = layout.get(strict_tap_target, [0, 0, 0, 0])
+        else:
+            transition["action"] = "tap"
+            transition["icon_bbox"] = canvas_action_bbox
+    elif raw_action in ("TYPE", "TEXT"):
+        transition["action"] = resolved_target if _is_layout_target(resolved_target, layout) else "type"
+        transition["icon_bbox"] = [0, 0, 0, 0]
+    elif raw_action in ("SWIPE", "SCROLL"):
+        if _is_layout_target(resolved_target, layout):
+            transition["action"] = resolved_target
+            transition["icon_bbox"] = layout.get(resolved_target, [0, 0, 0, 0])
+        else:
+            transition["action"] = resolved_target if resolved_target.startswith("swipe_") else "swipe"
+            transition["icon_bbox"] = canvas_action_bbox
+    elif raw_action == "PRESS_ENTER":
+        transition["action"] = resolved_target if _is_layout_target(resolved_target, layout) else "press_enter"
+        transition["icon_bbox"] = [0, 0, 0, 0]
+    elif raw_action == "PRESS_BACK":
+        transition["action"] = "back"
+        transition["icon_bbox"] = layout.get("back", GELAB_BACK_BBOX)
+    elif raw_action == "PRESS_HOME":
+        transition["action"] = "home"
+        transition["icon_bbox"] = layout.get("home", GELAB_HOME_BBOX)
+    elif raw_action == "TASK_COMPLETE":
+        transition["action"] = "complete"
+        transition["icon_bbox"] = [0, 0, 0, 0]
+    elif raw_action == "TASK_IMPOSSIBLE":
+        transition["action"] = "impossible"
+        transition["icon_bbox"] = [0, 0, 0, 0]
+
+    return transition
+
+
+def _build_system_transition(raw_action: str,
+                             action: str,
+                             target_page: str,
+                             icon_bbox: List[int]) -> dict:
+    # Synthetic system transitions are injected only in this action-aware
+    # branch so every page still exposes back/home actions after serialization.
+    return {
+        "raw_action": raw_action,
+        "action": action,
+        "target_page": target_page,
+        "canvas_action_bbox": [0, 0, 0, 0],
+        "canvas_action_point": [0, 0],
+        "icon_bbox": icon_bbox,
+        "type_text": "",
+    }
+
+
 def _build_layer_structure(pages_data: List[dict],
                            pages_full: Dict[str, dict]) -> dict:
-    """Build layer structure matching GE-Lab ui_structure_layer.json format.
-
-    Each node has: image, depth, layout, transitions (non-system only), subnodes.
-    """
+    """Build layer structure matching GE-Lab ui_structure_layer.json format."""
     if not pages_data:
         return {"root": None, "metadata": {}}
 
@@ -1462,9 +2016,8 @@ def _build_layer_structure(pages_data: List[dict],
         visited.add(page_id)
         page_data = pages_full.get(page_id, {})
 
-        # Filter transitions to exclude system actions (back, home)
-        all_trans = page_data.get("transitions", [])
-        non_system = [t for t in all_trans if t["action"] not in ("back", "home")]
+        all_transitions = page_data.get("transitions", [])
+        non_system = [t for t in all_transitions if t.get("action") not in ("back", "home")]
 
         node = {
             "image": f"{page_id}.png",
@@ -1682,39 +2235,20 @@ def compose_page(client: OpenAI, model_name: str,
         page_img, layout = _fallback_compose(elements, orig_size, screenshot_path)
         render_status = "fallback_compose"
 
-    # Phase 3: Compose final 448x448 canvas with a dedicated nav strip at top.
-    final = Image.new("RGB", OUTPUT_CANVAS_SIZE, (245, 245, 245))
-    final.paste(page_img, (PHONE_OFFSET_X, PHONE_OFFSET_Y))
+    final_canvas = Image.new("RGB", OUTPUT_CANVAS_SIZE, BG_WHITE)
+    final_canvas.paste(page_img.convert("RGB"), (PHONE_OFFSET_X, PHONE_OFFSET_Y))
 
-    # Shift all layout bboxes into the final GE-Lab canvas
     shifted_layout = {}
     for key, bbox in layout.items():
         if key in ("back", "home"):
             continue  # will be set below
         shifted_layout[key] = [
-            bbox[0] + PHONE_OFFSET_X, bbox[1] + PHONE_OFFSET_Y,
-            bbox[2] + PHONE_OFFSET_X, bbox[3] + PHONE_OFFSET_Y,
+            bbox[0] + PHONE_OFFSET_X,
+            bbox[1] + PHONE_OFFSET_Y,
+            bbox[2] + PHONE_OFFSET_X,
+            bbox[3] + PHONE_OFFSET_Y,
         ]
-
-    # Draw nav strip: white background + separator + rounded back/home buttons
-    draw_final = ImageDraw.Draw(final)
-    draw_final.rectangle([0, 0, OUTPUT_W, NAV_STRIP_H], fill=(255, 255, 255))
-    draw_final.line([0, NAV_STRIP_H - 1, OUTPUT_W, NAV_STRIP_H - 1], fill=(200, 200, 200))
-    font_nav = _try_load_font(12)
-
-    bx1, by1, bx2, by2 = GELAB_BACK_BBOX
-    draw_final.rounded_rectangle([bx1, by1, bx2, by2], radius=4, fill=GELAB_BACK_COLOR)
-    tw = draw_final.textlength("back", font=font_nav) if hasattr(draw_final, "textlength") else 24
-    draw_final.text((bx1 + (NAV_BTN_W - tw) / 2, by1 + (NAV_BTN_H - 12) / 2),
-                    "back", fill=TEXT_BLACK, font=font_nav)
-    shifted_layout["back"] = [bx1, by1, bx2, by2]
-
-    hx1, hy1, hx2, hy2 = GELAB_HOME_BBOX
-    draw_final.rounded_rectangle([hx1, hy1, hx2, hy2], radius=4, fill=GELAB_HOME_COLOR)
-    tw = draw_final.textlength("home", font=font_nav) if hasattr(draw_final, "textlength") else 28
-    draw_final.text((hx1 + (NAV_BTN_W - tw) / 2, hy1 + (NAV_BTN_H - 12) / 2),
-                    "home", fill=TEXT_BLACK, font=font_nav)
-    shifted_layout["home"] = [hx1, hy1, hx2, hy2]
+    final_canvas, shifted_layout = _ensure_system_nav_controls(final_canvas, shifted_layout)
 
     code_artifact = {
         "styling_source": styling_source,
@@ -1723,7 +2257,7 @@ def compose_page(client: OpenAI, model_name: str,
         "position_code": position_code,
         "full_code": full_code,
     }
-    return final, shifted_layout, code_artifact
+    return final_canvas, shifted_layout, code_artifact
 
 
 def _save_page_code(code_dir: str, page_id: str, screenshot_name: str,
@@ -1742,7 +2276,7 @@ def _save_page_code(code_dir: str, page_id: str, screenshot_name: str,
         f"# styling_source: {code_artifact.get('styling_source', '')}",
         f"# render_status: {code_artifact.get('render_status', '')}",
         "# This code targets the original screenshot resolution.",
-        "# The final runtime image is then fit into the 448x448 GE-Lab canvas with a top nav strip.",
+        f"# The final runtime image is then rendered into the {OUTPUT_W}x{OUTPUT_H} canvas with a top nav strip.",
     ]
 
     contents = "\n".join(header_lines) + "\n\n"
@@ -1760,34 +2294,104 @@ def _save_page_code(code_dir: str, page_id: str, screenshot_name: str,
 # Main pipeline
 # ---------------------------------------------------------------------------
 
-def run_pipeline(args):
-    # Initialize OpenAI client for GPT styling
-    client = load_api_client()
-    model_name = args.model_name
-    print(f"Model: {model_name}")
+def _collect_annotation_jobs(args) -> List[Tuple[str, str]]:
+    """Collect one AMEX trajectory or all trajectories in instruction_anno."""
+    # AMEX adaptation from the AMEX baseline: enumerate episode JSONs
+    # from the instruction annotation directory instead of AMEX exports.
+    annotations_dir = Path(args.annotations_dir)
+    if not annotations_dir.exists():
+        raise FileNotFoundError(f"Annotations directory not found: {annotations_dir}")
 
-    # Load detection models (YOLO + OCR)
-    yolo_model, ocr_reader = load_detection_models(args.weights_dir, args.gpu)
+    trajectory_id = getattr(args, "trajectory_id", None)
+    max_trajectories = getattr(args, "max_trajectories", None)
 
-    # Load trajectory
-    annot_path = os.path.join(args.annotations_dir, f"{args.trajectory_id}.json")
-    if not os.path.exists(annot_path):
-        raise FileNotFoundError(f"Annotation not found: {annot_path}")
-    with open(annot_path) as f:
-        trajectory = json.load(f)
+    if trajectory_id:
+        by_filename = annotations_dir / f"{trajectory_id}.json"
+        if by_filename.exists():
+            return [(trajectory_id, str(by_filename))]
 
+        for annot_path in sorted(annotations_dir.glob("*.json")):
+            try:
+                with open(annot_path, "r", encoding="utf-8") as f:
+                    episode_id = json.load(f).get("episode_id", "")
+                if str(episode_id) == trajectory_id:
+                    return [(trajectory_id, str(annot_path))]
+            except Exception:
+                continue
+        raise FileNotFoundError(f"Annotation not found for trajectory_id: {trajectory_id}")
+
+    jobs = []
+    for annot_path in sorted(annotations_dir.glob("*.json")):
+        try:
+            with open(annot_path, "r", encoding="utf-8") as f:
+                trajectory = json.load(f)
+            episode_id = trajectory.get("episode_id") or annot_path.stem
+            jobs.append((str(episode_id), str(annot_path)))
+        except Exception as exc:
+            print(f"SKIP annotation parse failure: {annot_path.name} ({exc})")
+
+    if max_trajectories is not None:
+        jobs = jobs[:max_trajectories]
+    return jobs
+
+
+def _resolve_step_screenshot(step: dict,
+                             screenshots_dir: str,
+                             episode_id: str,
+                             step_idx: int) -> Tuple[str, str]:
+    # AMEX screenshot names are less uniform than AMEX's fixed export
+    # scheme, so we try several filename conventions used in the dataset.
+    candidates = [
+        step.get("image_path"),
+        step.get("screenshot"),
+        step.get("image"),
+        f"{episode_id}-{step_idx + 1}.png",
+    ]
+
+    for candidate in candidates:
+        if not candidate:
+            continue
+        candidate = str(candidate)
+        if os.path.isabs(candidate) and os.path.exists(candidate):
+            return os.path.basename(candidate), candidate
+
+        joined = os.path.join(screenshots_dir, candidate)
+        if os.path.exists(joined):
+            return candidate, joined
+
+        basename = os.path.basename(candidate)
+        joined_basename = os.path.join(screenshots_dir, basename)
+        if os.path.exists(joined_basename):
+            return basename, joined_basename
+
+    fallback_name = str(candidates[-1])
+    return fallback_name, os.path.join(screenshots_dir, fallback_name)
+
+
+def _resolve_trajectory_output_dir(base_output_dir: str,
+                                   episode_id: str,
+                                   use_subdir: bool) -> str:
+    if not use_subdir:
+        return base_output_dir
+    return os.path.join(base_output_dir, _sanitize_filename(str(episode_id), "trajectory"))
+
+
+def _process_trajectory(trajectory: dict,
+                        output_dir: str,
+                        args,
+                        client: OpenAI,
+                        model_name: str,
+                        yolo_model,
+                        ocr_reader) -> int:
     steps = trajectory.get("steps", [])
-    episode_id = trajectory.get("episode_id", args.trajectory_id)
-    task_info = trajectory.get("task_info", {})
+    episode_id = trajectory.get("episode_id", "unknown_episode")
     print(f"Trajectory: {episode_id}")
-    print(f"Task: {task_info.get('task', 'N/A')}")
-    print(f"Apps: {task_info.get('app', [])}")
+    print(f"Instruction: {trajectory.get('instruction', '')}")
     print(f"Steps: {len(steps)}")
 
-    # Stage 1-2: detect and extract trajectory assets first
-    pages_dir = os.path.join(args.output_dir, "pages")
-    code_dir = os.path.join(args.output_dir, "generated_code")
-    assets_dir = os.path.join(args.output_dir, "extracted_assets")
+    pages_dir = os.path.join(output_dir, "pages")
+    code_dir = os.path.join(output_dir, "generated_code")
+    assets_dir = os.path.join(output_dir, "extracted_assets")
     os.makedirs(pages_dir, exist_ok=True)
     os.makedirs(code_dir, exist_ok=True)
     os.makedirs(assets_dir, exist_ok=True)
@@ -1795,28 +2399,33 @@ def run_pipeline(args):
     pages_detection_data = []
 
     for i, step in enumerate(steps):
-        screenshot_name = step.get("screenshot", f"{episode_id}_{i}.png")
-        screenshot_path = os.path.join(args.screenshots_dir, screenshot_name)
+        screenshot_name, screenshot_path = _resolve_step_screenshot(
+            step, args.screenshots_dir, episode_id, i
+        )
 
         if not os.path.exists(screenshot_path):
-            print(f"  [{i+1}/{len(steps)}] SKIP (screenshot missing: {screenshot_name})")
+            print(f"  [{i + 1}/{len(steps)}] SKIP (screenshot missing: {screenshot_name})")
             continue
 
-        page_id = f"page_{i}"
+        page_id = f"page_{len(pages_detection_data)}"
         step_context = _build_step_context(trajectory, i)
 
-        # Stage 1-2: Detect + crop UI elements from this screenshot
-        print(f"  [{i+1}/{len(steps)}] {screenshot_name}", end="", flush=True)
+        print(f"  [{i + 1}/{len(steps)}] {screenshot_name}", end="", flush=True)
         elements, orig_size = detect_and_crop(screenshot_path, yolo_model, ocr_reader)
         print(f" ({len(elements)} detected)", end="", flush=True)
 
-        # Optionally save labeled crops for inspection
         if args.save_crops:
-            _save_labeled_crops(elements, orig_size, screenshot_path,
-                                os.path.join(args.output_dir, "crops", page_id))
+            _save_labeled_crops(
+                elements,
+                orig_size,
+                screenshot_path,
+                os.path.join(output_dir, "crops", page_id),
+            )
 
-        asset_elements = _persist_extracted_assets(elements, screenshot_name, assets_dir, step_context)
-        print(f" [assets:{len(asset_elements)}]", end="", flush=True)
+        asset_elements = _persist_extracted_assets(
+            elements, screenshot_name, assets_dir, step_context
+        )
+        print(f" [assets:{len(asset_elements)}]", flush=True)
 
         pages_detection_data.append({
             "page_id": page_id,
@@ -1825,11 +2434,31 @@ def run_pipeline(args):
             "orig_size": list(orig_size),
             "step": step_context,
             "elements": asset_elements,
+            "trajectory_local_page_index": i,
         })
 
-    _save_asset_manifest(args.output_dir, pages_detection_data)
+    if not pages_detection_data:
+        print(f"  No usable screenshots found for {episode_id}, skipping.")
+        return 0
 
-    # Stage 3-4: compose from extracted assets and build structure
+    page_ids_by_local_index = {
+        page["trajectory_local_page_index"]: page["page_id"]
+        for page in pages_detection_data
+    }
+    ordered_local_indices = sorted(page_ids_by_local_index)
+    next_page_map = {}
+    for pos, local_idx in enumerate(ordered_local_indices):
+        if pos + 1 < len(ordered_local_indices):
+            next_page_map[local_idx] = page_ids_by_local_index[ordered_local_indices[pos + 1]]
+        else:
+            next_page_map[local_idx] = page_ids_by_local_index[local_idx]
+
+    for page in pages_detection_data:
+        local_idx = page["trajectory_local_page_index"]
+        page["next_trace_page_id"] = next_page_map.get(local_idx, page["page_id"])
+
+    _save_asset_manifest(output_dir, pages_detection_data)
+
     pages_data = []
     success_count = 0
 
@@ -1841,13 +2470,10 @@ def run_pipeline(args):
         step_context = page["step"]
         elements = page["elements"]
 
-        # Stage 3: Compose page
-        #   Phase 1: GPT generates background/styling on blank canvas
-        #   Phase 2: Extracted trajectory assets pasted at exact positions
-        #   Phase 3: GE-Lab back/home buttons at top
         page_img, layout, code_artifact = compose_page(
             client, model_name, elements, orig_size, screenshot_path, step_context
         )
+        page_img, layout = _ensure_system_nav_controls(page_img, layout)
         print(f"  compose {page_id} -> {len(layout)} layout elems")
         success_count += 1
 
@@ -1859,21 +2485,63 @@ def run_pipeline(args):
             "layout": layout,
             "orig_size": list(orig_size),
             "step": step_context,
+            "next_trace_page_id": page.get("next_trace_page_id", page_id),
         })
 
     print(f"\nComposed: {success_count}/{len(pages_data)} pages")
-
-    # Stage 4: Build structure
     print(f"Building structure ({len(pages_data)} pages)...")
-    structure = build_structure(pages_data, trajectory, args.output_dir)
+    build_structure(pages_data, trajectory, output_dir)
 
-    print(f"\nDone. Output: {args.output_dir}/")
+    print(f"\nDone. Output: {output_dir}/")
     print(f"  pages/             {len(pages_data)} PNG files ({OUTPUT_W}x{OUTPUT_H})")
     print(f"  generated_code/    {len(pages_data)} PIL code files")
     print(f"  extracted_assets/  saved extracted trajectory crops")
     print(f"  trajectory_assets_manifest.json")
     print(f"  ui_structure.json")
     print(f"  ui_structure_layer.json")
+    print(f"  action_coord/ per-page action overlay images")
+    return len(pages_data)
+
+
+def run_pipeline(args):
+    client = load_api_client()
+    model_name = args.model_name
+    print(f"Model: {model_name}")
+
+    yolo_model, ocr_reader = load_detection_models(args.weights_dir, args.gpu)
+
+    annotation_jobs = _collect_annotation_jobs(args)
+    if not annotation_jobs:
+        raise RuntimeError(f"No annotations found in: {args.annotations_dir}")
+
+    os.makedirs(args.output_dir, exist_ok=True)
+    print(f"Trajectories: {len(annotation_jobs)}")
+
+    use_subdir = args.trajectory_id is None
+    processed_pages = 0
+
+    for idx, (_, annot_path) in enumerate(annotation_jobs, start=1):
+        with open(annot_path, "r", encoding="utf-8") as f:
+            trajectory = json.load(f)
+        episode_id = trajectory.get("episode_id") or Path(annot_path).stem
+        trajectory_output_dir = _resolve_trajectory_output_dir(
+            args.output_dir,
+            episode_id,
+            use_subdir=use_subdir,
+        )
+        print(f"\n[{idx}/{len(annotation_jobs)}] episode={episode_id}")
+        processed_pages += _process_trajectory(
+            trajectory=trajectory,
+            output_dir=trajectory_output_dir,
+            args=args,
+            client=client,
+            model_name=model_name,
+            yolo_model=yolo_model,
+            ocr_reader=ocr_reader,
+        )
+
+    print(f"\nFinished trajectories: {len(annotation_jobs)}")
+    print(f"Total composed pages: {processed_pages}")
 
 
 def _extract_bg_color(elements: List[dict], screenshot_path: str = None) -> Tuple[int, int, int]:
@@ -1960,17 +2628,19 @@ def _fallback_compose(elements: List[dict],
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Sim2Real Compose: detection-guided page composition")
-    parser.add_argument("--trajectory_id", type=str, required=True,
-                        help="GUIOdyssey episode ID to process")
+    parser.add_argument("--trajectory_id", type=str, default=None,
+                        help="Single trajectory episode_id or annotation filename stem to process")
+    parser.add_argument("--max_trajectories", type=int, default=None,
+                        help="When processing a directory, limit the number of trajectories")
     parser.add_argument("--screenshots_dir", type=str,
-                        default="/ext_hdd2/nhkoh/GUI-Odyssey/screenshots",
-                        help="Directory with GUIOdyssey screenshots")
+                        default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot",
+                        help="Directory with AMEX screenshots")
     parser.add_argument("--annotations_dir", type=str,
-                        default="/ext_hdd2/nhkoh/GUI-Odyssey/annotations",
-                        help="Directory with GUIOdyssey annotation JSONs")
+                        default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno",
+                        help="Directory with AMEX instruction annotation JSONs")
     parser.add_argument("--output_dir", type=str,
-                        default="data_engine/sim2real_envs/trajectory_001",
-                        help="Output directory for the generated environment")
+                        default="data_engine/sim2real_envs/amex_sft",
+                        help="Output root directory for generated trajectory environments")
     parser.add_argument("--weights_dir", type=str,
                         default="/ext_hdd2/nhkoh/OmniParser/weights",
                         help="OmniParser weights directory")
