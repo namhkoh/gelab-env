@@ -1,0 +1,256 @@
+{
+  "root": {
+    "image": "page_0_home.png",
+    "depth": 0,
+    "layout": {
+      "back": {
+        "bbox": [
+          56,
+          86,
+          268,
+          168
+        ],
+        "type": "system"
+      },
+      "home": {
+        "bbox": [
+          812,
+          86,
+          1024,
+          168
+        ],
+        "type": "system"
+      },
+      "Eventbrite": {
+        "bbox": [
+          99,
+          760,
+          255,
+          916
+        ],
+        "type": "normal"
+      },
+      "SeatGeek": {
+        "bbox": [
+          341,
+          760,
+          497,
+          916
+        ],
+        "type": "normal"
+      },
+      "Superuser": {
+        "bbox": [
+          583,
+          760,
+          739,
+          916
+        ],
+        "type": "normal"
+      },
+      "Audiomack": {
+        "bbox": [
+          825,
+          760,
+          981,
+          916
+        ],
+        "type": "normal"
+      },
+      "Browser": {
+        "bbox": [
+          99,
+          1032,
+          255,
+          1188
+        ],
+        "type": "normal"
+      },
+      "Gallery": {
+        "bbox": [
+          341,
+          1032,
+          497,
+          1188
+        ],
+        "type": "normal"
+      },
+      "SmartNews": {
+        "bbox": [
+          583,
+          1032,
+          739,
+          1188
+        ],
+        "type": "normal"
+      },
+      "KKBOX": {
+        "bbox": [
+          825,
+          1032,
+          981,
+          1188
+        ],
+        "type": "normal"
+      },
+      "Phone": {
+        "bbox": [
+          204,
+          1988,
+          316,
+          2100
+        ],
+        "type": "normal"
+      },
+      "Chrome": {
+        "bbox": [
+          382,
+          1988,
+          494,
+          2100
+        ],
+        "type": "normal"
+      },
+      "Messages": {
+        "bbox": [
+          560,
+          1988,
+          672,
+          2100
+        ],
+        "type": "normal"
+      },
+      "Camera": {
+        "bbox": [
+          738,
+          1988,
+          850,
+          2100
+        ],
+        "type": "normal"
+      },
+      "drawer_handle": {
+        "bbox": [
+          420,
+          2326,
+          660,
+          2360
+        ],
+        "type": "normal"
+      }
+    },
+    "transitions": [
+      {
+        "action": "swipe",
+        "target_page": "page_1_app_drawer",
+        "action_coord": [
+          540,
+          2343
+        ],
+        "lift_coord": [
+          540,
+          1460
+        ],
+        "icon_bbox": [
+          500,
+          1460,
+          580,
+          2343
+        ],
+        "gesture_direction": "up"
+      }
+    ],
+    "subnodes": [
+      {
+        "image": "page_1_app_drawer.png",
+        "depth": 1,
+        "layout": {
+          "back": {
+            "bbox": [
+              56,
+              86,
+              268,
+              168
+            ],
+            "type": "system"
+          },
+          "home": {
+            "bbox": [
+              812,
+              86,
+              1024,
+              168
+            ],
+            "type": "system"
+          },
+          "app_drawer_search": {
+            "bbox": [
+              56,
+              220,
+              1024,
+              330
+            ],
+            "type": "normal"
+          },
+          "Eventbrite": {
+            "bbox": [
+              132,
+              560,
+              288,
+              716
+            ],
+            "type": "normal"
+          },
+          "SeatGeek": {
+            "bbox": [
+              822,
+              1900,
+              978,
+              2056
+            ],
+            "type": "normal"
+          },
+          "drawer_handle": {
+            "bbox": [
+              446,
+              2340,
+              634,
+              2374
+            ],
+            "type": "normal"
+          }
+        },
+        "transitions": [
+          {
+            "action": "swipe",
+            "target_page": "page_0_home",
+            "action_coord": [
+              540,
+              1460
+            ],
+            "lift_coord": [
+              540,
+              2343
+            ],
+            "icon_bbox": [
+              500,
+              1460,
+              580,
+              2343
+            ],
+            "gesture_direction": "down"
+          }
+        ],
+        "subnodes": []
+      }
+    ]
+  },
+  "metadata": {
+    "type": "trajectory",
+    "canvas_size": [
+      1080,
+      2400
+    ],
+    "visible_viewport_height": 2400
+  }
+}

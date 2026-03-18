@@ -61,7 +61,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-OUTPUT_CANVAS_SIZE = (252, 448)  # Portrait canvas without side gutters
+OUTPUT_CANVAS_SIZE = (1080, 2400)  # Portrait canvas without side gutters
 OUTPUT_W, OUTPUT_H = OUTPUT_CANVAS_SIZE
 ICON_SIZE = 50
 NAV_BAR_HEIGHT = 45
@@ -561,9 +561,9 @@ def _encode_image_base64(image_path: str) -> str:
 
 # GE-Lab nav button style: pink "back" top-left, green "home" top-right
 # Dedicated nav strip at top so back/home don't occlude page content.
-NAV_BTN_W = 40
-NAV_BTN_H = 24
-NAV_STRIP_H = NAV_BTN_H + 8  # 4px padding top + bottom
+NAV_BTN_W = 88
+NAV_BTN_H = 38
+NAV_STRIP_H = NAV_BTN_H + 18
 PHONE_CANVAS_H = OUTPUT_H - NAV_STRIP_H
 PHONE_CANVAS_W = OUTPUT_W
 CANVAS_SIZE = (PHONE_CANVAS_W, PHONE_CANVAS_H)
@@ -572,8 +572,8 @@ PHONE_OFFSET_X = 0
 PHONE_OFFSET_Y = NAV_STRIP_H
 GELAB_BACK_COLOR = (255, 200, 200)  # pink
 GELAB_HOME_COLOR = (200, 255, 200)  # green
-GELAB_BACK_BBOX = [4, 4, 4 + NAV_BTN_W, 4 + NAV_BTN_H]
-GELAB_HOME_BBOX = [OUTPUT_W - 4 - NAV_BTN_W, 4, OUTPUT_W - 4, 4 + NAV_BTN_H]
+GELAB_BACK_BBOX = [10, 8, 10 + NAV_BTN_W, 8 + NAV_BTN_H]
+GELAB_HOME_BBOX = [OUTPUT_W - 10 - NAV_BTN_W, 8, OUTPUT_W - 10, 8 + NAV_BTN_H]
 
 STYLING_CODE_PROMPT = """\
 Write Python PIL code to draw the BACKGROUND and STRUCTURE of this mobile UI page.
@@ -1185,13 +1185,18 @@ def _draw_system_nav_overlay(image: Image.Image) -> Image.Image:
         canvas = resized_canvas
 
     draw = ImageDraw.Draw(canvas)
-    font = _try_load_font(12)
+    font = _try_load_font(18)
 
     draw.rectangle([0, 0, OUTPUT_W, NAV_STRIP_H], fill=(245, 245, 248))
-    draw.rounded_rectangle(GELAB_BACK_BBOX, radius=6, fill=GELAB_BACK_COLOR, outline=(220, 170, 170))
-    draw.rounded_rectangle(GELAB_HOME_BBOX, radius=6, fill=GELAB_HOME_COLOR, outline=(160, 210, 160))
-    draw.text((GELAB_BACK_BBOX[0] + 8, GELAB_BACK_BBOX[1] + 6), "back", fill=TEXT_BLACK, font=font)
-    draw.text((GELAB_HOME_BBOX[0] + 6, GELAB_HOME_BBOX[1] + 6), "home", fill=TEXT_BLACK, font=font)
+    draw.rounded_rectangle(GELAB_BACK_BBOX, radius=10, fill=GELAB_BACK_COLOR, outline=(220, 170, 170), width=2)
+    draw.rounded_rectangle(GELAB_HOME_BBOX, radius=10, fill=GELAB_HOME_COLOR, outline=(160, 210, 160), width=2)
+    for label, bbox in (("back", GELAB_BACK_BBOX), ("home", GELAB_HOME_BBOX)):
+        text_bbox = draw.textbbox((0, 0), label, font=font)
+        text_w = text_bbox[2] - text_bbox[0]
+        text_h = text_bbox[3] - text_bbox[1]
+        text_x = int((bbox[0] + bbox[2] - text_w) / 2)
+        text_y = int((bbox[1] + bbox[3] - text_h) / 2) - 1
+        draw.text((text_x, text_y), label, fill=TEXT_BLACK, font=font)
 
     phone_frame = [
         PHONE_OFFSET_X - 1,
@@ -1665,6 +1670,17 @@ def _stored_transition_action_coord(transition: dict) -> List[int]:
     return [0, 0]
 
 
+def _stored_transition_lift_coord(transition: dict) -> List[int]:
+    """Preserve the canvas-space end point for swipe/scroll gestures."""
+    raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
+    if raw_action not in ("SWIPE", "SCROLL"):
+        return [0, 0]
+    canvas_lift_coord = _safe_coord_pair(transition.get("canvas_lift_coord") or [])
+    if _is_valid_point(canvas_lift_coord):
+        return [int(canvas_lift_coord[0]), int(canvas_lift_coord[1])]
+    return [0, 0]
+
+
 def _debug_bbox_for_transition(transition: dict, action_coord: List[int]) -> List[int]:
     raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
     canvas_action_bbox = transition.get("canvas_action_bbox") or [0, 0, 0, 0]
@@ -1693,15 +1709,20 @@ def _serialize_transition_minimal(transition: dict) -> dict:
     # baseline compose script did not need to preserve action points per page.
     raw_action = _normalize_raw_action_name(transition.get("raw_action", "")).upper()
     icon_bbox = transition.get("icon_bbox", [0, 0, 0, 0])
+    if raw_action in ("SWIPE", "SCROLL"):
+        icon_bbox = transition.get("canvas_action_bbox", icon_bbox)
     if raw_action in ("TYPE", "TEXT", "PRESS_ENTER"):
         icon_bbox = [0, 0, 0, 0]
     action_coord = _stored_transition_action_coord(transition)
+    lift_coord = _stored_transition_lift_coord(transition)
     item = {
         "action": _stored_transition_action(transition),
         "target_page": transition.get("target_page", ""),
     }
     if _is_valid_point(action_coord):
         item["action_coord"] = [int(action_coord[0]), int(action_coord[1])]
+    if _is_valid_point(lift_coord):
+        item["lift_coord"] = [int(lift_coord[0]), int(lift_coord[1])]
     if isinstance(icon_bbox, (list, tuple)) and len(icon_bbox) == 4 and _is_valid_bbox(icon_bbox):
         item["icon_bbox"] = [int(v) for v in icon_bbox]
 
@@ -2103,6 +2124,8 @@ def _resolve_transition(step: dict,
 
     canvas_action_bbox = _scale_action_bbox_to_canvas(step, raw_action, orig_size)
     canvas_action_point = _scale_action_point_to_canvas(step, raw_action, orig_size)
+    canvas_lift_coord = _scale_step_coord_to_canvas(step, step.get("lift_coord") or [], orig_size)
+    gesture_direction = _infer_gesture_direction(step, raw_action, orig_size)
 
     transition = {
         "raw_action": raw_action,
@@ -2110,8 +2133,10 @@ def _resolve_transition(step: dict,
         "target_page": target_page,
         "canvas_action_bbox": canvas_action_bbox,
         "canvas_action_point": canvas_action_point,
+        "canvas_lift_coord": canvas_lift_coord,
         "icon_bbox": layout.get(resolved_target, [0, 0, 0, 0]),
         "type_text": str(step.get("type_text", "")),
+        "gesture_direction": gesture_direction,
     }
 
     if raw_action in ("TAP", "CLICK"):
@@ -2127,7 +2152,7 @@ def _resolve_transition(step: dict,
     elif raw_action in ("SWIPE", "SCROLL"):
         if _is_layout_target(resolved_target, layout):
             transition["action"] = resolved_target
-            transition["icon_bbox"] = layout.get(resolved_target, [0, 0, 0, 0])
+            transition["icon_bbox"] = canvas_action_bbox
         else:
             transition["action"] = resolved_target if resolved_target.startswith("swipe_") else "swipe"
             transition["icon_bbox"] = canvas_action_bbox
@@ -2162,8 +2187,10 @@ def _build_system_transition(raw_action: str,
         "target_page": target_page,
         "canvas_action_bbox": [0, 0, 0, 0],
         "canvas_action_point": [0, 0],
+        "canvas_lift_coord": [0, 0],
         "icon_bbox": icon_bbox,
         "type_text": "",
+        "gesture_direction": "",
     }
 
 

@@ -1,0 +1,762 @@
+{
+  "trajectory_id_input": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c",
+  "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c.json",
+  "episode_id": "7d33c6998cf04029b5ef1eda396d418c",
+  "annotation_stem": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c",
+  "instruction": "I want to fly to Beijing from hk. Don't care about the departure time. Don't care about the number of passengers. Prize should be less than half of highest prize.  Choose the fastest one. Add it to the cart.",
+  "generated_at": "2026-03-17T15:40:37",
+  "screenshots_dir": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot",
+  "output_dir": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c",
+  "overview_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/overview.png",
+  "total_steps": 22,
+  "steps": [
+    {
+      "step_number": 1,
+      "step_id": 1,
+      "step_index": 1,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-1.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-1.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_01_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        340,
+        2186
+      ],
+      "lift_coord": [
+        340,
+        2186
+      ],
+      "scaled_touch_coord": [
+        340,
+        2186
+      ],
+      "scaled_lift_coord": [
+        340,
+        2186
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 2,
+      "step_id": 2,
+      "step_index": 2,
+      "action": "TYPE",
+      "type_text": "agoda",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-2.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-2.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_02_TYPE.png",
+      "exists": true,
+      "touch_coord": [
+        0,
+        0
+      ],
+      "lift_coord": [
+        0,
+        0
+      ],
+      "scaled_touch_coord": [
+        0,
+        0
+      ],
+      "scaled_lift_coord": [
+        0,
+        0
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": false
+    },
+    {
+      "step_number": 3,
+      "step_id": 3,
+      "step_index": 3,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-3.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-3.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_03_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        184,
+        445
+      ],
+      "lift_coord": [
+        184,
+        445
+      ],
+      "scaled_touch_coord": [
+        184,
+        445
+      ],
+      "scaled_lift_coord": [
+        184,
+        445
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 4,
+      "step_id": 4,
+      "step_index": 4,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-4.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-4.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_04_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        209,
+        888
+      ],
+      "lift_coord": [
+        209,
+        888
+      ],
+      "scaled_touch_coord": [
+        209,
+        888
+      ],
+      "scaled_lift_coord": [
+        209,
+        888
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 5,
+      "step_id": 5,
+      "step_index": 5,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-5.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-5.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_05_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        206,
+        521
+      ],
+      "lift_coord": [
+        206,
+        521
+      ],
+      "scaled_touch_coord": [
+        206,
+        521
+      ],
+      "scaled_lift_coord": [
+        206,
+        521
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 6,
+      "step_id": 6,
+      "step_index": 6,
+      "action": "TYPE",
+      "type_text": "hong kong",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-6.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-6.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_06_TYPE.png",
+      "exists": true,
+      "touch_coord": [
+        0,
+        0
+      ],
+      "lift_coord": [
+        0,
+        0
+      ],
+      "scaled_touch_coord": [
+        0,
+        0
+      ],
+      "scaled_lift_coord": [
+        0,
+        0
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": false
+    },
+    {
+      "step_number": 7,
+      "step_id": 7,
+      "step_index": 7,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-7.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-7.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_07_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        299,
+        512
+      ],
+      "lift_coord": [
+        299,
+        512
+      ],
+      "scaled_touch_coord": [
+        299,
+        512
+      ],
+      "scaled_lift_coord": [
+        299,
+        512
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 8,
+      "step_id": 8,
+      "step_index": 8,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-8.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-8.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_08_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        352,
+        646
+      ],
+      "lift_coord": [
+        352,
+        646
+      ],
+      "scaled_touch_coord": [
+        352,
+        646
+      ],
+      "scaled_lift_coord": [
+        352,
+        646
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 9,
+      "step_id": 9,
+      "step_index": 9,
+      "action": "TYPE",
+      "type_text": "beijing",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-9.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-9.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_09_TYPE.png",
+      "exists": true,
+      "touch_coord": [
+        0,
+        0
+      ],
+      "lift_coord": [
+        0,
+        0
+      ],
+      "scaled_touch_coord": [
+        0,
+        0
+      ],
+      "scaled_lift_coord": [
+        0,
+        0
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": false
+    },
+    {
+      "step_number": 10,
+      "step_id": 10,
+      "step_index": 10,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-10.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-10.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_10_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        407,
+        498
+      ],
+      "lift_coord": [
+        407,
+        498
+      ],
+      "scaled_touch_coord": [
+        407,
+        498
+      ],
+      "scaled_lift_coord": [
+        407,
+        498
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 11,
+      "step_id": 11,
+      "step_index": 11,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-11.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-11.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_11_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        449,
+        1239
+      ],
+      "lift_coord": [
+        449,
+        1239
+      ],
+      "scaled_touch_coord": [
+        449,
+        1239
+      ],
+      "scaled_lift_coord": [
+        449,
+        1239
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 12,
+      "step_id": 12,
+      "step_index": 12,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-12.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-12.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_12_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        223,
+        565
+      ],
+      "lift_coord": [
+        223,
+        565
+      ],
+      "scaled_touch_coord": [
+        223,
+        565
+      ],
+      "scaled_lift_coord": [
+        223,
+        565
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 13,
+      "step_id": 13,
+      "step_index": 13,
+      "action": "SWIPE",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-13.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-13.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_13_SWIPE.png",
+      "exists": true,
+      "touch_coord": [
+        508,
+        1999
+      ],
+      "lift_coord": [
+        575,
+        395
+      ],
+      "scaled_touch_coord": [
+        508,
+        1999
+      ],
+      "scaled_lift_coord": [
+        575,
+        395
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 14,
+      "step_id": 14,
+      "step_index": 14,
+      "action": "SWIPE",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-14.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-14.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_14_SWIPE.png",
+      "exists": true,
+      "touch_coord": [
+        483,
+        2102
+      ],
+      "lift_coord": [
+        566,
+        462
+      ],
+      "scaled_touch_coord": [
+        483,
+        2102
+      ],
+      "scaled_lift_coord": [
+        566,
+        462
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 15,
+      "step_id": 15,
+      "step_index": 15,
+      "action": "SWIPE",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-15.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-15.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_15_SWIPE.png",
+      "exists": true,
+      "touch_coord": [
+        979,
+        2060
+      ],
+      "lift_coord": [
+        525,
+        2060
+      ],
+      "scaled_touch_coord": [
+        979,
+        2060
+      ],
+      "scaled_lift_coord": [
+        525,
+        2060
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 16,
+      "step_id": 16,
+      "step_index": 16,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-16.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-16.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_16_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        449,
+        2233
+      ],
+      "lift_coord": [
+        449,
+        2233
+      ],
+      "scaled_touch_coord": [
+        449,
+        2233
+      ],
+      "scaled_lift_coord": [
+        449,
+        2233
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 17,
+      "step_id": 17,
+      "step_index": 17,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-17.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-17.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_17_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        592,
+        1158
+      ],
+      "lift_coord": [
+        592,
+        1158
+      ],
+      "scaled_touch_coord": [
+        592,
+        1158
+      ],
+      "scaled_lift_coord": [
+        592,
+        1158
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 18,
+      "step_id": 18,
+      "step_index": 18,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-18.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-18.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_18_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        926,
+        1840
+      ],
+      "lift_coord": [
+        926,
+        1840
+      ],
+      "scaled_touch_coord": [
+        926,
+        1840
+      ],
+      "scaled_lift_coord": [
+        926,
+        1840
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 19,
+      "step_id": 19,
+      "step_index": 19,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-19.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-19.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_19_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        734,
+        930
+      ],
+      "lift_coord": [
+        734,
+        930
+      ],
+      "scaled_touch_coord": [
+        734,
+        930
+      ],
+      "scaled_lift_coord": [
+        734,
+        930
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 20,
+      "step_id": 20,
+      "step_index": 20,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-20.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-20.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_20_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        600,
+        1623
+      ],
+      "lift_coord": [
+        600,
+        1623
+      ],
+      "scaled_touch_coord": [
+        600,
+        1623
+      ],
+      "scaled_lift_coord": [
+        600,
+        1623
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 21,
+      "step_id": 21,
+      "step_index": 21,
+      "action": "TAP",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-21.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-21.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_21_TAP.png",
+      "exists": true,
+      "touch_coord": [
+        527,
+        1993
+      ],
+      "lift_coord": [
+        527,
+        1993
+      ],
+      "scaled_touch_coord": [
+        527,
+        1993
+      ],
+      "scaled_lift_coord": [
+        527,
+        1993
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": true
+    },
+    {
+      "step_number": 22,
+      "step_id": 22,
+      "step_index": 22,
+      "action": "TASK_COMPLETE",
+      "type_text": "",
+      "screenshot_name": "2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-22.png",
+      "screenshot_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c-22.png",
+      "overlay_path": "data_engine/amex_real_action_overlays/2024_3_19_16_37_7d33c6998cf04029b5ef1eda396d418c/step_22_TASK_COMPLETE.png",
+      "exists": true,
+      "touch_coord": [
+        0,
+        0
+      ],
+      "lift_coord": [
+        0,
+        0
+      ],
+      "scaled_touch_coord": [
+        0,
+        0
+      ],
+      "scaled_lift_coord": [
+        0,
+        0
+      ],
+      "interest_region_bbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spatial_overlay": false
+    }
+  ]
+}

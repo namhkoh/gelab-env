@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "style": "realistic_launcher_v2",
+    "random_seed": null
+  },
+  "_instructions": [
+    "Each icon can use either 'slot' or direct 'x' and 'y' coordinates.",
+    "x and y are the top-left coordinates of the icon tile in pixels.",
+    "Example direct placement: {\"label\": \"Eventbrite\", \"asset\": \"eventbrite\", \"x\": 220, \"y\": 620}",
+    "Example slot swap: change \"slot\": \"home_slot_1\" to \"slot\": \"home_slot_4\".",
+    "Use asset=random_home_real to sample one realistic icon from the bundled AMEX asset pool."
+  ],
+  "slots": {
+    "home_slot_1": { "x": 99, "y": 760 },
+    "home_slot_2": { "x": 341, "y": 760 },
+    "home_slot_3": { "x": 583, "y": 760 },
+    "home_slot_4": { "x": 825, "y": 760 },
+    "home_slot_5": { "x": 99, "y": 1032 },
+    "home_slot_6": { "x": 341, "y": 1032 },
+    "home_slot_7": { "x": 583, "y": 1032 },
+    "home_slot_8": { "x": 825, "y": 1032 },
+    "drawer_slot_1": { "x": 132, "y": 560 },
+    "drawer_slot_2": { "x": 362, "y": 560 },
+    "drawer_slot_3": { "x": 592, "y": 560 },
+    "drawer_slot_4": { "x": 822, "y": 560 },
+    "drawer_slot_5": { "x": 132, "y": 828 },
+    "drawer_slot_6": { "x": 362, "y": 828 },
+    "drawer_slot_7": { "x": 592, "y": 828 },
+    "drawer_slot_8": { "x": 822, "y": 828 },
+    "drawer_slot_9": { "x": 132, "y": 1096 },
+    "drawer_slot_10": { "x": 362, "y": 1096 },
+    "drawer_slot_11": { "x": 592, "y": 1096 },
+    "drawer_slot_12": { "x": 822, "y": 1096 },
+    "drawer_slot_13": { "x": 132, "y": 1364 },
+    "drawer_slot_14": { "x": 362, "y": 1364 },
+    "drawer_slot_15": { "x": 592, "y": 1364 },
+    "drawer_slot_16": { "x": 822, "y": 1364 },
+    "drawer_slot_17": { "x": 132, "y": 1632 },
+    "drawer_slot_18": { "x": 362, "y": 1632 },
+    "drawer_slot_19": { "x": 592, "y": 1632 },
+    "drawer_slot_20": { "x": 822, "y": 1632 },
+    "drawer_slot_21": { "x": 132, "y": 1900 },
+    "drawer_slot_22": { "x": 362, "y": 1900 },
+    "drawer_slot_23": { "x": 592, "y": 1900 },
+    "drawer_slot_24": { "x": 822, "y": 1900 },
+    "dock_slot_1": { "x": 204, "y": 1988 },
+    "dock_slot_2": { "x": 382, "y": 1988 },
+    "dock_slot_3": { "x": 560, "y": 1988 },
+    "dock_slot_4": { "x": 738, "y": 1988 }
+  },
+  "pages": {
+    "home": {
+      "icons": [
+        { "label": "Eventbrite", "asset": "eventbrite", "slot": "home_slot_1", "show_label": false },
+        { "label": "SeatGeek", "asset": "seatgeek", "slot": "home_slot_2", "show_label": false },
+        { "asset": "random_home_real", "slot": "home_slot_3", "show_label": false },
+        { "asset": "random_home_real", "slot": "home_slot_4", "show_label": false },
+        { "asset": "random_home_real", "slot": "home_slot_5", "show_label": false },
+        { "asset": "random_home_real", "slot": "home_slot_6", "show_label": false },
+        { "asset": "random_home_real", "slot": "home_slot_7", "show_label": false },
+        { "asset": "random_home_real", "slot": "home_slot_8", "show_label": false }
+      ],
+      "dock_icons": [
+        { "label": "Phone", "asset": "phone", "slot": "dock_slot_1", "size": 112, "show_label": true },
+        { "label": "Chrome", "asset": "chrome", "slot": "dock_slot_2", "size": 112, "show_label": true },
+        { "label": "Messages", "asset": "messages", "slot": "dock_slot_3", "size": 112, "show_label": true },
+        { "label": "Camera", "asset": "camera", "slot": "dock_slot_4", "size": 112, "show_label": true }
+      ]
+    },
+    "app_drawer": {
+      "icons": [
+        { "label": "Eventbrite", "asset": "eventbrite", "slot": "drawer_slot_1", "show_label": false },
+        { "label": "SeatGeek", "asset": "seatgeek", "slot": "drawer_slot_24", "show_label": false }
+      ]
+    }
+  }
+}

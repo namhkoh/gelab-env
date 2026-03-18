@@ -1,0 +1,994 @@
+{
+  "apps": [
+    {
+      "label": "Eventbrite",
+      "asset": "eventbrite",
+      "slug": "eventbrite",
+      "layout_key": "Eventbrite",
+      "bbox": [
+        132,
+        560,
+        288,
+        716
+      ],
+      "matched_annotation_count": 51,
+      "matches": [
+        {
+          "trajectory_id_full": "2024_4_24_17_24_02f151acef934b59b90856d9e8041920",
+          "episode_id": "02f151acef934b59b90856d9e8041920",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_24_02f151acef934b59b90856d9e8041920.json",
+          "instruction": "Open Eventbrite. Check the \"Tech\" events happening this month. Open the first event and check its date and time.",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_40_03837235ef8649c7821b415a8d3b0093",
+          "episode_id": "03837235ef8649c7821b415a8d3b0093",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_40_03837235ef8649c7821b415a8d3b0093.json",
+          "instruction": "Open Eventbrite. Locate the 'Conference' category. Filter the results to only show virtual events. Choose the first event from the results. What is the duration of this event?",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_30_182a9ea236924e9eb43ccbe82fd1506e",
+          "episode_id": "182a9ea236924e9eb43ccbe82fd1506e",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_30_182a9ea236924e9eb43ccbe82fd1506e.json",
+          "instruction": "Open Eventbrite. Set time to tomorrow. Clear all search filters. Select the third one in New York. Record its location and time in Google Keep Notes. Add it to Favorites.",
+          "start_step_idx": 2,
+          "end_step_idx": 15,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 20
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_29_1a166da440f24e2e9152f2c0e40eb7aa",
+          "episode_id": "1a166da440f24e2e9152f2c0e40eb7aa",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_29_1a166da440f24e2e9152f2c0e40eb7aa.json",
+          "instruction": "Open Eventbrite. Check \"Sports\" category. Filter events happening next month. Add the first event to your wishlist.",
+          "start_step_idx": 2,
+          "end_step_idx": 18,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 18
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_52_1c30518736b1454cb330b963c1cc6d86",
+          "episode_id": "1c30518736b1454cb330b963c1cc6d86",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_52_1c30518736b1454cb330b963c1cc6d86.json",
+          "instruction": "Open Eventbrite. Search for \"Open Mic Nights\". Filter the results to only include free events. Select the first non-promoted event in the list - what\"s the location of that event?",
+          "start_step_idx": 2,
+          "end_step_idx": 11,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 11
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_54_31528ae16c264b1b98bd4e1f25c5d9e5",
+          "episode_id": "31528ae16c264b1b98bd4e1f25c5d9e5",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_54_31528ae16c264b1b98bd4e1f25c5d9e5.json",
+          "instruction": "Open Eventbrite. Search 'Fitness'. Filter for free events. Browse and select any 'Yoga' event. Note the location.",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_23_20_6_31d4c984d33c4fe69d15d4e595fa95f6",
+          "episode_id": "31d4c984d33c4fe69d15d4e595fa95f6",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_20_6_31d4c984d33c4fe69d15d4e595fa95f6.json",
+          "instruction": "Open Eventbrite. Look for 'community events' in 'Chicago'. Select the first event happening tomorrow that is not promoted. Check if they have an option for 'refund policy'.",
+          "start_step_idx": 2,
+          "end_step_idx": 16,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 16
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_42_39adaf730c584c5582b89d1335e0c2cd",
+          "episode_id": "39adaf730c584c5582b89d1335e0c2cd",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_42_39adaf730c584c5582b89d1335e0c2cd.json",
+          "instruction": "Open Eventbrite. Search for 'food and drink' events. Follow the organizer of the first event in listing.",
+          "start_step_idx": 2,
+          "end_step_idx": 8,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 8
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_40_3c2c0d71896b45acb211a472de4b4c9e",
+          "episode_id": "3c2c0d71896b45acb211a472de4b4c9e",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_40_3c2c0d71896b45acb211a472de4b4c9e.json",
+          "instruction": "Open Eventbrite. Search free Health event in Los Angeles. Select the first one that is not promoted. Follow the organizer. Share to google keep notes.",
+          "start_step_idx": 2,
+          "end_step_idx": 17,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 20
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_21_3ce6196f48694f74bf7d05dc71840c63",
+          "episode_id": "3ce6196f48694f74bf7d05dc71840c63",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_21_3ce6196f48694f74bf7d05dc71840c63.json",
+          "instruction": "Open Eventbrite. Search for 'coding workshop'. Sort the results by date. Where is the location of the soonest event that is not promoted?",
+          "start_step_idx": 2,
+          "end_step_idx": 11,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 11
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_27_45f56b06f31541079045047b6d542613",
+          "episode_id": "45f56b06f31541079045047b6d542613",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_27_45f56b06f31541079045047b6d542613.json",
+          "instruction": "Open Eventbrite. Search events 'Yoga session' in New York. Filter free events and set date from May 3 to May 6. What is the location of the first promoted event?",
+          "start_step_idx": 2,
+          "end_step_idx": 23,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 23
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_57_47f784058c8444bd8017b372f0857efe",
+          "episode_id": "47f784058c8444bd8017b372f0857efe",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_57_47f784058c8444bd8017b372f0857efe.json",
+          "instruction": "Open Eventbrite. Explore local events scheduled for this weekend. Select the first event from the 'Science' category. Read details of the event.",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_51_4c12747d6cb14426aff8b07be52a617b",
+          "episode_id": "4c12747d6cb14426aff8b07be52a617b",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_51_4c12747d6cb14426aff8b07be52a617b.json",
+          "instruction": "Open Eventbrite. Search 'Art'. Filter event type \"Performance\". Select the first event. Follow the organizer and save the event to favorite. What is the price of the ticket?",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_55_4fbf805fbd914a178f72f68b0bc03f81",
+          "episode_id": "4fbf805fbd914a178f72f68b0bc03f81",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_55_4fbf805fbd914a178f72f68b0bc03f81.json",
+          "instruction": "Open Eventbrite. Explore \"Education\" events. Apply filters for events happening tomorrow. From the list, select the third event and check out its description.",
+          "start_step_idx": 2,
+          "end_step_idx": 12,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_33_5059e61823f845cf95cbd1d8d54254c6",
+          "episode_id": "5059e61823f845cf95cbd1d8d54254c6",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_33_5059e61823f845cf95cbd1d8d54254c6.json",
+          "instruction": "Open Eventbrite. Look for 'Education' in Los Angeles happening on May 4. Filter to show only free events. How many events are posted?",
+          "start_step_idx": 2,
+          "end_step_idx": 21,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 21
+        },
+        {
+          "trajectory_id_full": "2024_4_23_20_1_5362d15941a843c5a00f4a85c7ff0a9a",
+          "episode_id": "5362d15941a843c5a00f4a85c7ff0a9a",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_20_1_5362d15941a843c5a00f4a85c7ff0a9a.json",
+          "instruction": "Open Eventbrite. Set the city to 'Los Angeles'. Search 'Business'. Filter 'French' speaking events. Add the first event to favorite.",
+          "start_step_idx": 2,
+          "end_step_idx": 14,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 14
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_36_5f8371b476c64aeeb04a6d8281b87f4d",
+          "episode_id": "5f8371b476c64aeeb04a6d8281b87f4d",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_36_5f8371b476c64aeeb04a6d8281b87f4d.json",
+          "instruction": "Open Eventbrite. Search Science & Tech event. Select the first one that is not promoted. If it is free, add it to Favorites. If it is not free, record its price in Google Keep Notes.",
+          "start_step_idx": 2,
+          "end_step_idx": 9,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 9
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_8_642b2c00296046d8aea556a4767dc400",
+          "episode_id": "642b2c00296046d8aea556a4767dc400",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_8_642b2c00296046d8aea556a4767dc400.json",
+          "instruction": "Open Eventbrite. Search free events in New York. Select the first one. Follow the organizer. Read more about the event. Add it to Favorites.",
+          "start_step_idx": 2,
+          "end_step_idx": 14,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 14
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_37_66847fb559f849b19cea93b83307fae7",
+          "episode_id": "66847fb559f849b19cea93b83307fae7",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_37_66847fb559f849b19cea93b83307fae7.json",
+          "instruction": "Open Eventbrite. Open favorites and select the second event. Process to checkout and see what payment options it offers.",
+          "start_step_idx": 2,
+          "end_step_idx": 6,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 6
+        },
+        {
+          "trajectory_id_full": "2024_4_23_20_10_6b75132d6e874d9a960bba273e5f011b",
+          "episode_id": "6b75132d6e874d9a960bba273e5f011b",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_20_10_6b75132d6e874d9a960bba273e5f011b.json",
+          "instruction": "Open Eventbrite. Set the city to 'San Francisco'. Search 'Outdoor'. Select an event starting after 5 PM. Check the ticket price.",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_36_76997fc72cfa40e69ba9a9c4e2afcec1",
+          "episode_id": "76997fc72cfa40e69ba9a9c4e2afcec1",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_36_76997fc72cfa40e69ba9a9c4e2afcec1.json",
+          "instruction": "Open Eventbrite. Open favorite tab and remove the second event.",
+          "start_step_idx": 2,
+          "end_step_idx": 5,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 5
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_24_80babd0c0d294f03bca3ebb1c46a8a8d",
+          "episode_id": "80babd0c0d294f03bca3ebb1c46a8a8d",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_24_80babd0c0d294f03bca3ebb1c46a8a8d.json",
+          "instruction": "Open Eventbrite. Search Art event in New York. Select the second one. Record its location and time in Google Keep Notes. Follow the organizer.",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 15
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_12_86c0bd1901f44c94916665f4058f9b6d",
+          "episode_id": "86c0bd1901f44c94916665f4058f9b6d",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_12_86c0bd1901f44c94916665f4058f9b6d.json",
+          "instruction": "Open Eventbrite. Set the city to Los Angeles. Select the 'Food & Drink' category. What's the date of the first event that is not promoted?",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_21_892383ad791c46b6aa65c632ee882bf0",
+          "episode_id": "892383ad791c46b6aa65c632ee882bf0",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_21_892383ad791c46b6aa65c632ee882bf0.json",
+          "instruction": "Open Eventbrite. Search for online \"Music\" events happening next weekend.",
+          "start_step_idx": 2,
+          "end_step_idx": 14,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 14
+        },
+        {
+          "trajectory_id_full": "2024_4_23_18_50_8efde6fd9e974d7e804c40fab58deb06",
+          "episode_id": "8efde6fd9e974d7e804c40fab58deb06",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_18_50_8efde6fd9e974d7e804c40fab58deb06.json",
+          "instruction": "Open Eventbrite. Search for \"Education\". Filter only online events. Note how many events are available.",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_59_92c22920a83749c994864397a370a984",
+          "episode_id": "92c22920a83749c994864397a370a984",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_59_92c22920a83749c994864397a370a984.json",
+          "instruction": "Open Eventbrite. Set the city to \"Chicago\". Select the \"Sports\" category and view the recommended events. See the date of the first non-promoted event.",
+          "start_step_idx": 2,
+          "end_step_idx": 15,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 15
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_38_97cc452004d64d67bb4c5b51ffb8f6d4",
+          "episode_id": "97cc452004d64d67bb4c5b51ffb8f6d4",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_38_97cc452004d64d67bb4c5b51ffb8f6d4.json",
+          "instruction": "Open Eventbrite. Search Business event. Select the first one that is not promoted. Share to google keep notes.",
+          "start_step_idx": 2,
+          "end_step_idx": 9,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_14_997cbfb071cf458f82ccaba5bddfc7b8",
+          "episode_id": "997cbfb071cf458f82ccaba5bddfc7b8",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_14_997cbfb071cf458f82ccaba5bddfc7b8.json",
+          "instruction": "Open Eventbrite. Search Online free events. Select the first one. Follow the organizer. Read more about the event. Add it to Favorites.",
+          "start_step_idx": 2,
+          "end_step_idx": 17,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 17
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_46_9fdb2ee43d5a49adac5304bdd5dacfc2",
+          "episode_id": "9fdb2ee43d5a49adac5304bdd5dacfc2",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_46_9fdb2ee43d5a49adac5304bdd5dacfc2.json",
+          "instruction": "Open Eventbrite. Look up 'Pet' events. Filter by events happening this weekend. Select the third non-promoted event from the results - how much are the tickets for the event?",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_49_a9f633a394e74f78843aa30bd2792346",
+          "episode_id": "a9f633a394e74f78843aa30bd2792346",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_49_a9f633a394e74f78843aa30bd2792346.json",
+          "instruction": "Open Eventbrite. Set the city to \"Los Angeles\". Look for Photography workshops happening next week. What is the price of the tickets for first non-promoted event?",
+          "start_step_idx": 2,
+          "end_step_idx": 20,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 20
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_17_b2798d8b10cc4118ab8cf6648f8a4077",
+          "episode_id": "b2798d8b10cc4118ab8cf6648f8a4077",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_17_b2798d8b10cc4118ab8cf6648f8a4077.json",
+          "instruction": "Open Eventbrite. Search Music event in New York. Select the first one. Record its location and time in Google Keep Notes. Add it to Favorites.",
+          "start_step_idx": 2,
+          "end_step_idx": 14,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 19
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_43_b28077cf24f341ff9de826ac8bd7fb2b",
+          "episode_id": "b28077cf24f341ff9de826ac8bd7fb2b",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_43_b28077cf24f341ff9de826ac8bd7fb2b.json",
+          "instruction": "Open Eventbrite. Explore 'Wellness' events in Washington. Filter to only show free events. Add the first non-promoted event to favorite and follow the organizer.",
+          "start_step_idx": 2,
+          "end_step_idx": 18,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 18
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_3_b45cca13f24546f9824a1ca2aab19c63",
+          "episode_id": "b45cca13f24546f9824a1ca2aab19c63",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_3_b45cca13f24546f9824a1ca2aab19c63.json",
+          "instruction": "Open Eventbrite. Search for \"Art\". Filter for events in New York. Select first recommended event. Save it to wishlist. What is the duration of the event?",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_10_bbe931c7fbf3446c80521f77d3e413aa",
+          "episode_id": "bbe931c7fbf3446c80521f77d3e413aa",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_10_bbe931c7fbf3446c80521f77d3e413aa.json",
+          "instruction": "Open Eventbrite. Search free events in Los Angeles. Select the first one. Follow the organizer. Read more about the event. Add it to Favorites.",
+          "start_step_idx": 2,
+          "end_step_idx": 22,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 22
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_11_c36ef2ec281b4d40839b2bf8f321a58b",
+          "episode_id": "c36ef2ec281b4d40839b2bf8f321a58b",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_11_c36ef2ec281b4d40839b2bf8f321a58b.json",
+          "instruction": "Open Eventbrite. Set the city to \"Chicago\". Select the \"Fashion\" category and view the recommended events. See the date of the first play and its venue.",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_8_c7c81d1bf6744774b99294e9f124dda3",
+          "episode_id": "c7c81d1bf6744774b99294e9f124dda3",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_8_c7c81d1bf6744774b99294e9f124dda3.json",
+          "instruction": "Open Eventbrite. Search for \"Fitness\". Select the events in the location \"Chicago\". What is the price of the first event in listing?",
+          "start_step_idx": 2,
+          "end_step_idx": 12,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_14_c8da01368c4649acb64c6c6b41699bc8",
+          "episode_id": "c8da01368c4649acb64c6c6b41699bc8",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_14_c8da01368c4649acb64c6c6b41699bc8.json",
+          "instruction": "Open Eventbrite. Look up \"Animal\" events. Filter by events happening next week. Select the first event - who is the organizer?",
+          "start_step_idx": 2,
+          "end_step_idx": 15,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 15
+        },
+        {
+          "trajectory_id_full": "2024_3_20_17_43_cee80d2c889b45cd86e30248baf590b8",
+          "episode_id": "cee80d2c889b45cd86e30248baf590b8",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_17_43_cee80d2c889b45cd86e30248baf590b8.json",
+          "instruction": "Open Eventbrite. Search Food & Drink party event in New York. Select the first one that is not promoted. Follow the organizer. Share to google keep notes.",
+          "start_step_idx": 2,
+          "end_step_idx": 15,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 18
+        },
+        {
+          "trajectory_id_full": "2024_4_23_18_47_d77ba2e8a5b2402385411cd9fa60262a",
+          "episode_id": "d77ba2e8a5b2402385411cd9fa60262a",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_18_47_d77ba2e8a5b2402385411cd9fa60262a.json",
+          "instruction": "Open Eventbrite. Search for \"Music\". Filter only free events. Choose the first event. When is the date and timing?",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_37_d7ac75f457a4487c904e7baa93180729",
+          "episode_id": "d7ac75f457a4487c904e7baa93180729",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_37_d7ac75f457a4487c904e7baa93180729.json",
+          "instruction": "Open Eventbrite. Search for 'Cooking' classes. Filter to only show free events that occur in the weekend. Select the first event and proceed to checkout.",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_33_def19c5d5bd0474abe83d89af89419b3",
+          "episode_id": "def19c5d5bd0474abe83d89af89419b3",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_33_def19c5d5bd0474abe83d89af89419b3.json",
+          "instruction": "Open Eventbrite. Set the city to Los Angeles. Select the second recommendation on the home tab. Follow the organizer and look for the time and date of the event.",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_16_e1a6a0d0e93c4b71830358b28372ec21",
+          "episode_id": "e1a6a0d0e93c4b71830358b28372ec21",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_16_e1a6a0d0e93c4b71830358b28372ec21.json",
+          "instruction": "Open Eventbrite. Search for \"Language Learning\". Filter only online events. Note how many events are available for \"Spanish\".",
+          "start_step_idx": 2,
+          "end_step_idx": 11,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 11
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_1_e381830686d842d08e553d1397c2110d",
+          "episode_id": "e381830686d842d08e553d1397c2110d",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_1_e381830686d842d08e553d1397c2110d.json",
+          "instruction": "Open Eventbrite. Open \"Recommended\". Select the third recommended event. Add it to favourites. What is the refund policy?",
+          "start_step_idx": 2,
+          "end_step_idx": 5,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 5
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_19_e794243d416840069b0e5f15aefc4a34",
+          "episode_id": "e794243d416840069b0e5f15aefc4a34",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_19_e794243d416840069b0e5f15aefc4a34.json",
+          "instruction": "Open Eventbrite. Open \"Business Seminar\". Select the first event. Note the contact details of the organizer.",
+          "start_step_idx": 2,
+          "end_step_idx": 9,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 9
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_46_eb32c51543d749539b68e6c61ff72fb8",
+          "episode_id": "eb32c51543d749539b68e6c61ff72fb8",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_46_eb32c51543d749539b68e6c61ff72fb8.json",
+          "instruction": "Open Eventbrite. Set the city to San Francisco. Filter for events occurring between May 1st and May 15th under the category 'Music'. Select the first event and check the pricing options available.",
+          "start_step_idx": 2,
+          "end_step_idx": 21,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 21
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_26_ee1eef38e6e94342b57a272493366950",
+          "episode_id": "ee1eef38e6e94342b57a272493366950",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_26_ee1eef38e6e94342b57a272493366950.json",
+          "instruction": "Open Eventbrite. Open \"Fashion\" category. Apply filter for free events. From the list, select the first non-promoted event and add it to your favorites.",
+          "start_step_idx": 2,
+          "end_step_idx": 12,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_35_f01eaa41f6284da09deb7ced3e4eea4e",
+          "episode_id": "f01eaa41f6284da09deb7ced3e4eea4e",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_35_f01eaa41f6284da09deb7ced3e4eea4e.json",
+          "instruction": "Open Eventbrite. Check out 'Sports' events. Apply filters for events happening this week. Select the first event. Check similar events and add the first similar event to favorite.",
+          "start_step_idx": 2,
+          "end_step_idx": 13,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_24_16_31_f1e087441f9e44d997c2a58b9c8b0258",
+          "episode_id": "f1e087441f9e44d997c2a58b9c8b0258",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_16_31_f1e087441f9e44d997c2a58b9c8b0258.json",
+          "instruction": "Open Eventbrite. Find the 'Arts' category. Select events that are available for this weekend. From the results, open the first item and add it to favorite. Follow the organizer.",
+          "start_step_idx": 2,
+          "end_step_idx": 12,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_23_19_15_f502e886c78146dfb2f1efc2a331c781",
+          "episode_id": "f502e886c78146dfb2f1efc2a331c781",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_19_15_f502e886c78146dfb2f1efc2a331c781.json",
+          "instruction": "Open Eventbrite. Search for 'music festival' in San Francisco. Set date available from April 30 to May 3. How many events are listed?",
+          "start_step_idx": 2,
+          "end_step_idx": 20,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 20
+        },
+        {
+          "trajectory_id_full": "2024_4_24_17_3_f56b9f3bf9ef483cbd9847af47d34434",
+          "episode_id": "f56b9f3bf9ef483cbd9847af47d34434",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_24_17_3_f56b9f3bf9ef483cbd9847af47d34434.json",
+          "instruction": "Open Eventbrite. Look up \"Gardening\" events. Filter by events happening this week. Select the first event from the results. Follow the organizer and where is the event?",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_23_20_3_fc2bf7bdcfa6451293535f72ef3fd795",
+          "episode_id": "fc2bf7bdcfa6451293535f72ef3fd795",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_23_20_3_fc2bf7bdcfa6451293535f72ef3fd795.json",
+          "instruction": "Open Eventbrite. Search for events by 'Music' under online events. Choose the second event in the list. Get the event's duration information.",
+          "start_step_idx": 2,
+          "end_step_idx": 10,
+          "matched_package": "com.eventbrite.attendee",
+          "total_steps": 10
+        }
+      ]
+    },
+    {
+      "label": "SeatGeek",
+      "asset": "seatgeek",
+      "slug": "seatgeek",
+      "layout_key": "SeatGeek",
+      "bbox": [
+        822,
+        1900,
+        978,
+        2056
+      ],
+      "matched_annotation_count": 45,
+      "matches": [
+        {
+          "trajectory_id_full": "2024_4_22_19_56_03681efe5b614d869915a8728b755f3d",
+          "episode_id": "03681efe5b614d869915a8728b755f3d",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_56_03681efe5b614d869915a8728b755f3d.json",
+          "instruction": "Open SeatGeek. Search \"Metropolitan Opera\". Find the next available show. Filter by \"best seats\". What section are they in for the lowest price tickets?",
+          "start_step_idx": 3,
+          "end_step_idx": 13,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_22_16_59_094b5cdb02e246858451240263e6ef7f",
+          "episode_id": "094b5cdb02e246858451240263e6ef7f",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_16_59_094b5cdb02e246858451240263e6ef7f.json",
+          "instruction": "Open SeatGeek. Find the soonest upcoming NBA game in Boston with \"Celtics\". What is the highest price for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_44_1cc69540849e491bb4fc78ed1f09c554",
+          "episode_id": "1cc69540849e491bb4fc78ed1f09c554",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_44_1cc69540849e491bb4fc78ed1f09c554.json",
+          "instruction": "Open SeatGeek. Search \"Madison Square Garden\". Select the next upcoming event. Who are the performers of the event?",
+          "start_step_idx": 3,
+          "end_step_idx": 10,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_31_1e6c9e893d9e4bc99959744188677162",
+          "episode_id": "1e6c9e893d9e4bc99959744188677162",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_31_1e6c9e893d9e4bc99959744188677162.json",
+          "instruction": "Open SeatGeek. Search \"Radio City Music Hall\" and then add the venue to favorite. Who are the performers of the top recommended event?",
+          "start_step_idx": 3,
+          "end_step_idx": 11,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 11
+        },
+        {
+          "trajectory_id_full": "2024_3_20_14_36_21b637d11bea46b8adb3c2efc9f03501",
+          "episode_id": "21b637d11bea46b8adb3c2efc9f03501",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_14_36_21b637d11bea46b8adb3c2efc9f03501.json",
+          "instruction": "Open SeatGeek and find the soonest upcoming NBA game in New York with \"Nets\", record the cheapest price in google keep notes.",
+          "start_step_idx": 3,
+          "end_step_idx": 13,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 21
+        },
+        {
+          "trajectory_id_full": "2024_4_22_18_48_2494f7834eb34348925a46d104662dcf",
+          "episode_id": "2494f7834eb34348925a46d104662dcf",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_18_48_2494f7834eb34348925a46d104662dcf.json",
+          "instruction": "Open SeatGeek. Search for \"Book of Mormon\". Add the show to favorite. Select date April 26. Set the ticket number to 2 and proceed. What is the lowest price for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_46_275896c29e4341b1a61db6ff596ab44c",
+          "episode_id": "275896c29e4341b1a61db6ff596ab44c",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_46_275896c29e4341b1a61db6ff596ab44c.json",
+          "instruction": "Open SeatGeek. Look up \"Seattle Mariners\" tickets. Select the next upcoming event in Los Angeles. Set quantity to 2 and select the best value tickets. Which section are tickets in?",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_29_2ab99c22f31743719b11cf70dc6cb197",
+          "episode_id": "2ab99c22f31743719b11cf70dc6cb197",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_29_2ab99c22f31743719b11cf70dc6cb197.json",
+          "instruction": "Open SeatGeek. Search \"Oracle Arena\". Add the venue to the watch list.",
+          "start_step_idx": 3,
+          "end_step_idx": 9,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 9
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_4_2c6b8c5734894f77ba798a927b118406",
+          "episode_id": "2c6b8c5734894f77ba798a927b118406",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_4_2c6b8c5734894f77ba798a927b118406.json",
+          "instruction": "Open SeatGeek. Search \"Wembley Stadium\". Show the next five football matches. Add to watch list.",
+          "start_step_idx": 3,
+          "end_step_idx": 8,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 8
+        },
+        {
+          "trajectory_id_full": "2024_4_22_17_5_2c8f932b941840c18364dd035f1c8473",
+          "episode_id": "2c8f932b941840c18364dd035f1c8473",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_17_5_2c8f932b941840c18364dd035f1c8473.json",
+          "instruction": "Open SeatGeek. Search \"Beatles Love\". Select the soonest upcoming event. Choose 2 tickets and continue. What is the lowest price for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 11,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 11
+        },
+        {
+          "trajectory_id_full": "2024_4_22_18_52_2d936b7d0af74c20ba6cd92218729838",
+          "episode_id": "2d936b7d0af74c20ba6cd92218729838",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_18_52_2d936b7d0af74c20ba6cd92218729838.json",
+          "instruction": "Open SeatGeek. Track \"Los Angeles Clippers\" and \"Golden State Warriors\".",
+          "start_step_idx": 3,
+          "end_step_idx": 15,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 15
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_9_3297e3a54de8487d8c2b67798919ed2f",
+          "episode_id": "3297e3a54de8487d8c2b67798919ed2f",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_9_3297e3a54de8487d8c2b67798919ed2f.json",
+          "instruction": "Open SeatGeek. Search \"Comedy Show in Los Angeles\". Find the top recommendation. When is the event?",
+          "start_step_idx": 3,
+          "end_step_idx": 14,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 14
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_10_3675f36a85734af4aa90c8115351dd12",
+          "episode_id": "3675f36a85734af4aa90c8115351dd12",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_10_3675f36a85734af4aa90c8115351dd12.json",
+          "instruction": "Open SeatGeek. Search \"The Fonda Theatre\". Select the top popular event and track it. What is the lowest price?",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_3_20_15_39_42f99a380cf348fea73bd58c0e4ec8db",
+          "episode_id": "42f99a380cf348fea73bd58c0e4ec8db",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_15_39_42f99a380cf348fea73bd58c0e4ec8db.json",
+          "instruction": "Open SeatGeek and search for the broadway show \"lion king\" on March 22. I need 3 tickets at average price less than 500 USD. Find the best seats and record the total price in google keep notes.",
+          "start_step_idx": 3,
+          "end_step_idx": 17,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 22
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_34_49ceba1342134bb89f14fac27abc2dcd",
+          "episode_id": "49ceba1342134bb89f14fac27abc2dcd",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_34_49ceba1342134bb89f14fac27abc2dcd.json",
+          "instruction": "Open SeatGeek. Track \"New York Yankees\", \"Boston Red Sox\".",
+          "start_step_idx": 3,
+          "end_step_idx": 15,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 15
+        },
+        {
+          "trajectory_id_full": "2024_4_22_18_56_6623dffea11a48f2955bafde23a3f1c7",
+          "episode_id": "6623dffea11a48f2955bafde23a3f1c7",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_18_56_6623dffea11a48f2955bafde23a3f1c7.json",
+          "instruction": "Open SeatGeek. Search \"New York Knicks\" and select the second upcoming event, show the location of the event and track the event.",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_3_20_16_29_68e3462c14734440a7ace3fed432a10d",
+          "episode_id": "68e3462c14734440a7ace3fed432a10d",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_16_29_68e3462c14734440a7ace3fed432a10d.json",
+          "instruction": "Open SeatGeek and change the current location to Los Angeles. Then find the first concert show and track its performer.",
+          "start_step_idx": 3,
+          "end_step_idx": 16,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 16
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_6_6d3c2be0a0b34daf904d1c72c351bd6e",
+          "episode_id": "6d3c2be0a0b34daf904d1c72c351bd6e",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_6_6d3c2be0a0b34daf904d1c72c351bd6e.json",
+          "instruction": "Open SeatGeek. Look up \"Phoenix Suns\" tickets for next upcoming event. Which section are tickets in?",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_2_71f7c21037d54ebf9466fb0a4cb9cb36",
+          "episode_id": "71f7c21037d54ebf9466fb0a4cb9cb36",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_2_71f7c21037d54ebf9466fb0a4cb9cb36.json",
+          "instruction": "Open SeatGeek. Search for concerts in \"New York City\". Filter by \"pop\" genre. What is the second recommendation?",
+          "start_step_idx": 3,
+          "end_step_idx": 7,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 7
+        },
+        {
+          "trajectory_id_full": "2024_3_20_16_27_78c74bc9486545a6957029d5d7370c1c",
+          "episode_id": "78c74bc9486545a6957029d5d7370c1c",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_16_27_78c74bc9486545a6957029d5d7370c1c.json",
+          "instruction": "Open SeatGeek and search by category \"Comedy\". Select the first one in New York and check its information. Track the performer of this event.",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_59_86974bc0508841cfb7a0668793029b53",
+          "episode_id": "86974bc0508841cfb7a0668793029b53",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_59_86974bc0508841cfb7a0668793029b53.json",
+          "instruction": "Open SeatGeek. Search for the \"Ed Sheeran\" concert. Check the next upcoming event. When and where is the concert?",
+          "start_step_idx": 3,
+          "end_step_idx": 8,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 8
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_51_8cb83de80537412bbc8124eeb87d44a7",
+          "episode_id": "8cb83de80537412bbc8124eeb87d44a7",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_51_8cb83de80537412bbc8124eeb87d44a7.json",
+          "instruction": "Open SeatGeek. Search \"Justin Bieber\". Is he going to hold concerts?",
+          "start_step_idx": 3,
+          "end_step_idx": 8,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 8
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_17_91a715c6603a4d58ac4d1cbbef8da418",
+          "episode_id": "91a715c6603a4d58ac4d1cbbef8da418",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_17_91a715c6603a4d58ac4d1cbbef8da418.json",
+          "instruction": "Open SeatGeek. Search \"Olympia Theater\". Show four upcoming events. Save the place to favorite.",
+          "start_step_idx": 3,
+          "end_step_idx": 10,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_22_16_54_92aaec9bd18d43a4a1b9daa7fd1989dc",
+          "episode_id": "92aaec9bd18d43a4a1b9daa7fd1989dc",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_16_54_92aaec9bd18d43a4a1b9daa7fd1989dc.json",
+          "instruction": "Open SeatGeek. Search \"Beyonc\u00e9\". Select the concert on April 30. Choose 2 tickets. Sort by best seats and filter by price. What is the most expensive price for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 8,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 8
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_15_92e151a339d7483aac8d5e0957bbe9f6",
+          "episode_id": "92e151a339d7483aac8d5e0957bbe9f6",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_15_92e151a339d7483aac8d5e0957bbe9f6.json",
+          "instruction": "Open SeatGeek. Track the upcoming game of \"Denver Nuggets\".",
+          "start_step_idx": 3,
+          "end_step_idx": 11,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 11
+        },
+        {
+          "trajectory_id_full": "2024_3_20_14_44_9792186e86fe4a709404be20c21f87fe",
+          "episode_id": "9792186e86fe4a709404be20c21f87fe",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_14_44_9792186e86fe4a709404be20c21f87fe.json",
+          "instruction": "Open SeatGeek and browse the top trending events. Record the overall cheapest price and the best seat cheapest price in google keep notes",
+          "start_step_idx": 3,
+          "end_step_idx": 9,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 26
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_19_a27c7ccb4a06437aa6d223df48b06fe2",
+          "episode_id": "a27c7ccb4a06437aa6d223df48b06fe2",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_19_a27c7ccb4a06437aa6d223df48b06fe2.json",
+          "instruction": "Open SeatGeek. Find the next upcoming NBA game in Dallas with \"Mavericks\". What is the lowest price for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 19,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 19
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_28_b8e49460dafa49c28e081e0d314a013b",
+          "episode_id": "b8e49460dafa49c28e081e0d314a013b",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_28_b8e49460dafa49c28e081e0d314a013b.json",
+          "instruction": "Open SeatGeek. Search for concerts in \"Los Angeles\". Filter by \"rock\" genre. Track the first recommended event.",
+          "start_step_idx": 3,
+          "end_step_idx": 9,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 9
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_13_bf945d179db044dfa203dde6c7e01cbf",
+          "episode_id": "bf945d179db044dfa203dde6c7e01cbf",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_13_bf945d179db044dfa203dde6c7e01cbf.json",
+          "instruction": "Open SeatGeek. Search for the \u2018Coldplay\u2019 concert. Check the available dates and location. Choose 3 tickets. What is the highest price for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 8,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 8
+        },
+        {
+          "trajectory_id_full": "2024_4_22_16_38_c0131b3076be484a875a13f01b725803",
+          "episode_id": "c0131b3076be484a875a13f01b725803",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_16_38_c0131b3076be484a875a13f01b725803.json",
+          "instruction": "Open SeatGeek. Search \"Taylor Swift\". Select the soonest event. What is the price of the cheapest ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_36_c30588afe6f44e3ba92d4cc1b0ac17ea",
+          "episode_id": "c30588afe6f44e3ba92d4cc1b0ac17ea",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_36_c30588afe6f44e3ba92d4cc1b0ac17ea.json",
+          "instruction": "Open SeatGeek. Find and track concerts of \"Bruno Mars\". When is the next upcoming event in Los Angeles?",
+          "start_step_idx": 3,
+          "end_step_idx": 9,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 9
+        },
+        {
+          "trajectory_id_full": "2024_3_20_16_14_c490174498d44a618bfc59aadbbf9c6e",
+          "episode_id": "c490174498d44a618bfc59aadbbf9c6e",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_16_14_c490174498d44a618bfc59aadbbf9c6e.json",
+          "instruction": "Open SeatGeek and track \"Matt Rife\". Select his soonest upcoming show and find the 2 tickets with highest deal score. Record the total price and event location in google keep notes.",
+          "start_step_idx": 3,
+          "end_step_idx": 15,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 20
+        },
+        {
+          "trajectory_id_full": "2024_3_20_16_19_c7de79edba6b442681ddcdc40adb3900",
+          "episode_id": "c7de79edba6b442681ddcdc40adb3900",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_16_19_c7de79edba6b442681ddcdc40adb3900.json",
+          "instruction": "Open SeatGeek and browse the third trending event. Check the information of the event and find more events at the same location and select the soonest upcoming event at this location.",
+          "start_step_idx": 3,
+          "end_step_idx": 10,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_22_ca15d28d1fdf49ecad26e2e0dc00a64b",
+          "episode_id": "ca15d28d1fdf49ecad26e2e0dc00a64b",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_22_ca15d28d1fdf49ecad26e2e0dc00a64b.json",
+          "instruction": "Open SeatGeek. Search \"Madison Square Garden\". Add the venue to the watch list. What is the next upcoming event?",
+          "start_step_idx": 3,
+          "end_step_idx": 10,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 10
+        },
+        {
+          "trajectory_id_full": "2024_4_22_18_45_cb01f1532c1c4fc5ab2df1d17245f2cb",
+          "episode_id": "cb01f1532c1c4fc5ab2df1d17245f2cb",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_18_45_cb01f1532c1c4fc5ab2df1d17245f2cb.json",
+          "instruction": "Open SeatGeek. Search \"Chicago\". Select the first show on May 1. Set the ticket number to 3. Choose best seats and sort by price. What is the best deal for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 14,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 14
+        },
+        {
+          "trajectory_id_full": "2024_4_22_16_56_cb68ec86b5a24315a254afeb83e027f2",
+          "episode_id": "cb68ec86b5a24315a254afeb83e027f2",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_16_56_cb68ec86b5a24315a254afeb83e027f2.json",
+          "instruction": "Open SeatGeek. Search for \"Wicked\". Select the soonest event in Los Angeles. Set the ticket number to 5 and proceed. What is the lowest price for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 12,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 12
+        },
+        {
+          "trajectory_id_full": "2024_3_20_15_59_d9761b4a20bc4462be1ffa960f5b2504",
+          "episode_id": "d9761b4a20bc4462be1ffa960f5b2504",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_15_59_d9761b4a20bc4462be1ffa960f5b2504.json",
+          "instruction": "Open SeatGeek and track \"Brooklyn Nets\", \"Los Angeles Lakers\", \"Houston Rockets\". record their soonest upcoming events in google keep notes.",
+          "start_step_idx": 3,
+          "end_step_idx": 20,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 25
+        },
+        {
+          "trajectory_id_full": "2024_3_20_16_22_dc11e595248e4301a11612b199c26b3f",
+          "episode_id": "dc11e595248e4301a11612b199c26b3f",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_16_22_dc11e595248e4301a11612b199c26b3f.json",
+          "instruction": "Open SeatGeek and search by category \"concerts\". Select the first one in the results and track that event. Find the cheapest 2 tickets and record their seat position and price in google keep notes.",
+          "start_step_idx": 3,
+          "end_step_idx": 16,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 21
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_37_e01cfac051f04b5190a7e37e6c212e78",
+          "episode_id": "e01cfac051f04b5190a7e37e6c212e78",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_37_e01cfac051f04b5190a7e37e6c212e78.json",
+          "instruction": "Open SeatGeek. Search \"Chicago Theatre\". Select and track the next upcoming event. Who is the performer of the event?",
+          "start_step_idx": 3,
+          "end_step_idx": 11,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 11
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_24_ebb59fef8be94cd4aa58b838b285b7b7",
+          "episode_id": "ebb59fef8be94cd4aa58b838b285b7b7",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_24_ebb59fef8be94cd4aa58b838b285b7b7.json",
+          "instruction": "Open SeatGeek. Search \"Shin Lim\". Select the concert on May 3. Choose 2 tickets. Sort by best seats and filter by price. What is the lowest price for each ticket?",
+          "start_step_idx": 3,
+          "end_step_idx": 13,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_3_ef90b9135cdc4a258adce625999d70a1",
+          "episode_id": "ef90b9135cdc4a258adce625999d70a1",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_3_ef90b9135cdc4a258adce625999d70a1.json",
+          "instruction": "Open SeatGeek. Search \"Justin Timberlake\". Select the second upcoming event in Los Angeles. Set ticket quantity to 2 and select the lowest price tickets. What payment options do users have to checkout?",
+          "start_step_idx": 3,
+          "end_step_idx": 14,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 14
+        },
+        {
+          "trajectory_id_full": "2024_3_20_15_30_f0323d856ddb435a9271642b942372c3",
+          "episode_id": "f0323d856ddb435a9271642b942372c3",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_3_20_15_30_f0323d856ddb435a9271642b942372c3.json",
+          "instruction": "Open SeatGeek and search for the broadway show \"Hamilton\" tomorrow. I need 2 cheapest tickets at the best seats. Record the total price in google keep notes.",
+          "start_step_idx": 3,
+          "end_step_idx": 13,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 18
+        },
+        {
+          "trajectory_id_full": "2024_4_22_20_15_f1639f698201482b96053e95194ed9a9",
+          "episode_id": "f1639f698201482b96053e95194ed9a9",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_20_15_f1639f698201482b96053e95194ed9a9.json",
+          "instruction": "Open SeatGeek. Search for the \"WWE\" Event. Select the next upcoming event regardless of location. Choose 4 tickets. How many listings are posted?",
+          "start_step_idx": 3,
+          "end_step_idx": 11,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 11
+        },
+        {
+          "trajectory_id_full": "2024_4_22_19_53_f2e008a1ea974e5381d1c2793e867859",
+          "episode_id": "f2e008a1ea974e5381d1c2793e867859",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_19_53_f2e008a1ea974e5381d1c2793e867859.json",
+          "instruction": "Open SeatGeek. Find the next upcoming NBA game in Los Angeles with \"Lakers\". What is the minimum price for each ticket if quantity is set to 4?",
+          "start_step_idx": 3,
+          "end_step_idx": 13,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 13
+        },
+        {
+          "trajectory_id_full": "2024_4_22_18_58_fa982013e2954201bad6d774087ca16e",
+          "episode_id": "fa982013e2954201bad6d774087ca16e",
+          "annotation_path": "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno/2024_4_22_18_58_fa982013e2954201bad6d774087ca16e.json",
+          "instruction": "Open SeatGeek. Search \"Crypto.com Arena\". Show three upcoming events. Save the place to favorite.",
+          "start_step_idx": 3,
+          "end_step_idx": 10,
+          "matched_package": "com.seatgeek.android",
+          "total_steps": 10
+        }
+      ]
+    }
+  ]
+}
