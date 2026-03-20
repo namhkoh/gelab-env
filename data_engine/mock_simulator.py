@@ -30,8 +30,8 @@ VISIBLE_VIEWPORT_HEIGHT = 2400
 STATUS_BAR_HEIGHT = 72
 TOP_MARGIN = 48
 SIDE_MARGIN = 56
-SYSTEM_BUTTON_W = 212
-SYSTEM_BUTTON_H = 82
+SYSTEM_BUTTON_W = 248
+SYSTEM_BUTTON_H = 96
 SYSTEM_BUTTON_Y_OFFSET = -34
 SEARCH_BAR_H = 110
 ICON_TILE_SIZE = 156
@@ -71,6 +71,16 @@ KKBOX_REAL_ICON_PATH = Path(
     "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
     "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-2_kkbox_elem19.png"
 )
+NOVELSHIP_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_robust/elements/"
+    "2024_4_22_20_29_2ab99c22f31743719b11cf70dc6cb197/"
+    "2024_4_22_20_29_2ab99c22f31743719b11cf70dc6cb197-2_novelship_elem35.png"
+)
+CITYMAPPER_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_robust/elements/"
+    "2024_6_20_14_27_962363f8d8cd4f60bf2ea2d0f578d023/"
+    "2024_6_20_14_27_962363f8d8cd4f60bf2ea2d0f578d023-2_citymapper_elem0.png"
+)
 AUDIO_MACK_REAL_ICON_PATH = Path(
     "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
     "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
@@ -100,7 +110,12 @@ REAL_ICON_LIBRARY = {
     "gallery_real": {"label": "Gallery", "path": GALLERY_REAL_ICON_PATH},
     "news_real": {"label": "News", "path": NEWS_REAL_ICON_PATH},
     "smartnews_real": {"label": "SmartNews", "path": SMARTNEWS_REAL_ICON_PATH},
+    "kkbox": {"label": "KKBOX", "path": KKBOX_REAL_ICON_PATH},
     "kkbox_real": {"label": "KKBOX", "path": KKBOX_REAL_ICON_PATH},
+    "novelship": {"label": "Novelship", "path": NOVELSHIP_REAL_ICON_PATH},
+    "novelship_real": {"label": "Novelship", "path": NOVELSHIP_REAL_ICON_PATH},
+    "citymapper": {"label": "Citymapper", "path": CITYMAPPER_REAL_ICON_PATH},
+    "citymapper_real": {"label": "Citymapper", "path": CITYMAPPER_REAL_ICON_PATH},
     "audiomack_real": {"label": "Audiomack", "path": AUDIO_MACK_REAL_ICON_PATH},
     "superuser_real": {"label": "Superuser", "path": SUPERUSER_REAL_ICON_PATH},
     "browser_real": {"label": "Browser", "path": BROWSER_REAL_ICON_PATH},
@@ -116,6 +131,15 @@ RANDOM_HOME_REAL_ASSETS = [
     "browser_real",
     "music_real",
 ]
+
+CANONICAL_REAL_ICON_ASSETS = {
+    "kkbox": "kkbox_real",
+    "kkbox_real": "kkbox_real",
+    "novelship": "novelship_real",
+    "novelship_real": "novelship_real",
+    "citymapper": "citymapper_real",
+    "citymapper_real": "citymapper_real",
+}
 
 DEFAULT_LAYOUT_CONFIG = {
     "metadata": {
@@ -169,10 +193,10 @@ DEFAULT_LAYOUT_CONFIG = {
     "pages": {
         "home": {
             "icons": [
-                {"label": "Eventbrite", "asset": "eventbrite", "slot": "home_slot_1", "show_label": False},
-                {"label": "SeatGeek", "asset": "seatgeek", "slot": "home_slot_2", "show_label": False},
-                {"asset": "random_home_real", "slot": "home_slot_3", "show_label": False},
-                {"asset": "random_home_real", "slot": "home_slot_4", "show_label": False},
+                {"label": "SeatGeek", "asset": "seatgeek", "slot": "home_slot_1", "show_label": False},
+                {"label": "KKBOX", "asset": "kkbox", "slot": "home_slot_2", "show_label": False},
+                {"label": "Novelship", "asset": "novelship", "slot": "home_slot_3", "show_label": True},
+                {"label": "Citymapper", "asset": "citymapper", "slot": "home_slot_4", "show_label": True},
                 {"asset": "random_home_real", "slot": "home_slot_5", "show_label": False},
                 {"asset": "random_home_real", "slot": "home_slot_6", "show_label": False},
                 {"asset": "random_home_real", "slot": "home_slot_7", "show_label": False},
@@ -187,8 +211,10 @@ DEFAULT_LAYOUT_CONFIG = {
         },
         "app_drawer": {
             "icons": [
-                {"label": "Eventbrite", "asset": "eventbrite", "slot": "drawer_slot_1", "show_label": False},
-                {"label": "SeatGeek", "asset": "seatgeek", "slot": "drawer_slot_2", "show_label": False},
+                {"label": "SeatGeek", "asset": "seatgeek", "slot": "drawer_slot_1", "show_label": False},
+                {"label": "KKBOX", "asset": "kkbox", "slot": "drawer_slot_2", "show_label": False},
+                {"label": "Novelship", "asset": "novelship", "slot": "drawer_slot_3", "show_label": True},
+                {"label": "Citymapper", "asset": "citymapper", "slot": "drawer_slot_4", "show_label": True},
             ]
         },
     },
@@ -425,18 +451,24 @@ def _resolve_icon_asset(
     normalized = str(asset_name or "").strip().lower()
     final_label = label
     resolved_asset = normalized
+    canonical_asset = CANONICAL_REAL_ICON_ASSETS.get(normalized, normalized)
 
     if normalized == "random_home_real":
-        candidates = [asset for asset in RANDOM_HOME_REAL_ASSETS if asset not in render_state["used_random_assets"]]
+        candidates = [
+            asset
+            for asset in RANDOM_HOME_REAL_ASSETS
+            if CANONICAL_REAL_ICON_ASSETS.get(asset, asset) not in render_state["used_random_assets"]
+        ]
         if not candidates:
             render_state["used_random_assets"].clear()
             candidates = list(RANDOM_HOME_REAL_ASSETS)
         resolved_asset = render_state["rng"].choice(candidates)
-        render_state["used_random_assets"].add(resolved_asset)
+        render_state["used_random_assets"].add(CANONICAL_REAL_ICON_ASSETS.get(resolved_asset, resolved_asset))
         final_label = REAL_ICON_LIBRARY[resolved_asset]["label"]
         return _icon_image_for_asset(resolved_asset, final_label, size), final_label, resolved_asset
 
     if normalized in REAL_ICON_LIBRARY:
+        render_state["used_random_assets"].add(canonical_asset)
         final_label = label or REAL_ICON_LIBRARY[normalized]["label"]
     return _icon_image_for_asset(normalized, final_label or label, size), (final_label or label), resolved_asset
 

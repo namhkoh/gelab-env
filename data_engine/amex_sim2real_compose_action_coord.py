@@ -561,9 +561,9 @@ def _encode_image_base64(image_path: str) -> str:
 
 # GE-Lab nav button style: pink "back" top-left, green "home" top-right
 # Dedicated nav strip at top so back/home don't occlude page content.
-NAV_BTN_W = 88
-NAV_BTN_H = 38
-NAV_STRIP_H = NAV_BTN_H + 18
+NAV_BTN_W = 128
+NAV_BTN_H = 52
+NAV_STRIP_H = NAV_BTN_H + 20
 PHONE_CANVAS_H = OUTPUT_H - NAV_STRIP_H
 PHONE_CANVAS_W = OUTPUT_W
 CANVAS_SIZE = (PHONE_CANVAS_W, PHONE_CANVAS_H)
@@ -1185,11 +1185,11 @@ def _draw_system_nav_overlay(image: Image.Image) -> Image.Image:
         canvas = resized_canvas
 
     draw = ImageDraw.Draw(canvas)
-    font = _try_load_font(18)
+    font = _try_load_font(22)
 
     draw.rectangle([0, 0, OUTPUT_W, NAV_STRIP_H], fill=(245, 245, 248))
-    draw.rounded_rectangle(GELAB_BACK_BBOX, radius=10, fill=GELAB_BACK_COLOR, outline=(220, 170, 170), width=2)
-    draw.rounded_rectangle(GELAB_HOME_BBOX, radius=10, fill=GELAB_HOME_COLOR, outline=(160, 210, 160), width=2)
+    draw.rounded_rectangle(GELAB_BACK_BBOX, radius=12, fill=GELAB_BACK_COLOR, outline=(220, 170, 170), width=2)
+    draw.rounded_rectangle(GELAB_HOME_BBOX, radius=12, fill=GELAB_HOME_COLOR, outline=(160, 210, 160), width=2)
     for label, bbox in (("back", GELAB_BACK_BBOX), ("home", GELAB_HOME_BBOX)):
         text_bbox = draw.textbbox((0, 0), label, font=font)
         text_w = text_bbox[2] - text_bbox[0]

@@ -6,7 +6,7 @@
   "_instructions": [
     "Each icon can use either 'slot' or direct 'x' and 'y' coordinates.",
     "x and y are the top-left coordinates of the icon tile in pixels.",
-    "Example direct placement: {\"label\": \"Eventbrite\", \"asset\": \"eventbrite\", \"x\": 220, \"y\": 620}",
+    "Example direct placement: {\"label\": \"Citymapper\", \"asset\": \"citymapper\", \"x\": 220, \"y\": 620}",
     "Example slot swap: change \"slot\": \"home_slot_1\" to \"slot\": \"home_slot_4\".",
     "Use asset=random_home_real to sample one realistic icon from the bundled AMEX asset pool."
   ],
@@ -51,10 +51,10 @@
   "pages": {
     "home": {
       "icons": [
-        { "label": "Eventbrite", "asset": "eventbrite", "slot": "home_slot_1", "show_label": false },
-        { "label": "SeatGeek", "asset": "seatgeek", "slot": "home_slot_2", "show_label": false },
-        { "asset": "random_home_real", "slot": "home_slot_3", "show_label": false },
-        { "asset": "random_home_real", "slot": "home_slot_4", "show_label": false },
+        { "label": "SeatGeek", "asset": "seatgeek", "slot": "home_slot_1", "show_label": false },
+        { "label": "KKBOX", "asset": "kkbox", "slot": "home_slot_2", "show_label": false },
+        { "label": "Novelship", "asset": "novelship", "slot": "home_slot_3", "show_label": true },
+        { "label": "Citymapper", "asset": "citymapper", "slot": "home_slot_4", "show_label": true },
         { "asset": "random_home_real", "slot": "home_slot_5", "show_label": false },
         { "asset": "random_home_real", "slot": "home_slot_6", "show_label": false },
         { "asset": "random_home_real", "slot": "home_slot_7", "show_label": false },
@@ -69,9 +69,12 @@
     },
     "app_drawer": {
       "icons": [
-        { "label": "Eventbrite", "asset": "eventbrite", "slot": "drawer_slot_1", "show_label": false },
-        { "label": "SeatGeek", "asset": "seatgeek", "slot": "drawer_slot_24", "show_label": false }
+        { "label": "SeatGeek", "asset": "seatgeek", "slot": "drawer_slot_1", "show_label": false },
+        { "label": "KKBOX", "asset": "kkbox", "slot": "drawer_slot_2", "show_label": false },
+        { "label": "Novelship", "asset": "novelship", "slot": "drawer_slot_3", "show_label": true },
+        { "label": "Citymapper", "asset": "citymapper", "slot": "drawer_slot_4", "show_label": true }
       ]
     }
   }
 }
+
