@@ -4,10 +4,15 @@ Generate SFT training data from AMEX trajectories.
 Pipeline:
 1. For each AMEX trajectory, deterministically compose pages using
    pre-extracted icons + element_anno bboxes (via amex_compose_deterministic.py)
-2. Generate SFT samples following the existing GE-Lab format:
-   - Navigation (click): TAP steps -> click(start_box=...)
-   - Navigation (swipe): SWIPE steps -> swipe(start_box=..., end_box=...)
-   - Complete: TASK_COMPLETE -> complete
+2. Generate SFT samples using the AMEX unified action space:
+   - TAP: tap(start_box=...)
+   - SWIPE: swipe(start_box=..., end_box=...)
+   - TYPE: type(start_box=..., text='...')
+   - PRESS_ENTER: press_enter()
+   - PRESS_BACK: press_back()
+   - PRESS_HOME: press_home()
+   - TASK_COMPLETE: complete
+   - TASK_IMPOSSIBLE: impossible
    - Grounding: element label -> coordinates
    - Captioning: coordinates -> element label
 3. Output sft_amex.json compatible with swift sft training
@@ -106,11 +111,11 @@ def _find_closest_layout_element(
     return best_key or "element", best_bbox
 
 
-def _format_click_action(action_name: str, page_id: str, coord: List[int]) -> str:
+def _format_tap_action(action_name: str, page_id: str, coord: List[int]) -> str:
     cx, cy = _point_to_normalized(coord)
     return (
-        f"Explain: click {action_name} icon on {page_id}.\t"
-        f"Action: click(start_box='<|box_start|>({cx},{cy})<|box_end|>')"
+        f"Explain: tap {action_name} on {page_id}.\t"
+        f"Action: tap(start_box='<|box_start|>({cx},{cy})<|box_end|>')"
     )
 
 
@@ -132,8 +137,24 @@ def _format_type_action(text: str, page_id: str, coord: List[int]) -> str:
     )
 
 
+def _format_press_enter_action(page_id: str) -> str:
+    return f"Explain: press enter to confirm on {page_id}.\tAction: press_enter()"
+
+
+def _format_press_back_action(page_id: str) -> str:
+    return f"Explain: press back on {page_id}.\tAction: press_back()"
+
+
+def _format_press_home_action(page_id: str) -> str:
+    return f"Explain: press home on {page_id}.\tAction: press_home()"
+
+
 def _format_complete_action() -> str:
-    return "Explain: this is target page.\tAction: complete"
+    return "Explain: task is complete.\tAction: complete"
+
+
+def _format_impossible_action() -> str:
+    return "Explain: task cannot be completed.\tAction: impossible"
 
 
 def _infer_swipe_direction(start: List[int], end: List[int]) -> str:
@@ -203,19 +224,35 @@ def generate_trajectory_samples(
                 "images": [image_path],
                 "bbox_norm": [0, 0, 0, 0],
                 "source": source_label,
-                "action_type": "complete",
+                "action_type": "TASK_COMPLETE",
+            }
+            samples.append(sample)
+            continue
+
+        if action == "TASK_IMPOSSIBLE":
+            sample = {
+                "task": instruction or f"From {start_page} to {end_page}",
+                "route": f"From {start_page} to {end_page}",
+                "messages": [
+                    {"role": "user", "content": user_content},
+                    {"role": "assistant", "content": _format_impossible_action()},
+                ],
+                "images": [image_path],
+                "bbox_norm": [0, 0, 0, 0],
+                "source": source_label,
+                "action_type": "TASK_IMPOSSIBLE",
             }
             samples.append(sample)
             continue
 
         if action in ("TAP", "CLICK"):
             elem_key, elem_bbox = _find_closest_layout_element(action_coord, page.get("layout", {}))
-            assistant_content = _format_click_action(elem_key, page_id, action_coord)
+            assistant_content = _format_tap_action(elem_key, page_id, action_coord)
             bbox_norm = _bbox_to_normalized(elem_bbox) if elem_bbox != [0, 0, 0, 0] else _bbox_to_normalized(
                 [action_coord[0] - 20, action_coord[1] - 20, action_coord[0] + 20, action_coord[1] + 20]
             )
-            history_parts.append(f"step{len(history_parts)+1}: click {elem_key} icon on {page_id}")
-            action_type = "click"
+            history_parts.append(f"step{len(history_parts)+1}: tap {elem_key} on {page_id}")
+            action_type = "TAP"
 
         elif action in ("SWIPE", "SCROLL"):
             lift_coord = t.get("lift_coord", action_coord)
@@ -225,7 +262,7 @@ def generate_trajectory_samples(
             y_coords = sorted([action_coord[1], lift_coord[1]])
             bbox_norm = _bbox_to_normalized([x_coords[0], y_coords[0], x_coords[1], y_coords[1]])
             history_parts.append(f"step{len(history_parts)+1}: swipe {direction} on {page_id}")
-            action_type = "swipe"
+            action_type = "SWIPE"
 
         elif action in ("TYPE", "TEXT"):
             type_text = str(t.get("type_text", "")).strip()
@@ -234,17 +271,25 @@ def generate_trajectory_samples(
                 [action_coord[0] - 40, action_coord[1] - 20, action_coord[0] + 40, action_coord[1] + 20]
             )
             history_parts.append(f"step{len(history_parts)+1}: type \"{type_text}\" on {page_id}")
-            action_type = "type"
+            action_type = "TYPE"
 
-        elif action in ("PRESS_BACK", "PRESS_HOME", "PRESS_ENTER"):
-            semantic = action.lower().replace("press_", "")
-            assistant_content = (
-                f"Explain: press {semantic} on {page_id}.\t"
-                f"Action: press_{semantic}()"
-            )
+        elif action == "PRESS_ENTER":
+            assistant_content = _format_press_enter_action(page_id)
             bbox_norm = [0, 0, 0, 0]
-            history_parts.append(f"step{len(history_parts)+1}: press {semantic} on {page_id}")
-            action_type = f"press_{semantic}"
+            history_parts.append(f"step{len(history_parts)+1}: press enter on {page_id}")
+            action_type = "PRESS_ENTER"
+
+        elif action == "PRESS_BACK":
+            assistant_content = _format_press_back_action(page_id)
+            bbox_norm = [0, 0, 0, 0]
+            history_parts.append(f"step{len(history_parts)+1}: press back on {page_id}")
+            action_type = "PRESS_BACK"
+
+        elif action == "PRESS_HOME":
+            assistant_content = _format_press_home_action(page_id)
+            bbox_norm = [0, 0, 0, 0]
+            history_parts.append(f"step{len(history_parts)+1}: press home on {page_id}")
+            action_type = "PRESS_HOME"
 
         else:
             continue
@@ -295,8 +340,8 @@ def generate_grounding_samples(
         samples.append({
             "task": "grounding",
             "messages": [
-                {"role": "user", "content": f"<image>Click on {label} in the image."},
-                {"role": "assistant", "content": f"Action: click(start_box='<|box_start|>({cx},{cy})<|box_end|>')"},
+                {"role": "user", "content": f"<image>Tap on {label} in the image."},
+                {"role": "assistant", "content": f"Action: tap(start_box='<|box_start|>({cx},{cy})<|box_end|>')"},
             ],
             "images": [image_path],
             "bbox_norm": _bbox_to_normalized(bbox),

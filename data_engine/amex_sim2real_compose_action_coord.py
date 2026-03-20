@@ -914,6 +914,7 @@ def render_from_code(code_str: str, elements: List[dict],
         "TypeError": TypeError, "ValueError": ValueError, "Exception": Exception,
         "KeyError": KeyError, "IndexError": IndexError,
         "random": random,
+        "math": __import__("math"),
     }
 
     code_str = _sanitize_code(code_str)
@@ -2814,7 +2815,12 @@ def _fallback_compose(elements: List[dict],
             continue
 
         try:
-            crop = e["crop"].convert("RGBA").resize((sw, sh), Image.LANCZOS)
+            if "crop" in e:
+                crop = e["crop"].convert("RGBA").resize((sw, sh), Image.LANCZOS)
+            elif e.get("asset_path") and os.path.exists(e["asset_path"]):
+                crop = Image.open(e["asset_path"]).convert("RGBA").resize((sw, sh), Image.LANCZOS)
+            else:
+                continue
             canvas.paste(crop, (max(0, sx1), sy1), crop)
         except Exception:
             continue
@@ -2855,6 +2861,8 @@ def parse_args():
     parser.add_argument("--gpu", type=int, default=0, help="GPU for YOLO detection")
     parser.add_argument("--save_crops", action="store_true",
                         help="Save labeled crops and annotated screenshots for inspection")
+    parser.add_argument("--no_save_code", action="store_true",
+                        help="Skip saving GPT-generated .py code files (saves disk at scale)")
     return parser.parse_args()
 
 
