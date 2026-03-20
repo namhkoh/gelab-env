@@ -2521,6 +2521,9 @@ def _collect_annotation_jobs(args) -> List[Tuple[str, str]]:
         except Exception as exc:
             print(f"SKIP annotation parse failure: {annot_path.name} ({exc})")
 
+    start_index = getattr(args, "start_index", 0)
+    if start_index > 0:
+        jobs = jobs[start_index:]
     if max_trajectories is not None:
         jobs = jobs[:max_trajectories]
     return jobs
@@ -2723,6 +2726,8 @@ def run_pipeline(args):
     use_subdir = args.trajectory_id is None
     processed_pages = 0
 
+    should_resume = getattr(args, "resume", False)
+
     for idx, (_, annot_path) in enumerate(annotation_jobs, start=1):
         with open(annot_path, "r", encoding="utf-8") as f:
             trajectory = json.load(f)
@@ -2732,6 +2737,11 @@ def run_pipeline(args):
             episode_id,
             use_subdir=use_subdir,
         )
+
+        if should_resume and os.path.exists(os.path.join(trajectory_output_dir, "ui_structure.json")):
+            print(f"\n[{idx}/{len(annotation_jobs)}] SKIP (already done) episode={episode_id}")
+            continue
+
         print(f"\n[{idx}/{len(annotation_jobs)}] episode={episode_id}")
         processed_pages += _process_trajectory(
             trajectory=trajectory,
@@ -2863,6 +2873,10 @@ def parse_args():
                         help="Save labeled crops and annotated screenshots for inspection")
     parser.add_argument("--no_save_code", action="store_true",
                         help="Skip saving GPT-generated .py code files (saves disk at scale)")
+    parser.add_argument("--start_index", type=int, default=0,
+                        help="Start processing from this trajectory index (for batch splitting)")
+    parser.add_argument("--resume", action="store_true",
+                        help="Skip trajectories that already have ui_structure.json in output_dir")
     return parser.parse_args()
 
 
