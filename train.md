@@ -2,7 +2,72 @@
 
 ## Overview
 
-This guide covers how to merge SFT datasets from multiple team members and run SFT training on the combined data. Each team member generated composed trajectories using `amex_sim2real_compose_action_coord.py` and SFT samples using `collect_amex_sft.py`.
+This guide covers the full setup: environment installation, merging SFT datasets from multiple team members, and running SFT training on the combined data. Each team member generated composed trajectories using `amex_sim2real_compose_action_coord.py` and SFT samples using `collect_amex_sft.py`.
+
+## Environment Setup
+
+### 1. Clone the repo
+
+```bash
+git clone git@github.com:namhkoh/gelab-env.git
+cd gelab-env
+git checkout koh-dev/amex-sft
+```
+
+### 2. Create conda environment
+
+```bash
+conda create -n gelab python=3.10 -y
+conda activate gelab
+```
+
+### 3. Install PyTorch (CUDA 12.x)
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+```
+
+### 4. Install GE-Lab (swift + framework dependencies)
+
+```bash
+pip install -e .
+pip install -r requirements/framework.txt
+```
+
+### 5. Install AMEX SFT pipeline dependencies
+
+```bash
+pip install openai ultralytics easyocr wandb
+```
+
+### 6. Install DeepSpeed (for multi-GPU training)
+
+```bash
+pip install deepspeed
+```
+
+### 7. Verify installation
+
+```bash
+python -c "import torch; print(f'PyTorch {torch.__version__}, CUDA {torch.cuda.is_available()}')"
+python -c "from swift.cli.sft import main; print('swift OK')"
+python -c "from ultralytics import YOLO; print('YOLO OK')"
+python -c "from openai import OpenAI; print('OpenAI OK')"
+```
+
+### Key package versions (tested)
+
+| Package | Version |
+|---------|---------|
+| Python | 3.10.x |
+| PyTorch | 2.9.x |
+| transformers | 4.57.x |
+| ms_swift (GE-Lab) | 3.5.0.dev0 |
+| openai | 2.15.x |
+| ultralytics | 8.4.x |
+| easyocr | 1.7.x |
+| wandb | 0.24.x |
+| Pillow | 12.x |
 
 ## Step 1: Locate SFT Data
 
