@@ -95,10 +95,16 @@ SYSTEM_PROMPT = (
     "Use a tab character (\\t) as a separator where indicated."
 )
 
-# Grounding prompt template (Paper Appendix A.5)
+# Grounding prompt for GE-Lab fine-tuned models (Paper Appendix A.5)
 GROUNDING_PROMPT = (
     "I want to {instruction}. "
     "Please locate the target element I should interact with. (with point)"
+)
+
+# Grounding prompt for base Qwen2.5-VL (native bbox_2d output format)
+GROUNDING_PROMPT_BASE = (
+    "{instruction}\n"
+    "Please provide the bounding box coordinate of the region this sentence describes."
 )
 
 
@@ -106,18 +112,48 @@ GROUNDING_PROMPT = (
 # Coordinate parsing (reused from evaluate.py)
 # ---------------------------------------------------------------------------
 COORD_PATTERN_FULL = re.compile(
-    r"click\(start_box='<\|box_start\|>\((\d+),\s*(\d+)\)<\|box_end\|>'\)"
+    r"(?:click|tap)\(start_box='<\|box_start\|>\((\d+),\s*(\d+)\)<\|box_end\|>'\)"
 )
+COORD_PATTERN_XY = re.compile(r"(?:click|tap)\(x=(\d+),\s*y=(\d+)\)")
 COORD_PATTERN_SIMPLE = re.compile(r"\((\d+),\s*(\d+)\)")
+COORD_PATTERN_BBOX2D = re.compile(r'"bbox_2d":\s*\[(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\]')
 
 
-def parse_click_coords(response: str):
-    """Extract (x, y) coordinates from model response. Returns None if not found."""
+def parse_click_coords(response: str, image_size=None):
+    """Extract (x, y) coordinates from model response. Returns None if not found.
+    
+    Handles formats:
+      - click(start_box='<|box_start|>(x,y)<|box_end|>')  (GE-Lab trained, 0-1000)
+      - tap(start_box='<|box_start|>(x,y)<|box_end|>')    (AMEX SFT trained, 0-1000)
+      - click(x=N, y=N)                                    (base model variant)
+      - (x, y)                                              (native Qwen2.5-VL)
+      - bbox_2d: [x1,y1,x2,y2]                             (Qwen2.5-VL native, pixel coords)
+    
+    When image_size is provided and bbox_2d format is detected, converts pixel
+    center to 0-1000 normalized coordinates.
+    """
+    # Try GE-Lab format first (already in 0-1000)
     m = COORD_PATTERN_FULL.search(response)
-    if not m:
-        m = COORD_PATTERN_SIMPLE.search(response)
     if m:
         return int(m.group(1)), int(m.group(2))
+    
+    m = COORD_PATTERN_XY.search(response)
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    
+    # Try Qwen2.5-VL native bbox_2d format (pixel coordinates -> normalize)
+    m = COORD_PATTERN_BBOX2D.search(response)
+    if m and image_size:
+        x1, y1, x2, y2 = int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4))
+        cx = (x1 + x2) / 2 / image_size[0] * NORM_SIZE
+        cy = (y1 + y2) / 2 / image_size[1] * NORM_SIZE
+        return int(round(cx)), int(round(cy))
+    
+    # Simple (x,y) pattern
+    m = COORD_PATTERN_SIMPLE.search(response)
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    
     return None
 
 
@@ -154,20 +190,24 @@ class ModelWrapper:
 
         self.model.eval()
 
-    def predict(self, image, text, system_prompt=SYSTEM_PROMPT):
-        """Run inference. image can be PIL.Image or file path."""
+    def predict(self, image, text, system_prompt=None):
+        """Run inference. image can be PIL.Image or file path.
+        
+        When system_prompt is None (default for grounding benchmarks), no system
+        message is injected so the model uses its native coordinate format.
+        """
         if isinstance(image, (str, Path)):
             image = Image.open(image).convert("RGB")
         elif not isinstance(image, Image.Image):
             raise ValueError(f"Unsupported image type: {type(image)}")
 
-        messages = [
-            {"role": "system", "content": [{"type": "text", "text": system_prompt}]},
-            {"role": "user", "content": [
-                {"type": "image", "image": image},
-                {"type": "text", "text": text},
-            ]},
-        ]
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": [{"type": "text", "text": system_prompt}]})
+        messages.append({"role": "user", "content": [
+            {"type": "image", "image": image},
+            {"type": "text", "text": text},
+        ]})
         text_input = self.processor.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True,
         )
@@ -403,9 +443,13 @@ def evaluate_benchmark(model, samples, name, prompt_template=GROUNDING_PROMPT,
         instruction = sample["instruction"]
         bbox_norm = sample["bbox_norm"]
 
+        if isinstance(image, (str, Path)):
+            image = Image.open(image).convert("RGB")
+        image_size = image.size
+
         prompt_text = prompt_template.format(instruction=instruction)
         response = model.predict(image, prompt_text)
-        coords = parse_click_coords(response)
+        coords = parse_click_coords(response, image_size=image_size)
 
         hit = False
         if coords:
@@ -505,7 +549,11 @@ def main():
     parser.add_argument("--output_file", default=None, help="Save results as JSON")
     parser.add_argument("--cache_dir", default="/ext_hdd2/nhkoh/.cache/huggingface/datasets")
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--base_model", action="store_true",
+                        help="Use Qwen2.5-VL native bbox_2d prompt format instead of GE-Lab format")
     args = parser.parse_args()
+
+    prompt_template = GROUNDING_PROMPT_BASE if args.base_model else GROUNDING_PROMPT
 
     print("=" * 60)
     print("Real-World GUI Benchmark Evaluation (Table 5)")
@@ -513,6 +561,7 @@ def main():
     print(f"Model: {args.model_path}")
     print(f"Benchmarks: {', '.join(args.benchmarks)}")
     print(f"GPUs: {args.num_gpus}")
+    print(f"Prompt mode: {'base_model (bbox_2d)' if args.base_model else 'gelab (0-1000 click)'}")
     print()
 
     # Load all requested benchmarks
@@ -537,13 +586,13 @@ def main():
     if args.num_gpus > 1:
         results = evaluate_multi_gpu(
             args.model_path, args.lora_path, args.max_pixels, all_data,
-            args.num_gpus, GROUNDING_PROMPT, args.verbose,
+            args.num_gpus, prompt_template, args.verbose,
         )
     else:
         model = ModelWrapper(args.model_path, args.lora_path, "cuda:0", args.max_pixels)
         for key, (bench_name, samples) in all_data.items():
             result = evaluate_benchmark(model, samples, bench_name,
-                                        GROUNDING_PROMPT, args.verbose)
+                                        prompt_template, args.verbose)
             results[key] = result
 
     # Print results table
