@@ -3080,13 +3080,13 @@ def parse_args():
                         default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot",
                         help="Directory with AMEX screenshots")
     parser.add_argument("--annotations_dir", type=str,
-                        default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno_5",
+                        default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno",
                         help="Directory with AMEX instruction annotation JSONs")
     parser.add_argument("--element_anno_dir", type=str,
                         default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/element_anno",
                         help="Directory with per-screenshot element annotation JSONs")
     parser.add_argument("--output_dir", type=str,
-                        default="data_engine/sim2real_envs/amex_sft_5",
+                        default="data_engine/sim2real_envs/amex_sft",
                         help="Output root directory for generated trajectory environments")
     parser.add_argument("--weights_dir", type=str,
                         default="/ext_hdd2/nhkoh/OmniParser/weights",
