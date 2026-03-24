@@ -3106,6 +3106,7 @@ def parse_args():
     parser.add_argument("--resume", action="store_true",
                         help="Skip trajectories that already have ui_structure.json in output_dir")
     return parser.parse_args()
+    
 
 
 if __name__ == "__main__":
