@@ -43,6 +43,10 @@ case "$MODEL_STAGE" in
         MODEL_PATH="checkpoint/gui_exp/sft_448/v0-20260221_074940/checkpoint-1275"
         SAVE_NAME="continue_train_448_sft"
         ;;
+    sft_hf)
+        MODEL_PATH="namhokaist/SFT_True_Final"
+        SAVE_NAME="continue_train_448_sft_hf"
+        ;;
     st_rl)
         MODEL_PATH="checkpoint/gui_exp/st_rl_448/v0-20260221_215851/checkpoint-3420"
         SAVE_NAME="continue_train_448_st_rl"
@@ -52,7 +56,7 @@ case "$MODEL_STAGE" in
         SAVE_NAME="continue_train_448_mt_rl"
         ;;
     *)
-        echo "ERROR: MODEL_STAGE must be one of: base, sft, st_rl, mt_rl"
+        echo "ERROR: MODEL_STAGE must be one of: base, sft, sft_hf, st_rl, mt_rl"
         echo "Got: $MODEL_STAGE"
         exit 1
         ;;
@@ -74,12 +78,13 @@ export BASE_LOG_DIR="./logs/train"
 # =============================================================================
 export LEARNING_RATE=1e-5
 export NUM_TRAIN_EPOCHS=2
-export MAX_PIXELS=200704
+export MAX_PIXELS=1003520  # Qwen2.5-VL-7B default, full resolution for accurate grounding
 
 # GPU Adjustment for 3x A100 80GB
+# batch=1 with high MAX_PIXELS to avoid OOM
 export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=2
-export GRADIENT_ACCUMULATION_STEPS=43
+export PER_DEVICE_TRAIN_BATCH_SIZE=1
+export GRADIENT_ACCUMULATION_STEPS=86  # 3*1*86=258 effective batch (matches paper ~256)
 
 # Training Configuration
 # NOTE: zero2 + gradient_checkpointing + bf16 causes NaN (observed in SFT training).

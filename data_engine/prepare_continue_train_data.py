@@ -161,12 +161,132 @@ def process_aitw(max_samples, image_dir, cache_dir):
 
 
 # ---------------------------------------------------------------------------
-# AMEX conversion
+# AITZ conversion
+# ---------------------------------------------------------------------------
+
+AITZ_ACTION_MAP = {
+    "click": "click",
+    "scroll": "scroll",
+    "type": "type",
+    "navigate_home": None,
+    "navigate_back": None,
+    "open_app": None,
+    "wait": "wait",
+}
+
+
+def _aitz_to_action_str(action_dict, img_w, img_h):
+    """Convert AITZ action dict to the real-world output format."""
+    name = action_dict.get("action_name", "")
+    explain = action_dict.get("action_explanation", "")
+
+    if name == "click":
+        touch = action_dict.get("start_point") or action_dict.get("end_point")
+        if not touch or len(touch) < 2:
+            return None, None
+        x = int(float(touch[0]) * 1000)
+        y = int(float(touch[1]) * 1000)
+        x = max(0, min(1000, x))
+        y = max(0, min(1000, y))
+        action_str = f"click(start_box='<|box_start|>({x},{y})<|box_end|>')"
+        return action_str, explain or f"click the element at ({x},{y})."
+    if name == "scroll":
+        direction = action_dict.get("direction", "down")
+        dist = 5
+        scroll_dist = action_dict.get("scroll_distance")
+        if scroll_dist and float(scroll_dist) > 0:
+            dist = max(1, min(10, int(float(scroll_dist) * 10)))
+        return f"SCROLL({dist})", explain or f"scroll {direction}."
+    if name == "type":
+        text = action_dict.get("keys") or ""
+        return f'TYPE("{text}")', explain or f'type "{text}".'
+    if name == "wait":
+        return "WAIT(3)", explain or "wait for the page to load."
+    return None, None
+
+
+def process_aitz(max_samples, image_dir, cache_dir):
+    """Load and process AITZ dataset from HuggingFace (xwm/AITZ)."""
+    print(f"[AITZ] Loading dataset (requesting {max_samples} samples)...")
+    try:
+        ds = load_dataset(
+            "xwm/AITZ",
+            split="train",
+            cache_dir=cache_dir,
+            trust_remote_code=True,
+        )
+        print(f"[AITZ] Loaded: {len(ds)} samples")
+    except Exception as e:
+        print(f"[AITZ] Could not load xwm/AITZ: {e}")
+        return []
+
+    # Filter to supported actions
+    valid_actions = {"click", "scroll", "type", "wait"}
+    print(f"[AITZ] Filtering to actions {valid_actions}...")
+    ds_filtered = ds.filter(
+        lambda row: (row.get("action") or {}).get("action_name", "") in valid_actions,
+        num_proc=4,
+    )
+    print(f"[AITZ] After filtering: {len(ds_filtered)} valid samples")
+    ds_filtered = ds_filtered.shuffle(seed=42)
+
+    samples = []
+    img_subdir = os.path.join(image_dir, "aitz")
+    os.makedirs(img_subdir, exist_ok=True)
+
+    for i in tqdm(range(len(ds_filtered)), desc="[AITZ] Converting"):
+        if len(samples) >= max_samples:
+            break
+        row = ds_filtered[i]
+
+        action_dict = row.get("action", {})
+        img_w = row.get("image_width", 270)
+        img_h = row.get("image_height", 600)
+
+        action_str, explain = _aitz_to_action_str(action_dict, img_w, img_h)
+        if action_str is None:
+            continue
+
+        instruction = row.get("instruction", "")
+
+        # Decode image from base64
+        img_b64 = row.get("image_base64", "")
+        if not img_b64:
+            continue
+        try:
+            import base64
+            from io import BytesIO
+            img = Image.open(BytesIO(base64.b64decode(img_b64))).convert("RGB")
+        except Exception:
+            continue
+
+        img_path = os.path.join(img_subdir, f"aitz_{len(samples):06d}.png")
+        img.save(img_path)
+
+        user_content = f"<image>{instruction}"
+        assistant_content = f"Explain: {explain}\tAction: {action_str}"
+
+        samples.append({
+            "messages": [
+                {"role": "user", "content": user_content},
+                {"role": "assistant", "content": assistant_content},
+            ],
+            "images": [os.path.abspath(img_path)],
+            "source": "aitz",
+        })
+
+    print(f"[AITZ] Converted {len(samples)} samples.")
+    return samples
+
+
+# ---------------------------------------------------------------------------
+# AMEX conversion (local files)
 # ---------------------------------------------------------------------------
 
 AMEX_ACTION_MAP = {
     "TAP": "click",
     "SCROLL": "scroll",
+    "SWIPE": "scroll",
     "TYPE": "type",
     "TASK_COMPLETE": "complete",
     "PRESS_BACK": None,
@@ -209,71 +329,84 @@ def _amex_to_action_str(action, touch_coord, lift_coord, type_text, device_dim):
     return None, None
 
 
-def process_amex(max_samples, image_dir, cache_dir):
-    """Load and process AMEX dataset from HuggingFace.
+AMEX_LOCAL_ANNOTATIONS = "/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno"
+AMEX_LOCAL_SCREENSHOTS = "/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot"
 
-    WARNING: Yuxiang007/AMEX is a file-based repo (~87GB of zipped screenshots),
-    NOT a standard tabular HF dataset. load_dataset() will likely fail.
-    To use AMEX, manually download and extract from:
-      https://huggingface.co/datasets/Yuxiang007/AMEX
-    Then provide processed data via a local JSON file instead.
-    """
-    print(f"[AMEX] Loading dataset (requesting {max_samples} samples)...")
-    print("[AMEX] WARNING: AMEX is ~87GB of zipped files, not a standard HF dataset.")
-    print("[AMEX] This will likely fail. Use --sources aitw mind2web to skip AMEX.")
-    try:
-        ds = load_dataset(
-            "Yuxiang007/AMEX",
-            split="train",
-            cache_dir=cache_dir,
-            trust_remote_code=True,
-        )
-    except Exception as e:
-        print(f"[AMEX] Could not load Yuxiang007/AMEX: {e}")
-        print("[AMEX] To use AMEX data, download manually from:")
-        print("[AMEX]   https://huggingface.co/datasets/Yuxiang007/AMEX")
-        print("[AMEX] Skipping AMEX.")
+
+def process_amex(max_samples, image_dir, cache_dir):
+    """Load and process AMEX from local files."""
+    print(f"[AMEX] Loading from local files (requesting {max_samples} samples)...")
+
+    annot_dir = Path(AMEX_LOCAL_ANNOTATIONS)
+    screenshot_dir = Path(AMEX_LOCAL_SCREENSHOTS)
+    if not annot_dir.exists():
+        print(f"[AMEX] Annotations not found at {annot_dir}. Skipping.")
         return []
 
-    print(f"[AMEX] Loaded {len(ds)} raw samples. Processing...")
-    samples = []
-    indices = list(range(len(ds)))
-    random.shuffle(indices)
+    annot_files = sorted(annot_dir.glob("*.json"))
+    print(f"[AMEX] Found {len(annot_files)} annotation files")
 
+    # Collect all step-level samples across trajectories
+    all_steps = []
+    for annot_path in annot_files:
+        try:
+            with open(annot_path) as f:
+                traj = json.load(f)
+        except Exception:
+            continue
+        episode_id = traj.get("episode_id", annot_path.stem)
+        instruction = traj.get("instruction", "")
+        for step in traj.get("steps", []):
+            action = step.get("action", "")
+            if AMEX_ACTION_MAP.get(action) is None:
+                continue
+            screenshot_name = step.get("image_path", step.get("screenshot", ""))
+            if not screenshot_name:
+                continue
+            screenshot_path = screenshot_dir / screenshot_name
+            if not screenshot_path.exists():
+                continue
+            device_dim = step.get("device_dim", [1080, 1920])
+            all_steps.append({
+                "action": action,
+                "touch_coord": step.get("touch_coord", [0, 0]),
+                "lift_coord": step.get("lift_coord", [0, 0]),
+                "type_text": step.get("type_text", ""),
+                "device_dim": device_dim,
+                "instruction": instruction,
+                "screenshot_path": str(screenshot_path),
+            })
+
+    print(f"[AMEX] Collected {len(all_steps)} valid steps")
+    random.shuffle(all_steps)
+
+    samples = []
     img_subdir = os.path.join(image_dir, "amex")
     os.makedirs(img_subdir, exist_ok=True)
 
-    for i in tqdm(indices, desc="[AMEX] Converting", total=len(indices)):
+    for step_data in tqdm(all_steps, desc="[AMEX] Converting"):
         if len(samples) >= max_samples:
             break
-        row = ds[i]
-
-        action = row.get("action", "")
-        if AMEX_ACTION_MAP.get(action) is None:
-            continue
-
-        touch_coord = row.get("touch_coord", [0, 0])
-        lift_coord = row.get("lift_coord", [0, 0])
-        type_text = row.get("type_text", "")
-        device_dim = row.get("device_dim", [1080, 1920])
-        instruction = row.get("instruction", row.get("goal", ""))
-
-        img = row.get("image")
-        if img is None:
-            continue
-        if not isinstance(img, Image.Image):
-            continue
 
         action_str, explain = _amex_to_action_str(
-            action, touch_coord, lift_coord, type_text, device_dim
+            step_data["action"],
+            step_data["touch_coord"],
+            step_data["lift_coord"],
+            step_data["type_text"],
+            step_data["device_dim"],
         )
         if action_str is None:
+            continue
+
+        try:
+            img = Image.open(step_data["screenshot_path"]).convert("RGB")
+        except Exception:
             continue
 
         img_path = os.path.join(img_subdir, f"amex_{len(samples):06d}.png")
         img.save(img_path)
 
-        user_content = f"<image>{instruction}"
+        user_content = f"<image>{step_data['instruction']}"
         assistant_content = f"Explain: {explain}\tAction: {action_str}"
 
         samples.append({
@@ -296,6 +429,11 @@ def process_amex(max_samples, image_dir, cache_dir):
 def _mind2web_get_bbox(pos_candidates):
     """Extract pixel bbox from Mind2Web pos_candidates."""
     for cand in pos_candidates:
+        if isinstance(cand, str):
+            try:
+                cand = json.loads(cand)
+            except (json.JSONDecodeError, TypeError):
+                continue
         attrs = cand.get("attributes", "{}")
         if isinstance(attrs, str):
             try:
@@ -331,12 +469,18 @@ def process_mind2web(max_samples, image_dir, cache_dir):
     print(f"[Mind2Web] Loaded {len(ds)} raw samples.")
 
     # Filter to supported ops first (fast, no image decoding)
+    # operation is a JSON string, not a dict
     valid_ops = {"CLICK", "TYPE", "SELECT"}
     print(f"[Mind2Web] Filtering to ops {valid_ops}...")
-    ds_filtered = ds.filter(
-        lambda row: row.get("operation", {}).get("op", "") in valid_ops,
-        num_proc=4,
-    )
+    def _parse_op(row):
+        op_field = row.get("operation", "")
+        if isinstance(op_field, str):
+            try:
+                op_field = json.loads(op_field)
+            except (json.JSONDecodeError, TypeError):
+                return False
+        return op_field.get("op", "") in valid_ops
+    ds_filtered = ds.filter(_parse_op, num_proc=4)
     print(f"[Mind2Web] After filtering: {len(ds_filtered)} valid samples")
     ds_filtered = ds_filtered.shuffle(seed=42)
 
@@ -349,7 +493,12 @@ def process_mind2web(max_samples, image_dir, cache_dir):
             break
         row = ds_filtered[i]
 
-        operation = row.get("operation", {})
+        operation = row.get("operation", "")
+        if isinstance(operation, str):
+            try:
+                operation = json.loads(operation)
+            except (json.JSONDecodeError, TypeError):
+                continue
         op = operation.get("op", "")
         value = operation.get("value", "")
         task = row.get("confirmed_task", "")
@@ -414,6 +563,7 @@ def process_mind2web(max_samples, image_dir, cache_dir):
 
 SOURCE_PROCESSORS = {
     "aitw": process_aitw,
+    "aitz": process_aitz,
     "amex": process_amex,
     "mind2web": process_mind2web,
 }
@@ -427,7 +577,7 @@ def main():
     parser.add_argument(
         "--sources",
         nargs="+",
-        default=["aitw", "mind2web"],  # AMEX excluded: 87GB manual download
+        default=["aitw", "aitz", "amex", "mind2web"],
         choices=list(SOURCE_PROCESSORS.keys()),
         help="Data sources. Default: aitw + mind2web (16k + 8k). "
              "AMEX excluded by default (requires 87GB manual zip download).",

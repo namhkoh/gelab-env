@@ -117,30 +117,47 @@ COORD_PATTERN_FULL = re.compile(
 COORD_PATTERN_XY = re.compile(r"(?:click|tap)\(x=(\d+),\s*y=(\d+)\)")
 COORD_PATTERN_SIMPLE = re.compile(r"\((\d+),\s*(\d+)\)")
 COORD_PATTERN_BBOX2D = re.compile(r'"bbox_2d":\s*\[(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\]')
+# Qwen2.5-VL native <points> format: pixel coordinates
+COORD_PATTERN_POINTS = re.compile(r'<points\s+x1="(\d+)"?\s+y1="(\d+)"')
+COORD_PATTERN_POINTS_COMMA = re.compile(r'<points\s+x1="(\d+),(\d+)"')
 
 
 def parse_click_coords(response: str, image_size=None):
     """Extract (x, y) coordinates from model response. Returns None if not found.
-    
+
     Handles formats:
       - click(start_box='<|box_start|>(x,y)<|box_end|>')  (GE-Lab trained, 0-1000)
       - tap(start_box='<|box_start|>(x,y)<|box_end|>')    (AMEX SFT trained, 0-1000)
       - click(x=N, y=N)                                    (base model variant)
-      - (x, y)                                              (native Qwen2.5-VL)
+      - <points x1="X" y1="Y" ...>                         (Qwen2.5-VL native, pixel coords)
+      - <points x1="X,Y" ...>                               (Qwen2.5-VL comma variant)
+      - (x, y)                                              (simple pair, 0-1000)
       - bbox_2d: [x1,y1,x2,y2]                             (Qwen2.5-VL native, pixel coords)
-    
-    When image_size is provided and bbox_2d format is detected, converts pixel
-    center to 0-1000 normalized coordinates.
+
+    When image_size is provided and pixel-space formats are detected, converts
+    to 0-1000 normalized coordinates.
     """
     # Try GE-Lab format first (already in 0-1000)
     m = COORD_PATTERN_FULL.search(response)
     if m:
         return int(m.group(1)), int(m.group(2))
-    
+
     m = COORD_PATTERN_XY.search(response)
     if m:
         return int(m.group(1)), int(m.group(2))
-    
+
+    # Qwen2.5-VL native <points> format (pixel coordinates -> normalize)
+    m = COORD_PATTERN_POINTS.search(response)
+    if m and image_size:
+        px, py = int(m.group(1)), int(m.group(2))
+        return int(round(px / image_size[0] * NORM_SIZE)), int(round(py / image_size[1] * NORM_SIZE))
+
+    # <points x1="X,Y"> comma variant
+    m = COORD_PATTERN_POINTS_COMMA.search(response)
+    if m and image_size:
+        px, py = int(m.group(1)), int(m.group(2))
+        return int(round(px / image_size[0] * NORM_SIZE)), int(round(py / image_size[1] * NORM_SIZE))
+
     # Try Qwen2.5-VL native bbox_2d format (pixel coordinates -> normalize)
     m = COORD_PATTERN_BBOX2D.search(response)
     if m and image_size:
@@ -148,12 +165,12 @@ def parse_click_coords(response: str, image_size=None):
         cx = (x1 + x2) / 2 / image_size[0] * NORM_SIZE
         cy = (y1 + y2) / 2 / image_size[1] * NORM_SIZE
         return int(round(cx)), int(round(cy))
-    
-    # Simple (x,y) pattern
+
+    # Simple (x,y) pattern (assumed 0-1000 from GE-Lab/continue-train)
     m = COORD_PATTERN_SIMPLE.search(response)
     if m:
         return int(m.group(1)), int(m.group(2))
-    
+
     return None
 
 
@@ -433,7 +450,7 @@ BENCHMARK_LOADERS = {
 # ---------------------------------------------------------------------------
 
 def evaluate_benchmark(model, samples, name, prompt_template=GROUNDING_PROMPT,
-                       verbose=False):
+                       verbose=False, system_prompt=None):
     """Evaluate model on a list of grounding samples. Returns accuracy dict."""
     correct = 0
     total = 0
@@ -448,7 +465,7 @@ def evaluate_benchmark(model, samples, name, prompt_template=GROUNDING_PROMPT,
         image_size = image.size
 
         prompt_text = prompt_template.format(instruction=instruction)
-        response = model.predict(image, prompt_text)
+        response = model.predict(image, prompt_text, system_prompt=system_prompt)
         coords = parse_click_coords(response, image_size=image_size)
 
         hit = False
@@ -472,19 +489,19 @@ def evaluate_benchmark(model, samples, name, prompt_template=GROUNDING_PROMPT,
 # ---------------------------------------------------------------------------
 
 def _worker(gpu_id, model_path, lora_path, max_pixels, benchmark_chunks,
-            result_queue, prompt_template, verbose):
+            result_queue, prompt_template, verbose, system_prompt=None):
     """Worker process for multi-GPU evaluation."""
     device = f"cuda:{gpu_id}"
     model = ModelWrapper(model_path, lora_path, device, max_pixels)
 
     for bench_key, bench_name, chunk in benchmark_chunks:
         result = evaluate_benchmark(model, chunk, f"{bench_name}:GPU{gpu_id}",
-                                    prompt_template, verbose)
+                                    prompt_template, verbose, system_prompt)
         result_queue.put((bench_key, result))
 
 
 def evaluate_multi_gpu(model_path, lora_path, max_pixels, all_benchmark_data,
-                       num_gpus, prompt_template, verbose):
+                       num_gpus, prompt_template, verbose, system_prompt=None):
     """Distribute evaluation across GPUs and merge results."""
     mp.set_start_method("spawn", force=True)
     result_queue = mp.Queue()
@@ -506,7 +523,7 @@ def evaluate_multi_gpu(model_path, lora_path, max_pixels, all_benchmark_data,
         p = mp.Process(
             target=_worker,
             args=(gpu_id, model_path, lora_path, max_pixels, gpu_work[gpu_id],
-                  result_queue, prompt_template, verbose),
+                  result_queue, prompt_template, verbose, system_prompt),
         )
         p.start()
         processes.append(p)
@@ -551,9 +568,12 @@ def main():
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--base_model", action="store_true",
                         help="Use Qwen2.5-VL native bbox_2d prompt format instead of GE-Lab format")
+    parser.add_argument("--use_system_prompt", action="store_true",
+                        help="Pass the real-world system prompt so the model outputs click(start_box=...) format")
     args = parser.parse_args()
 
     prompt_template = GROUNDING_PROMPT_BASE if args.base_model else GROUNDING_PROMPT
+    system_prompt = SYSTEM_PROMPT if args.use_system_prompt else None
 
     print("=" * 60)
     print("Real-World GUI Benchmark Evaluation (Table 5)")
@@ -562,6 +582,7 @@ def main():
     print(f"Benchmarks: {', '.join(args.benchmarks)}")
     print(f"GPUs: {args.num_gpus}")
     print(f"Prompt mode: {'base_model (bbox_2d)' if args.base_model else 'gelab (0-1000 click)'}")
+    print(f"System prompt: {'yes' if system_prompt else 'no'}")
     print()
 
     # Load all requested benchmarks
@@ -586,13 +607,13 @@ def main():
     if args.num_gpus > 1:
         results = evaluate_multi_gpu(
             args.model_path, args.lora_path, args.max_pixels, all_data,
-            args.num_gpus, prompt_template, args.verbose,
+            args.num_gpus, prompt_template, args.verbose, system_prompt,
         )
     else:
         model = ModelWrapper(args.model_path, args.lora_path, "cuda:0", args.max_pixels)
         for key, (bench_name, samples) in all_data.items():
             result = evaluate_benchmark(model, samples, bench_name,
-                                        prompt_template, args.verbose)
+                                        prompt_template, args.verbose, system_prompt)
             results[key] = result
 
     # Print results table
