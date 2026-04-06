@@ -336,7 +336,8 @@ python eval/evaluate_real_world.py \
 | **Paper SFT-Continue-Train** | 85.06 | 85.06 | 80.47 | 83.19 | 92.01 | 68.93 | 70.87* |
 | Our Base Qwen2.5-VL-7B | 74.84 | 77.28 | 81.98 | 83.89 | 75.30 | 65.05 | 76.39 |
 | **Our Run 2 (21k mixed, best)** | **77.59** | **80.19** | **82.85** | 82.65 | **76.76** | **66.02** | **77.68** |
-| Our Run 5 (amex-gelab 3-task) | 63.92 | 64.86 | 70.04 | 50.09 | 70.22 | 65.05 | 64.03 |
+| Our Run 5 (amex-gelab 3-task, base eval) | 63.92 | 64.86 | 70.04 | 50.09 | 70.22 | 65.05 | 64.03 |
+| Our Run 6 (amex-gelab 3-task A.5 aligned, sys eval) | 3.38 | 3.07 | 13.99 | 4.60 | 45.04 | 20.39 | 15.08 |
 
 *Paper averages include FuncPred and AndroidWorld which we don't evaluate, so direct avg comparison is not meaningful. Compare individual benchmarks instead.
 
@@ -386,6 +387,29 @@ python eval/evaluate_real_world.py \
 |--------|-----------|-------|-------|--------|--------|--------|-----|
 | LR=1e-5, 2ep | 9.7% | 10.7% | 18.2% | 21.6% | 8.0% | 8.7% | 12.8% |
 | **LR=1e-6, 1ep** | 63.9% | 64.9% | 70.0% | 50.1% | 70.2% | 65.0% | **64.0%** |
+
+### Run 6: amex-gelab 3-task with A.5-aligned grounding prompt (LR=1e-6, 1 epoch)
+- **Data**: 24k from `luca0621/amex-gelab` (8k nav + 8k grounding + 8k understanding)
+- **Key change**: Grounding samples now use paper's A.5 eval prompt: `"I want to click on {element}. Please locate the target element I should interact with. (with point)"`
+- **Config**: LR=1e-6, 1 epoch, full A.10 system prompt
+- **Training**: 47 steps, 38 min. Final loss=0.78, token_acc=77.7%
+- **Dataset**: [`namhokaist/amex-gelab-sft-v3`](https://huggingface.co/datasets/namhokaist/amex-gelab-sft-v3)
+- **Eval** (`--use_system_prompt`):
+
+| Benchmark | Run 5 (old grounding prompt) | Run 6 (A.5 aligned) |
+|-----------|------------------------------|---------------------|
+| ScreenSpot | 6.8% | 3.4% |
+| ScreenSpot-v2 | 6.4% | 3.1% |
+| MoTIF | 32.3% | 14.0% |
+| Refexp | 12.6% | 4.6% |
+| VWB-EG | 3.6% | **45.0%** |
+| VWB-AG | 1.0% | **20.4%** |
+| Avg | 10.5% | **15.1%** |
+
+- VWB benchmarks jumped (+41 and +19 points) -- aligned prompt works for web UI grounding
+- ScreenSpot/MoTIF/Refexp dropped -- these use mobile/desktop screenshots outside amex-gelab's domain
+- `--base_model` eval (64.0%) still outperforms `--use_system_prompt` (15.1%) overall
+- **Conclusion**: prompt alignment helps for in-domain benchmarks, but LR=1e-6 / 1 epoch is insufficient to fully learn the GE-Lab output format across all domains
 
 ### Batch Size Benchmarking
 | Batch/GPU | Grad Accum | Memory/GPU | Speed | Notes |
@@ -441,4 +465,5 @@ The paper's LR=1e-5 / 2 epochs / full A.10 prompt works for their SFT checkpoint
 | `eval/evaluate_real_world.py` | Grounding benchmark evaluation (6 benchmarks, multi-GPU) |
 | `eval/results_base_qwen_full.json` | Reference: base Qwen2.5-VL scores (76.4% avg) |
 | `eval/results_v2_full_base_prompt.json` | Reference: Run 2 best scores (77.7% avg) |
+| `eval/results_sft_v3_fixed_sys.json` | Reference: Run 6 amex-gelab A.5-aligned (15.1% avg, sys eval) |
 | `eval/results_sft_v3_gentle_base.json` | Reference: amex-gelab SFT scores (64.0% avg) |
