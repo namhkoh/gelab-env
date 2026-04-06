@@ -20,10 +20,19 @@ data_engine/ui_environment*/
 ui_environment_448/
 data_engine/assets/
 
-# Generated images (regenerable from scripts)
+# Generated images and datasets (regenerable from scripts)
 datas/images/
 datas/pages/
 datas/real_world_images/
+datas/amex_gelab_extracted/
+datas/amex_gelab_images/
+datas/amex_gelab_images_v2/
+datas/amex_gelab_raw/
+datas/amex_raw/
+datas/*.json
+
+# Paper PDF
+gege/
 
 # Sim2Real extracted icons and composed environments (regenerable)
 data_engine/real_icons/

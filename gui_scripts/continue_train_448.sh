@@ -3,10 +3,10 @@ set -e
 
 # =============================================================================
 # Continue Train Script - Real-World Continual Training (GE-Lab Section 6.2)
-# SFT on 24k real-world GUI samples, adapted for 3x A100 80GB
+# SFT on 24k real-world GUI samples, adapted for 4x H200 143GB
 #
 # Paper: global_batch=256, lr=1e-5, max_length=5120, epochs=2, 16 GPUs
-# Ours:  global_batch=258, lr=1e-5, max_length=5120, epochs=2, 3 GPUs
+# Ours:  global_batch=256, lr=1e-5, max_length=5120, epochs=2, 4 GPUs
 #
 # Usage:
 #   MODEL_STAGE=base    bash gui_scripts/continue_train_448.sh  # Base Qwen2.5-VL
@@ -20,12 +20,9 @@ export WANDB_API_KEY="${WANDB_API_KEY:?Set WANDB_API_KEY in your environment}"
 export WANDB_ENTITY="namhokoh-korea-advanced-institute-of-science-and-technology"
 export WANDB_PROJECT="gelab"
 export HF_TOKEN="${HF_TOKEN:?Set HF_TOKEN in your environment}"
-export HF_HOME="/ext_hdd2/nhkoh/.cache/huggingface"
-export XDG_CACHE_HOME="/ext_hdd2/nhkoh/.cache"
-export TORCH_HOME="/ext_hdd2/nhkoh/.cache/torch"
-export CUDA_HOME=/ext_hdd2/nhkoh/cuda-12.8
-export PATH=$CUDA_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+export HF_HOME="${HF_HOME:-/home1/irteam/.cache/huggingface}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/home1/irteam/.cache}"
+export TORCH_HOME="${TORCH_HOME:-/home1/irteam/.cache/torch}"
 export USE_HF=1
 export REPORT_TO="wandb"
 
@@ -74,17 +71,17 @@ export BASE_LOG_DIR="./logs/train"
 #  a learning rate of 1e-5, a max length of 5120, and 2 epochs"
 #
 # Paper: 16 GPUs, batch=16/gpu, grad_accum=1 -> 256 effective
-# Ours:  3 GPUs,  batch=2/gpu,  grad_accum=43 -> 258 effective
+# Ours:  4 GPUs,  batch=2/gpu,  grad_accum=32 -> 256 effective
 # =============================================================================
-export LEARNING_RATE=1e-5
-export NUM_TRAIN_EPOCHS=2
+export LEARNING_RATE=1e-6
+export NUM_TRAIN_EPOCHS=1
 export MAX_PIXELS=1003520  # Qwen2.5-VL-7B default, full resolution for accurate grounding
 
-# GPU Adjustment for 3x A100 80GB
-# batch=1 with high MAX_PIXELS to avoid OOM
-export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=1
-export GRADIENT_ACCUMULATION_STEPS=86  # 3*1*86=258 effective batch (matches paper ~256)
+# GPU Adjustment for 4x H200 143GB
+# With packing, larger batch sizes are efficient (no padding waste)
+export NPROC_PER_NODE=4
+export PER_DEVICE_TRAIN_BATCH_SIZE=8
+export GRADIENT_ACCUMULATION_STEPS=8  # 4*8*8=256 effective batch (exact paper match)
 
 # Training Configuration
 # NOTE: zero2 + gradient_checkpointing + bf16 causes NaN (observed in SFT training).
@@ -127,7 +124,7 @@ Based on the user request and the current screen state (and history if applicabl
 
 Task Types and Output Formats
 
-General GUI Task
+1. Task: Navigation
 
 - Goal: Reach a target page step-by-step.
 - Typical Input: Multi-turn instruction, history, and state. screen description and screenshot.
@@ -139,6 +136,21 @@ General GUI Task
   - complete: Task finished, current screen is the target.
 - Output Format:
 Explain: [Your brief explanation, e.g., 'click xxx icon on yyy page.', 'this is the target page.']	Action: [click(start_box=<|box_start|>(x,y)<|box_end|>) or TYPE("Text to type") or SCROLL(5) or WAIT(3) or complete]
+
+2. Task: Icon Grounding (Locating an Icon)
+
+- Goal: Identify the coordinates of a requested icon.
+- Typical Input: User request like "Click on [icon name/description] in the image.", screen image (<image>).
+- Action: Implicitly click (meaning "identify location").
+- Output Format:
+Action: click(start_box=<|box_start|>(x,y)<|box_end|>)
+
+3. Task: Icon Understanding (Identifying an Icon)
+
+- Goal: Provide the name or function of an icon at given coordinates.
+- Typical Input: User request like "What is the icon at point (x, y) in the image?", screen image (<image>).
+- Action: Provide textual information.
+- Output Format: Just the direct answer as text.
 
 --- General Instructions ---
 
@@ -166,7 +178,7 @@ echo "Model stage: $MODEL_STAGE"
 echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_DIR"
-echo "GPUs: $NPROC_PER_NODE x A100 80GB"
+echo "GPUs: $NPROC_PER_NODE x H200 143GB"
 echo ""
 echo "Paper Parameters (Appendix A.5):"
 echo "  Learning rate: $LEARNING_RATE"
@@ -181,7 +193,7 @@ echo "============================================================"
 python -c "import json; data=json.load(open('$DATASET_PATH')); print(f'Dataset samples: {len(data)}')"
 
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
-CUDA_VISIBLE_DEVICES=0,1,2 \
+CUDA_VISIBLE_DEVICES=0,1,2,3 \
 NPROC_PER_NODE=$NPROC_PER_NODE \
 MAX_PIXELS=$MAX_PIXELS \
 swift sft \
@@ -210,6 +222,8 @@ swift sft \
     --system "$SYSTEM_PROMPT" \
     --add_version False \
     --max_pixels "$MAX_PIXELS" \
+    --packing true \
+    --attn_impl flash_attn \
     --report_to "$REPORT_TO" \
     2>&1 | tee "$LOG_FILE"
 

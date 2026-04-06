@@ -1,0 +1,36 @@
+{
+  "model_path": "/home1/irteam/gelab-env/checkpoint/gui_exp/sft_amex_gelab_v3_gentle/v0-20260406_061944/checkpoint-47",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 813,
+      "total": 1272,
+      "accuracy": 0.6391509433962265
+    },
+    "ScreenSpot-v2": {
+      "correct": 825,
+      "total": 1272,
+      "accuracy": 0.6485849056603774
+    },
+    "MoTIF": {
+      "correct": 886,
+      "total": 1265,
+      "accuracy": 0.700395256916996
+    },
+    "Refexp": {
+      "correct": 283,
+      "total": 565,
+      "accuracy": 0.5008849557522124
+    },
+    "VWB-EG": {
+      "correct": 290,
+      "total": 413,
+      "accuracy": 0.7021791767554479
+    },
+    "VWB-AG": {
+      "correct": 67,
+      "total": 103,
+      "accuracy": 0.6504854368932039
+    }
+  },
+  "average_accuracy": 0.6402801125624107
+}

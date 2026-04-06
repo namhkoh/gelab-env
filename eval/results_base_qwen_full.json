@@ -1,0 +1,36 @@
+{
+  "model_path": "Qwen/Qwen2.5-VL-7B-Instruct",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 952,
+      "total": 1272,
+      "accuracy": 0.7484276729559748
+    },
+    "ScreenSpot-v2": {
+      "correct": 983,
+      "total": 1272,
+      "accuracy": 0.7727987421383647
+    },
+    "MoTIF": {
+      "correct": 1037,
+      "total": 1265,
+      "accuracy": 0.8197628458498024
+    },
+    "Refexp": {
+      "correct": 474,
+      "total": 565,
+      "accuracy": 0.8389380530973451
+    },
+    "VWB-EG": {
+      "correct": 311,
+      "total": 413,
+      "accuracy": 0.7530266343825666
+    },
+    "VWB-AG": {
+      "correct": 67,
+      "total": 103,
+      "accuracy": 0.6504854368932039
+    }
+  },
+  "average_accuracy": 0.763906564219543
+}

@@ -564,7 +564,7 @@ def main():
     parser.add_argument("--max_pixels", type=int, default=None,
                         help="Max pixels for image processing (None = model default)")
     parser.add_argument("--output_file", default=None, help="Save results as JSON")
-    parser.add_argument("--cache_dir", default="/ext_hdd2/nhkoh/.cache/huggingface/datasets")
+    parser.add_argument("--cache_dir", default="/home1/irteam/.cache/huggingface/datasets")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--base_model", action="store_true",
                         help="Use Qwen2.5-VL native bbox_2d prompt format instead of GE-Lab format")
