@@ -106,10 +106,11 @@ def process_trajectory(traj_dir, image_dir, canvas_size):
 
             cx, cy = bbox_center_to_1000(bbox, cs)
 
-            # Grounding: "Click on [element]" -> coordinates
+            # Grounding: matches paper A.5 eval prompt format
+            clean_name = elem_name.replace("_", " ")
             grounding_samples.append({
                 "messages": [
-                    {"role": "user", "content": f"<image>Click on {elem_name} in the image."},
+                    {"role": "user", "content": f"<image>I want to click on {clean_name}. Please locate the target element I should interact with. (with point)"},
                     {"role": "assistant", "content": f"Action: click(start_box='<|box_start|>({cx},{cy})<|box_end|>')"},
                 ],
                 "images": [img_path],
@@ -117,7 +118,6 @@ def process_trajectory(traj_dir, image_dir, canvas_size):
             })
 
             # Understanding: "What is at (x,y)?" -> element name
-            clean_name = elem_name.replace("_", " ")
             understanding_samples.append({
                 "messages": [
                     {"role": "user", "content": f"<image>What is the icon at point ({cx},{cy}) in the image?"},
