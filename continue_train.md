@@ -327,6 +327,23 @@ python eval/evaluate_real_world.py \
 
 ---
 
+## Full Benchmark Results (all `--base_model` eval)
+
+| Model | ScreenSpot | SS-v2 | MoTIF | Refexp | VWB-EG | VWB-AG | Avg |
+|-------|-----------|-------|-------|--------|--------|--------|-----|
+| **Paper Base (their report)** | 84.01 | 80.34 | 71.93 | 79.46 | 90.07 | 72.81 | 67.15* |
+| **Paper Continue-Train** | 84.91 | 84.43 | 68.30 | 72.13 | 93.70 | 67.96 | 67.87* |
+| **Paper SFT-Continue-Train** | 85.06 | 85.06 | 80.47 | 83.19 | 92.01 | 68.93 | 70.87* |
+| Our Base Qwen2.5-VL-7B | 74.84 | 77.28 | 81.98 | 83.89 | 75.30 | 65.05 | 76.39 |
+| **Our Run 2 (21k mixed, best)** | **77.59** | **80.19** | **82.85** | 82.65 | **76.76** | **66.02** | **77.68** |
+| Our Run 5 (amex-gelab 3-task) | 63.92 | 64.86 | 70.04 | 50.09 | 70.22 | 65.05 | 64.03 |
+
+*Paper averages include FuncPred and AndroidWorld which we don't evaluate, so direct avg comparison is not meaningful. Compare individual benchmarks instead.
+
+**Note on base score gap:** Our base Qwen scores ~10 points below the paper's on ScreenSpot (74.8% vs 84.0%). This is likely due to differences in eval prompt format -- the paper may use the A.5 grounding prompt with system prompt, while we use Qwen's native `bbox_2d` prompt. The relative improvement from continue-training is consistent: both show +1-3 points on ScreenSpot.
+
+---
+
 ## Experiment Log
 
 ### Run 1: Paper-matched hyperparams (LR=1e-5, 2 epochs)
