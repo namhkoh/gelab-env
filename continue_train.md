@@ -338,6 +338,8 @@ python eval/evaluate_real_world.py \
 | **Our Run 2 (21k mixed, best)** | **77.59** | **80.19** | **82.85** | 82.65 | **76.76** | **66.02** | **77.68** |
 | Our Run 5 (amex-gelab 3-task, base eval) | 63.92 | 64.86 | 70.04 | 50.09 | 70.22 | 65.05 | 64.03 |
 | Our Run 6 (amex-gelab 3-task A.5 aligned, sys eval) | 3.38 | 3.07 | 13.99 | 4.60 | 45.04 | 20.39 | 15.08 |
+| Our Run 7 (23k combined: no-AMEX mixed + amex-gelab 3-task) | 70.75 | 72.33 | 76.13 | 61.59 | 74.82 | 65.05 | 70.11 |
+| Base Qwen (`--use_system_prompt` eval) | 4.87 | 4.56 | 11.38 | 3.01 | 7.26 | 1.94 | 5.51 |
 
 *Paper averages include FuncPred and AndroidWorld which we don't evaluate, so direct avg comparison is not meaningful. Compare individual benchmarks instead.
 
@@ -411,6 +413,19 @@ python eval/evaluate_real_world.py \
 - `--base_model` eval (64.0%) still outperforms `--use_system_prompt` (15.1%) overall
 - **Conclusion**: prompt alignment helps for in-domain benchmarks, but LR=1e-6 / 1 epoch is insufficient to fully learn the GE-Lab output format across all domains
 
+### Run 7: Combined dataset (no-AMEX mixed + amex-gelab 3-task, LR=1e-6, 1 epoch)
+- **Data**: 23.3k combined (AITW 4k + AITZ 3.3k + Mind2Web 4k + amex-gelab nav 4k + grounding 4k + understanding 4k). AMEX removed from mixed set to avoid overlap with amex-gelab.
+- **Config**: LR=1e-6, 1 epoch, full A.10 system prompt
+- **Training**: 38 steps, 33 min. Final loss=1.04, token_acc=72.6%
+- **Eval** (`--base_model`): **70.1% avg**
+- **Result**: Worse than Run 2 (77.7%) despite having more data. The amex-gelab 3-task data diluted the diverse real-world data, and the full A.10 system prompt added distribution shift.
+
+### Base Qwen eval with `--use_system_prompt`
+- Base Qwen2.5-VL scores **5.5% avg** with `--use_system_prompt` eval (A.5 grounding prompt)
+- This confirms the base model has never seen the GE-Lab grounding prompt format
+- The 10-point gap between our base (74.8%) and paper's base (84.0%) on ScreenSpot is NOT due to eval prompt -- it's likely a checkpoint version or image preprocessing difference
+- Our relative improvements are valid; absolute numbers are consistently ~10 points below paper
+
 ### Batch Size Benchmarking
 | Batch/GPU | Grad Accum | Memory/GPU | Speed | Notes |
 |-----------|-----------|------------|-------|-------|
@@ -440,6 +455,30 @@ Use `--base_model` when the model retains Qwen's native grounding format (true f
 
 ### 6. Paper hyperparams assume pre-trained starting checkpoint
 The paper's LR=1e-5 / 2 epochs / full A.10 prompt works for their SFT checkpoint (already trained on GE-Lab sim data). When starting from raw base Qwen, these settings cause catastrophic forgetting. The correct analogy: the paper's "continue-train" is stage 2 of a 2-stage pipeline; we're doing stage 2 directly on the base model.
+
+---
+
+## Next Steps (Priority Order)
+
+### 1. Investigate the 10-point base score gap (HIGH PRIORITY)
+Our base Qwen scores 74.8% on ScreenSpot vs paper's 84.0%. This offsets ALL our results. Potential causes to investigate:
+- **Qwen2.5-VL checkpoint version**: check if the paper uses a specific commit hash
+- **Image preprocessing**: try `MAX_PIXELS=200704` (paper's value) at eval time
+- **ScreenSpot dataset version**: the `rootsautomation/ScreenSpot` HF dataset may differ from what the paper uses
+- Quick test: run eval with `--max_pixels 200704` to see if resolution matters
+
+### 2. Try the paper's exact 2-stage pipeline
+The paper's best results come from SFT -> Continue-Train (two stages). We've only done single-stage. The pipeline would be:
+1. SFT on amex-gelab (with A.5 grounding prompt, LR=1e-5, 2ep) -- learn GE-Lab format
+2. Continue-train the SFT checkpoint on 21k mixed data (LR=1e-5, 2ep) -- add real-world knowledge
+
+This matches "SFT-Continue-Train" in Table 5 (85.06% ScreenSpot).
+
+### 3. Try LoRA instead of full fine-tuning
+LoRA would preserve base model capabilities by only training low-rank adapters. This could allow LR=1e-5 without catastrophic forgetting, matching the paper's hyperparameters.
+
+### 4. Scale up amex-gelab grounding data
+We have ~1M potential grounding samples but only use 8k. Training with more grounding examples at LR=1e-5 could fully teach the GE-Lab output format without destroying base capabilities (if balanced with enough diverse data).
 
 ---
 
