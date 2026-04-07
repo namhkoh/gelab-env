@@ -43,32 +43,21 @@ from amex_compose_deterministic import (
     compose_trajectory,
 )  # noqa: E402
 
-NORM_SIZE = 1000
-
-
 def _bbox_to_normalized(bbox: List[int]) -> List[int]:
     if not bbox or bbox == [0, 0, 0, 0]:
         return [0, 0, 0, 0]
-    x1, y1, x2, y2 = bbox
-    return [
-        int(x1 * NORM_SIZE / CANVAS_W),
-        int(y1 * NORM_SIZE / CANVAS_H),
-        int(x2 * NORM_SIZE / CANVAS_W),
-        int(y2 * NORM_SIZE / CANVAS_H),
-    ]
+    return list(bbox)
 
 
 def _point_to_normalized(point: List[int]) -> Tuple[int, int]:
-    x, y = point[0], point[1]
-    return (
-        int(x * NORM_SIZE / CANVAS_W),
-        int(y * NORM_SIZE / CANVAS_H),
-    )
+    return (int(point[0]), int(point[1]))
 
 
 def _bbox_center_normalized(bbox: List[int]) -> Tuple[int, int]:
-    norm = _bbox_to_normalized(bbox)
-    return (norm[0] + norm[2]) // 2, (norm[1] + norm[3]) // 2
+    if not bbox or bbox == [0, 0, 0, 0]:
+        return (0, 0)
+    x1, y1, x2, y2 = bbox
+    return ((x1 + x2) // 2, (y1 + y2) // 2)
 
 
 def _find_closest_layout_element(
@@ -111,42 +100,42 @@ def _find_closest_layout_element(
     return best_key or "element", best_bbox
 
 
-def _format_tap_action(action_name: str, page_id: str, coord: List[int]) -> str:
+def _format_tap_action(action_name: str, coord: List[int]) -> str:
     cx, cy = _point_to_normalized(coord)
     return (
-        f"Explain: tap {action_name} on {page_id}.\t"
+        f"Explain: tap {action_name}.\t"
         f"Action: tap(start_box='<|box_start|>({cx},{cy})<|box_end|>')"
     )
 
 
-def _format_swipe_action(page_id: str, start: List[int], end: List[int], direction: str) -> str:
+def _format_swipe_action(start: List[int], end: List[int], direction: str) -> str:
     sx, sy = _point_to_normalized(start)
     ex, ey = _point_to_normalized(end)
     return (
-        f"Explain: swipe {direction} on {page_id}.\t"
+        f"Explain: swipe {direction}.\t"
         f"Action: swipe(start_box='<|box_start|>({sx},{sy})<|box_end|>', "
         f"end_box='<|box_start|>({ex},{ey})<|box_end|>')"
     )
 
 
-def _format_type_action(text: str, page_id: str, coord: List[int]) -> str:
+def _format_type_action(text: str, coord: List[int]) -> str:
     cx, cy = _point_to_normalized(coord)
     return (
-        f"Explain: type \"{text}\" on {page_id}.\t"
+        f"Explain: type \"{text}\".\t"
         f"Action: type(start_box='<|box_start|>({cx},{cy})<|box_end|>', text='{text}')"
     )
 
 
-def _format_press_enter_action(page_id: str) -> str:
-    return f"Explain: press enter to confirm on {page_id}.\tAction: press_enter()"
+def _format_press_enter_action() -> str:
+    return "Explain: press enter to confirm.\tAction: press_enter()"
 
 
-def _format_press_back_action(page_id: str) -> str:
-    return f"Explain: press back on {page_id}.\tAction: press_back()"
+def _format_press_back_action() -> str:
+    return "Explain: press back.\tAction: press_back()"
 
 
-def _format_press_home_action(page_id: str) -> str:
-    return f"Explain: press home on {page_id}.\tAction: press_home()"
+def _format_press_home_action() -> str:
+    return "Explain: press home.\tAction: press_home()"
 
 
 def _format_complete_action() -> str:
@@ -165,11 +154,10 @@ def _infer_swipe_direction(start: List[int], end: List[int]) -> str:
     return "left" if dx < 0 else "right"
 
 
-def _format_user_content(instruction: str, route_text: str, history: str) -> str:
+def _format_user_content(instruction: str, history: str) -> str:
     parts = ["<image>"]
     if instruction:
         parts.append(f"Goal: {instruction}")
-    parts.append(route_text)
     parts.append(f"History: {history}")
     return " ".join(parts)
 
@@ -190,9 +178,6 @@ def generate_trajectory_samples(
     if not page_ids:
         return samples
 
-    start_page = page_ids[0]
-    end_page = page_ids[-1]
-    route_text = f"Instruction: from {start_page} to {end_page}."
     history_parts: List[str] = []
 
     for i, page_id in enumerate(page_ids):
@@ -210,19 +195,16 @@ def generate_trajectory_samples(
         target_page = t.get("target_page", page_id)
 
         history = "; ".join(history_parts) if history_parts else "Null"
-        user_content = _format_user_content(instruction, route_text, history)
+        user_content = _format_user_content(instruction, history)
         image_path = os.path.join(pages_dir, page.get("image", f"{page_id}.png"))
 
         if action == "TASK_COMPLETE":
             sample = {
-                "task": instruction or f"From {start_page} to {end_page}",
-                "route": f"From {start_page} to {end_page}",
                 "messages": [
                     {"role": "user", "content": user_content},
                     {"role": "assistant", "content": _format_complete_action()},
                 ],
                 "images": [image_path],
-                "bbox_norm": [0, 0, 0, 0],
                 "source": source_label,
                 "action_type": "TASK_COMPLETE",
             }
@@ -231,14 +213,11 @@ def generate_trajectory_samples(
 
         if action == "TASK_IMPOSSIBLE":
             sample = {
-                "task": instruction or f"From {start_page} to {end_page}",
-                "route": f"From {start_page} to {end_page}",
                 "messages": [
                     {"role": "user", "content": user_content},
                     {"role": "assistant", "content": _format_impossible_action()},
                 ],
                 "images": [image_path],
-                "bbox_norm": [0, 0, 0, 0],
                 "source": source_label,
                 "action_type": "TASK_IMPOSSIBLE",
             }

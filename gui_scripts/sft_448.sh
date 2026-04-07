@@ -7,16 +7,15 @@ set -e
 # =============================================================================
 
 # Environment Variables (user-provided)
-export WANDB_API_KEY="${WANDB_API_KEY:?Set WANDB_API_KEY in your environment}"
-export WANDB_ENTITY="namhokoh-korea-advanced-institute-of-science-and-technology"
+export WANDB_API_KEY="${WANDB_API_KEY:}"
 export WANDB_PROJECT="gelab"
-export HF_TOKEN="${HF_TOKEN:?Set HF_TOKEN in your environment}"
-export HF_HOME="/ext_hdd2/nhkoh/.cache/huggingface"
-export XDG_CACHE_HOME="/ext_hdd2/nhkoh/.cache"
-export TORCH_HOME="/ext_hdd2/nhkoh/.cache/torch"
-export CUDA_HOME=/ext_hdd2/nhkoh/cuda-12.8
+export HF_TOKEN="${HF_TOKEN:}"
+export HF_HOME="${HF_HOME:-/home/irteam/data-vol1/.cache/huggingface}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/home/irteam/data-vol1/.cache}"
+export TORCH_HOME="${TORCH_HOME:-/home/irteam/data-vol1/.cache/torch}"
+export CUDA_HOME=$CONDA_PREFIX
 export PATH=$CUDA_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$CUDA_HOME/lib:$LD_LIBRARY_PATH
 export USE_HF=1
 export REPORT_TO="wandb"
 
@@ -38,7 +37,7 @@ export NUM_TRAIN_EPOCHS=1
 export MAX_PIXELS=200704
 
 # GPU Adjustment for 3x A100 80GB
-export NPROC_PER_NODE=3
+export NPROC_PER_NODE=4
 export PER_DEVICE_TRAIN_BATCH_SIZE=2
 export GRADIENT_ACCUMULATION_STEPS=4
 
@@ -143,7 +142,7 @@ echo "============================================================"
 python -c "import json; data=json.load(open('$DATASET_PATH')); print(f'Dataset samples: {len(data)}')"
 
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
-CUDA_VISIBLE_DEVICES=0,1,2 \
+CUDA_VISIBLE_DEVICES=0,1,2,3 \
 NPROC_PER_NODE=$NPROC_PER_NODE \
 MAX_PIXELS=$MAX_PIXELS \
 swift sft \

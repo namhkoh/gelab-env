@@ -767,8 +767,8 @@ export HF_TOKEN="your_token"
 python data_engine/tree.py --seed 42
 
 # 3. Copy environment to datas/
-cp data_engine/ui_environment_448/<TIMESTAMP>/{config,ui_structure,ui_structure_layer}.json datas/
-cp -r data_engine/ui_environment_448/<TIMESTAMP>/pages datas/
+cp data_engine/ui_environment_448/20260402_185007/{config,ui_structure,ui_structure_layer}.json datas/
+cp -r data_engine/ui_environment_448/20260402_185007/pages datas/
 
 # 4. Generate training datasets
 python data_engine/generate_sft_data.py

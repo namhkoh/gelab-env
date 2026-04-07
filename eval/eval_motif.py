@@ -84,7 +84,7 @@ def _eval_chunk(gpu_id, model_path, samples, result_queue):
             img.height, img.width,
             factor=processor.image_processor.patch_size * processor.image_processor.merge_size,
             min_pixels=processor.image_processor.min_pixels,
-            max_pixels=99999999,
+            max_pixels=1048576,
         )
         resized_img = img.resize((resized_w, resized_h))
 

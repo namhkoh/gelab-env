@@ -7,23 +7,22 @@ set -e
 # =============================================================================
 
 # Environment Variables (user-provided)
-export WANDB_API_KEY="${WANDB_API_KEY:?Set WANDB_API_KEY in your environment}"
-export WANDB_ENTITY="namhokoh-korea-advanced-institute-of-science-and-technology"
-export WANDB_PROJECT="gelab"
-export HF_TOKEN="${HF_TOKEN:?Set HF_TOKEN in your environment}"
-export HF_HOME="/ext_hdd2/nhkoh/.cache/huggingface"
-export XDG_CACHE_HOME="/ext_hdd2/nhkoh/.cache"
-export TORCH_HOME="/ext_hdd2/nhkoh/.cache/torch"
-export CUDA_HOME=/ext_hdd2/nhkoh/cuda-12.8
-export PATH=$CUDA_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
-export USE_HF=1
-export REPORT_TO="wandb"
+export WANDB_API_KEY="${WANDB_API_KEY:}"
+export WANDB_PROJECT="${WANDB_PROJECT:-gelab}"
+export HF_TOKEN="${HF_TOKEN:}"
+export HF_HOME="${HF_HOME:-/home/irteam/data-vol1/.cache/huggingface}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/home/irteam/data-vol1/.cache}"
+export TORCH_HOME="${TORCH_HOME:-/home/irteam/data-vol1/.cache/torch}"
+export CUDA_HOME="${CUDA_HOME:-$CONDA_PREFIX}"
+export PATH="$CUDA_HOME/bin:$PATH"
+export LD_LIBRARY_PATH="${CUDA_HOME}/lib:${LD_LIBRARY_PATH}"
+export USE_HF="${USE_HF:-1}"
+export REPORT_TO="${REPORT_TO:-wandb}"
 
 # Model and Data Paths
 export SAVE_NAME="sft_amex"
 export MODEL_PATH="Qwen/Qwen2.5-VL-7B-Instruct"
-export DATASET_PATH="${DATASET_PATH:-datas_amex/sft_amex.json}"
+export DATASET_PATH="${DATASET_PATH:-/home/irteam/data-vol1/gelab-env/datas/sft_amex.json}"
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
 
@@ -32,19 +31,18 @@ export BASE_LOG_DIR="./logs/train"
 # =============================================================================
 export LEARNING_RATE=1e-5
 export NUM_TRAIN_EPOCHS=1
-export MAX_PIXELS=200704
+export MAX_PIXELS=1048576
 
 # GPU Adjustment for 3x A100 80GB
-export NPROC_PER_NODE=3
-export PER_DEVICE_TRAIN_BATCH_SIZE=2
-export GRADIENT_ACCUMULATION_STEPS=4
-
+export NPROC_PER_NODE=4
+export PER_DEVICE_TRAIN_BATCH_SIZE=8
+export GRADIENT_ACCUMULATION_STEPS=2
 # Training Configuration
 export TRAIN_TYPE="full"
 export TORCH_DTYPE="bfloat16"
 export DEEPSPEED_CONFIG="zero2"
-export GRADIENT_CHECKPOINTING="false"
-export MAX_LENGTH=2048
+export GRADIENT_CHECKPOINTING="true"
+export MAX_LENGTH=4096
 export WARMUP_RATIO=0.05
 export LR_SCHEDULER_TYPE="cosine"
 
@@ -80,7 +78,7 @@ Based on the user request and the current screen state (and history if applicabl
 - Goal: Complete a task on a mobile phone step-by-step using the available actions.
 - Typical Input: Multi-turn instruction, history, and state. screen description and screenshot.
 - Available Actions (AMEX unified action space):
-  - TAP: Tap a specific element. Provide coordinates (x, y) relative to a (0,0) top-left and (1000,1000) bottom-right system.
+  - TAP: Tap a specific element. Provide coordinates (x, y) in absolute pixel values based on the input screen resolution (672x1512), where (0,0) is the top-left corner.
   - SWIPE: Drag/scroll from one point to another. Provide start and end coordinates.
   - TYPE: Enter text at a location. Provide coordinates and the text string.
   - PRESS_ENTER: Submit or confirm the current input.
@@ -119,7 +117,7 @@ Action: tap(start_box='<|box_start|>(x,y)<|box_end|>')
 
 - Carefully analyze the user request to determine the task (Navigation, Grounding, Understanding).
 - Analyze the current screen state (description or image) thoroughly.
-- For actions involving coordinates (TAP, SWIPE, TYPE), use the (0,0) to (1000,1000) system.
+- For actions involving coordinates (TAP, SWIPE, TYPE), use absolute pixel coordinates based on the input screen resolution (672x1512), where (0,0) is the top-left corner.
 - Strictly adhere to the specified output format for the determined task type. Use a tab character (\t) as a separator where indicated.
 PROMPT_EOF
 export SYSTEM_PROMPT
@@ -140,7 +138,7 @@ echo "Start time: $(date)"
 echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_DIR"
-echo "GPUs: $NPROC_PER_NODE x A100 80GB"
+echo "GPUs: $NPROC_PER_NODE x h200 140GB"
 echo ""
 echo "Hyperparameters:"
 echo "  Learning rate: $LEARNING_RATE"
@@ -154,7 +152,7 @@ echo "============================================================"
 python -c "import json; data=json.load(open('$DATASET_PATH')); print(f'Dataset samples: {len(data)}')"
 
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
-CUDA_VISIBLE_DEVICES=0,1,2 \
+CUDA_VISIBLE_DEVICES=0,1,2,3 \
 NPROC_PER_NODE=$NPROC_PER_NODE \
 MAX_PIXELS=$MAX_PIXELS \
 swift sft \
@@ -192,3 +190,4 @@ echo "SFT Training Complete"
 echo "End time: $(date)"
 echo "Output: $OUTPUT_DIR"
 echo "============================================================"
+

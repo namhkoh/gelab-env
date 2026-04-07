@@ -182,6 +182,30 @@ class AMEXCoordinateMatchORM(ORM):
         return rewards
 
 
+def _extract_tap_target(explain: str) -> Optional[str]:
+    """Extract element name from 'tap X' explain."""
+    match = re.match(r"tap\s+(.+)", explain)
+    if match:
+        return match.group(1).strip().rstrip(".")
+    return None
+
+
+def _extract_swipe_direction(explain: str) -> Optional[str]:
+    """Extract direction from 'swipe up/down/left/right' explain."""
+    match = re.search(r"swipe\s+(up|down|left|right)", explain)
+    if match:
+        return match.group(1)
+    return None
+
+
+def _extract_type_content(explain: str) -> Optional[str]:
+    """Extract quoted text from 'type "X" into ...' explain."""
+    match = re.search(r'type\s+["\u201c](.+?)["\u201d]', explain)
+    if match:
+        return match.group(1)
+    return None
+
+
 class AMEXIntentMatchORM(ORM):
     def __call__(self, completions, solution, action_type=None, type_text=None, **kwargs) -> List[float]:
         rewards = []
@@ -198,15 +222,46 @@ class AMEXIntentMatchORM(ORM):
                 rewards.append(0.0)
                 continue
 
-            if pred_action == "type":
-                pred_text = _extract_type_text(content)
-                if pred_text is None:
-                    rewards.append(0.0)
-                    continue
-                rewards.append(float(pred_text == gold_type_text))
-                continue
+            pred_explain = _extract_explain(content)
+            sol_explain = _extract_explain(sol)
 
-            rewards.append(float(_extract_explain(content) == _extract_explain(sol)))
+            if pred_action == "tap":
+                pred_target = _extract_tap_target(pred_explain)
+                sol_target = _extract_tap_target(sol_explain)
+                if pred_target and sol_target:
+                    rewards.append(float(pred_target == sol_target))
+                else:
+                    rewards.append(0.0)
+
+            elif pred_action == "swipe":
+                pred_dir = _extract_swipe_direction(pred_explain)
+                sol_dir = _extract_swipe_direction(sol_explain)
+                if pred_dir and sol_dir:
+                    rewards.append(float(pred_dir == sol_dir))
+                else:
+                    rewards.append(0.0)
+
+            elif pred_action == "type":
+                pred_text = _extract_type_content(pred_explain)
+                if pred_text and gold_type_text:
+                    rewards.append(float(pred_text.lower() == gold_type_text.lower()))
+                elif gold_type_text:
+                    pred_text2 = _extract_type_text(content)
+                    rewards.append(float(pred_text2 is not None and pred_text2.lower() == gold_type_text.lower()))
+                else:
+                    rewards.append(0.0)
+
+            elif pred_action in ("complete", "task"):
+                rewards.append(float("complete" in pred_explain or "target" in pred_explain or "finish" in pred_explain))
+
+            elif pred_action == "impossible":
+                rewards.append(float("cannot" in pred_explain or "impossible" in pred_explain))
+
+            elif pred_action in ("press_enter", "press_back", "press_home"):
+                rewards.append(1.0)
+
+            else:
+                rewards.append(0.0)
 
         return rewards
 
