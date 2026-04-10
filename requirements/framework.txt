@@ -36,3 +36,4 @@ transformers_stream_generator
 trl>=0.15,<0.18
 uvicorn
 zstandard
+qwen-vl-utils

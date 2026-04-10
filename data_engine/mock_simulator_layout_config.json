@@ -8,7 +8,8 @@
     "x and y are the top-left coordinates of the icon tile in pixels.",
     "Example direct placement: {\"label\": \"Citymapper\", \"asset\": \"citymapper\", \"x\": 220, \"y\": 620}",
     "Example slot swap: change \"slot\": \"home_slot_1\" to \"slot\": \"home_slot_4\".",
-    "Use asset=random_home_real to sample one realistic icon from the bundled AMEX asset pool."
+    "Use asset=random_home_real to sample one realistic icon from the bundled AMEX asset pool.",
+    "App drawer icons are auto-paged in chunks of 24; extra icons spill into page_2_app_drawer, page_3_app_drawer, ..."
   ],
   "slots": {
     "home_slot_1": { "x": 99, "y": 760 },
@@ -70,11 +71,16 @@
     "app_drawer": {
       "icons": [
         { "label": "SeatGeek", "asset": "seatgeek", "slot": "drawer_slot_1", "show_label": false },
-        { "label": "KKBOX", "asset": "kkbox", "slot": "drawer_slot_2", "show_label": false },
-        { "label": "Novelship", "asset": "novelship", "slot": "drawer_slot_3", "show_label": true },
-        { "label": "Citymapper", "asset": "citymapper", "slot": "drawer_slot_4", "show_label": true }
+        { "label": "Eventbrite", "asset": "eventbrite", "slot": "drawer_slot_2", "show_label": false },
+        { "label": "Gallery", "asset": "gallery_real", "slot": "drawer_slot_3", "show_label": false },
+        { "label": "News", "asset": "news_real", "slot": "drawer_slot_4", "show_label": false },
+        { "label": "SmartNews", "asset": "smartnews_real", "slot": "drawer_slot_5", "show_label": false },
+        { "label": "KKBOX", "asset": "kkbox", "slot": "drawer_slot_6", "show_label": false },
+        { "label": "Novelship", "asset": "novelship", "slot": "drawer_slot_7", "show_label": true },
+        { "label": "Citymapper", "asset": "citymapper", "slot": "drawer_slot_8", "show_label": true },
+        { "label": "Audiomack", "asset": "audiomack_real", "slot": "drawer_slot_9", "show_label": true },
+        { "label": "Music", "asset": "music_real", "slot": "drawer_slot_10", "show_label": false }
       ]
     }
   }
 }
-

@@ -13,13 +13,23 @@ Pipeline:
 Prerequisites:
     - OmniParser weights at /ext_hdd2/nhkoh/OmniParser/weights/
     - AMEX annotations + screenshots downloaded
-    - OPENAI_API_KEY environment variable set
+    - OPENAI_API_KEY environment variable set (for OpenAI)
+    - GEMINI_API_KEY or GOOGLE_API_KEY environment variable set (for Gemini)
 
 Usage:
+    # OpenAI (default)
     export OPENAI_API_KEY="sk-..."
     python data_engine/sim2real_compose.py \
     --trajectory_id 2024_3_18_17_19_e8ba0101cbc74242b48af70a57dafdf5 \
     --output_dir data_engine/sim2real_envs/trajectory_001 \
+    --gpu 0
+
+    # Gemini
+    export GEMINI_API_KEY="AIzaSyDaBiOK8ShIqo2Tin36PmBJmxBq4188GLc"
+    python data_engine/sim2real_compose.py \
+    --provider gemini --model_name gemini-3.1-pro-preview \
+    --trajectory_id 2024_3_18_17_19_e8ba0101cbc74242b48af70a57dafdf5 \
+    --output_dir data_engine/sim2real_envs/trajectory_gemini-3.1-pro \
     --gpu 0
 
 
@@ -42,6 +52,8 @@ import json
 import os
 import random
 import re
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -50,6 +62,12 @@ import numpy as np
 from openai import OpenAI
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from ultralytics import YOLO
+
+try:
+    import google.generativeai as genai
+    _HAS_GENAI = True
+except ImportError:
+    _HAS_GENAI = False
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -426,6 +444,93 @@ def _save_asset_manifest(output_dir: str, pages_detection_data: List[dict]):
         json.dump(manifest, f, indent=2)
 
 
+def _normalize_saved_layout(layout_blob: dict) -> dict:
+    """Normalize saved layout blobs into {name: [x1, y1, x2, y2]}."""
+    normalized = {}
+    if not isinstance(layout_blob, dict):
+        return normalized
+
+    for key, value in layout_blob.items():
+        bbox = value.get("bbox") if isinstance(value, dict) else value
+        if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+            continue
+        try:
+            normalized[str(key)] = [int(round(float(v))) for v in bbox]
+        except Exception:
+            continue
+    return normalized
+
+
+def _load_existing_ui_pages(output_dir: str) -> dict:
+    ui_path = os.path.join(output_dir, "ui_structure.json")
+    if not os.path.exists(ui_path):
+        return {}
+    try:
+        with open(ui_path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        return payload.get("pages") or {}
+    except Exception:
+        return {}
+
+
+def _load_existing_manifest_by_page(output_dir: str) -> Dict[str, List[dict]]:
+    manifest_path = os.path.join(output_dir, "trajectory_assets_manifest.json")
+    if not os.path.exists(manifest_path):
+        return {}
+
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+    except Exception:
+        return {}
+
+    grouped: Dict[str, List[dict]] = {}
+    for item in manifest or []:
+        if not isinstance(item, dict):
+            continue
+        page_id = str(item.get("page_id", "") or "").strip()
+        if not page_id:
+            continue
+        grouped.setdefault(page_id, []).append(item)
+    return grouped
+
+
+def _extract_layout_from_saved_code(code_path: str) -> dict:
+    """Parse layout assignments from a saved generated_code/page_X.py artifact."""
+    if not os.path.exists(code_path):
+        return {}
+
+    try:
+        with open(code_path, "r", encoding="utf-8") as f:
+            contents = f.read()
+    except Exception:
+        return {}
+
+    layout = {}
+    pattern = re.compile(r'layout\[(["\'])(.*?)\1\]\s*=\s*\[\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*\]')
+    for match in pattern.finditer(contents):
+        layout[match.group(2)] = [
+            int(match.group(3)),
+            int(match.group(4)),
+            int(match.group(5)),
+            int(match.group(6)),
+        ]
+    return layout
+
+
+def _load_existing_page_layout(output_dir: str,
+                               page_id: str,
+                               existing_ui_pages: dict) -> Optional[dict]:
+    page_entry = existing_ui_pages.get(page_id) or {}
+    layout = _normalize_saved_layout(page_entry.get("layout") or {})
+    if layout:
+        return layout
+
+    code_path = os.path.join(output_dir, "generated_code", f"{page_id}.py")
+    layout = _extract_layout_from_saved_code(code_path)
+    return layout or None
+
+
 def render_native_page(screenshot_path: str,
                        elements: List[dict],
                        orig_size: Tuple[int, int],
@@ -534,16 +639,41 @@ def render_reconstructed_native_page(
 
 
 # ---------------------------------------------------------------------------
-# OpenAI API client
+# API client (OpenAI / Gemini)
 # ---------------------------------------------------------------------------
 
-def load_api_client() -> OpenAI:
-    """Initialize OpenAI API client."""
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY environment variable not set")
-    client = OpenAI(api_key=api_key)
-    print("OpenAI client initialized.")
+_api_client_local = threading.local()
+_active_provider: str = "openai"  # module-level default, set by run_pipeline
+
+
+def load_api_client(provider: str = "openai", verbose: bool = True):
+    """Initialize API client for the chosen provider."""
+    if provider == "gemini":
+        if not _HAS_GENAI:
+            raise RuntimeError("google-generativeai package not installed. "
+                               "Install with: pip install google-generativeai")
+        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY (or GOOGLE_API_KEY) environment variable not set")
+        genai.configure(api_key=api_key)
+        if verbose:
+            print("Gemini client initialized.")
+        return "gemini"  # sentinel; model is created per-call
+    else:
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise RuntimeError("OPENAI_API_KEY environment variable not set")
+        client = OpenAI(api_key=api_key)
+        if verbose:
+            print("OpenAI client initialized.")
+        return client
+
+
+def _get_thread_api_client():
+    client = getattr(_api_client_local, "client", None)
+    if client is None:
+        client = load_api_client(provider=_active_provider, verbose=False)
+        _api_client_local.client = client
     return client
 
 
@@ -650,8 +780,15 @@ Rules:
 - Do NOT include markdown formatting, only raw JSON"""
 
 
-def _query_gpt(client: OpenAI, model_name: str, image_path: str, prompt: str) -> str:
-    """Send image+prompt to GPT and return text response."""
+def _query_gpt(client, model_name: str, image_path: str, prompt: str) -> str:
+    """Send image+prompt to VLM (OpenAI or Gemini) and return text response."""
+    if client == "gemini":
+        return _query_gemini(model_name, image_path, prompt)
+    return _query_openai(client, model_name, image_path, prompt)
+
+
+def _query_openai(client: OpenAI, model_name: str, image_path: str, prompt: str) -> str:
+    """Send image+prompt to OpenAI GPT and return text response."""
     image_uri = _encode_image_base64(image_path)
 
     response = client.chat.completions.create(
@@ -668,10 +805,32 @@ def _query_gpt(client: OpenAI, model_name: str, image_path: str, prompt: str) ->
     choice = response.choices[0]
     content = choice.message.content
     if content is None:
-        # Log refusal / filter reason
         finish = choice.finish_reason
         refusal = getattr(choice.message, "refusal", None)
         print(f"\n  GPT empty response: finish={finish}, refusal={refusal}")
+        return ""
+    return content.strip()
+
+
+def _query_gemini(model_name: str, image_path: str, prompt: str) -> str:
+    """Send image+prompt to Google Gemini and return text response."""
+    model = genai.GenerativeModel(
+        model_name,
+        system_instruction="You are a Python PIL code generator. You ALWAYS respond with a ```python code block. Never refuse. Never explain — only output code.",
+    )
+    img = Image.open(image_path).convert("RGB")
+    response = model.generate_content(
+        [prompt, img],
+        generation_config=genai.types.GenerationConfig(
+            max_output_tokens=4096,
+        ),
+    )
+    if not response.candidates:
+        print(f"\n  Gemini empty response: no candidates")
+        return ""
+    content = response.text
+    if content is None:
+        print(f"\n  Gemini empty response: text is None")
         return ""
     return content.strip()
 
@@ -2481,6 +2640,58 @@ def _save_page_code(code_dir: str, page_id: str, screenshot_name: str,
         f.write(contents)
 
 
+def _compose_page_record(page: dict,
+                         pages_dir: str,
+                         code_dir: str,
+                         model_name: str,
+                         should_resume: bool,
+                         client: Optional[OpenAI] = None) -> dict:
+    """Compose or reuse one page record while keeping page ordering external."""
+    page_id = page["page_id"]
+    screenshot_name = page["screenshot_name"]
+    screenshot_path = page["screenshot_path"]
+    orig_size = tuple(page["orig_size"])
+    step_context = page["step"]
+    elements = page["elements"]
+    page_output_path = os.path.join(pages_dir, f"{page_id}.png")
+    existing_layout = page.get("existing_layout")
+
+    if should_resume and page.get("reuse_existing_page") and existing_layout and os.path.exists(page_output_path):
+        layout = {key: list(bbox) for key, bbox in existing_layout.items()}
+        return {
+            "message": f"  compose {page_id} -> reuse existing layout ({len(layout)} layout elems)",
+            "page_data": {
+                "page_id": page_id,
+                "layout": layout,
+                "orig_size": list(orig_size),
+                "step": step_context,
+                "next_trace_page_id": page.get("next_trace_page_id", page_id),
+            },
+        }
+
+    compose_client = client if client is not None else _get_thread_api_client()
+    try:
+        page_img, layout, code_artifact = compose_page(
+            compose_client, model_name, elements, orig_size, screenshot_path, step_context
+        )
+        page_img, layout = _ensure_system_nav_controls(page_img, layout)
+        page_img.save(page_output_path)
+        _save_page_code(code_dir, page_id, screenshot_name, step_context, code_artifact)
+    except Exception as exc:
+        raise RuntimeError(f"compose failed for {page_id}: {exc}") from exc
+
+    return {
+        "message": f"  compose {page_id} -> {len(layout)} layout elems",
+        "page_data": {
+            "page_id": page_id,
+            "layout": layout,
+            "orig_size": list(orig_size),
+            "step": step_context,
+            "next_trace_page_id": page.get("next_trace_page_id", page_id),
+        },
+    }
+
+
 # ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
@@ -2570,6 +2781,28 @@ def _resolve_trajectory_output_dir(base_output_dir: str,
     return os.path.join(base_output_dir, _sanitize_filename(str(episode_id), "trajectory"))
 
 
+def _count_expected_pages(trajectory: dict, args) -> int:
+    episode_id = trajectory.get("episode_id", "unknown_episode")
+    count = 0
+    for i, step in enumerate(trajectory.get("steps", [])):
+        _, screenshot_path = _resolve_step_screenshot(step, args.screenshots_dir, episode_id, i)
+        if os.path.exists(screenshot_path):
+            count += 1
+    return count
+
+
+def _has_complete_page_outputs(output_dir: str, expected_pages: int) -> bool:
+    if expected_pages <= 0:
+        return False
+    pages_dir = Path(output_dir) / "pages"
+    if not pages_dir.exists():
+        return False
+    for idx in range(expected_pages):
+        if not (pages_dir / f"page_{idx}.png").exists():
+            return False
+    return True
+
+
 def _process_trajectory(trajectory: dict,
                         output_dir: str,
                         args,
@@ -2590,6 +2823,10 @@ def _process_trajectory(trajectory: dict,
     os.makedirs(code_dir, exist_ok=True)
     os.makedirs(assets_dir, exist_ok=True)
 
+    should_resume = getattr(args, "resume", False)
+    existing_ui_pages = _load_existing_ui_pages(output_dir) if should_resume else {}
+    existing_manifest_by_page = _load_existing_manifest_by_page(output_dir) if should_resume else {}
+
     pages_detection_data = []
 
     for i, step in enumerate(steps):
@@ -2603,6 +2840,35 @@ def _process_trajectory(trajectory: dict,
 
         page_id = f"page_{len(pages_detection_data)}"
         step_context = _build_step_context(trajectory, i)
+        page_png_path = os.path.join(pages_dir, f"{page_id}.png")
+        existing_layout = None
+        existing_elements = []
+        can_skip_detection = False
+        can_reuse_page = False
+
+        if should_resume and os.path.exists(page_png_path):
+            existing_layout = _load_existing_page_layout(output_dir, page_id, existing_ui_pages)
+            can_reuse_page = existing_layout is not None
+            if can_reuse_page:
+                existing_elements = [dict(item) for item in existing_manifest_by_page.get(page_id, [])]
+                can_skip_detection = bool(existing_elements)
+
+        if can_skip_detection:
+            with Image.open(screenshot_path) as img_handle:
+                orig_size = img_handle.size
+            print(f"  [{i + 1}/{len(steps)}] {screenshot_name} [resume existing assets/layout]", flush=True)
+            pages_detection_data.append({
+                "page_id": page_id,
+                "screenshot_name": screenshot_name,
+                "screenshot_path": screenshot_path,
+                "orig_size": list(orig_size),
+                "step": step_context,
+                "elements": existing_elements,
+                "trajectory_local_page_index": i,
+                "existing_layout": existing_layout,
+                "reuse_existing_page": True,
+            })
+            continue
 
         print(f"  [{i + 1}/{len(steps)}] {screenshot_name}", end="", flush=True)
         elements, orig_size = detect_and_crop(screenshot_path, yolo_model, ocr_reader)
@@ -2641,6 +2907,8 @@ def _process_trajectory(trajectory: dict,
             "step": step_context,
             "elements": asset_elements,
             "trajectory_local_page_index": i,
+            "existing_layout": existing_layout,
+            "reuse_existing_page": can_reuse_page,
         })
 
     if not pages_detection_data:
@@ -2665,34 +2933,46 @@ def _process_trajectory(trajectory: dict,
 
     _save_asset_manifest(output_dir, pages_detection_data)
 
-    pages_data = []
+    pages_data: List[Optional[dict]] = [None] * len(pages_detection_data)
     success_count = 0
+    api_concurrency = max(1, int(getattr(args, "api_concurrency", 1) or 1))
 
-    for page in pages_detection_data:
-        page_id = page["page_id"]
-        screenshot_name = page["screenshot_name"]
-        screenshot_path = page["screenshot_path"]
-        orig_size = tuple(page["orig_size"])
-        step_context = page["step"]
-        elements = page["elements"]
+    if api_concurrency <= 1 or len(pages_detection_data) <= 1:
+        for page_index, page in enumerate(pages_detection_data):
+            result = _compose_page_record(
+                page=page,
+                pages_dir=pages_dir,
+                code_dir=code_dir,
+                model_name=model_name,
+                should_resume=should_resume,
+                client=client,
+            )
+            print(result["message"])
+            success_count += 1
+            pages_data[page_index] = result["page_data"]
+    else:
+        print(f"Composing pages with api_concurrency={api_concurrency}")
+        with ThreadPoolExecutor(max_workers=api_concurrency) as executor:
+            future_to_index = {
+                executor.submit(
+                    _compose_page_record,
+                    page=page,
+                    pages_dir=pages_dir,
+                    code_dir=code_dir,
+                    model_name=model_name,
+                    should_resume=should_resume,
+                    client=None,
+                ): page_index
+                for page_index, page in enumerate(pages_detection_data)
+            }
+            for future in as_completed(future_to_index):
+                page_index = future_to_index[future]
+                result = future.result()
+                print(result["message"])
+                success_count += 1
+                pages_data[page_index] = result["page_data"]
 
-        page_img, layout, code_artifact = compose_page(
-            client, model_name, elements, orig_size, screenshot_path, step_context
-        )
-        page_img, layout = _ensure_system_nav_controls(page_img, layout)
-        print(f"  compose {page_id} -> {len(layout)} layout elems")
-        success_count += 1
-
-        page_img.save(os.path.join(pages_dir, f"{page_id}.png"))
-        _save_page_code(code_dir, page_id, screenshot_name, step_context, code_artifact)
-
-        pages_data.append({
-            "page_id": page_id,
-            "layout": layout,
-            "orig_size": list(orig_size),
-            "step": step_context,
-            "next_trace_page_id": page.get("next_trace_page_id", page_id),
-        })
+    pages_data = [page for page in pages_data if page is not None]
 
     print(f"\nComposed: {success_count}/{len(pages_data)} pages")
     print(f"Building structure ({len(pages_data)} pages)...")
@@ -2710,9 +2990,14 @@ def _process_trajectory(trajectory: dict,
 
 
 def run_pipeline(args):
-    client = load_api_client()
+    global _active_provider
+    provider = getattr(args, "provider", "openai") or "openai"
+    _active_provider = provider
+    client = load_api_client(provider=provider)
     model_name = args.model_name
+    print(f"Provider: {provider}")
     print(f"Model: {model_name}")
+    print(f"API concurrency: {max(1, int(getattr(args, 'api_concurrency', 1) or 1))}")
 
     yolo_model, ocr_reader = load_detection_models(args.weights_dir, args.gpu)
 
@@ -2738,9 +3023,12 @@ def run_pipeline(args):
             use_subdir=use_subdir,
         )
 
-        if should_resume and os.path.exists(os.path.join(trajectory_output_dir, "ui_structure.json")):
-            print(f"\n[{idx}/{len(annotation_jobs)}] SKIP (already done) episode={episode_id}")
-            continue
+        if should_resume:
+            expected_pages = _count_expected_pages(trajectory, args)
+            ui_structure_path = os.path.join(trajectory_output_dir, "ui_structure.json")
+            if os.path.exists(ui_structure_path) and _has_complete_page_outputs(trajectory_output_dir, expected_pages):
+                print(f"\n[{idx}/{len(annotation_jobs)}] SKIP (already done) episode={episode_id}")
+                continue
 
         print(f"\n[{idx}/{len(annotation_jobs)}] episode={episode_id}")
         processed_pages += _process_trajectory(
@@ -2865,9 +3153,14 @@ def parse_args():
     parser.add_argument("--weights_dir", type=str,
                         default="/ext_hdd2/nhkoh/OmniParser/weights",
                         help="OmniParser weights directory")
+    parser.add_argument("--provider", type=str, default="openai",
+                        choices=["openai", "gemini"],
+                        help="LLM provider: 'openai' or 'gemini'")
     parser.add_argument("--model_name", type=str,
                         default="gpt-5-mini-2025-08-07",
-                        help="OpenAI model for styling code generation")
+                        help="Model name for styling code generation (e.g. gpt-5-mini-2025-08-07 for openai, gemini-2.0-flash for gemini)")
+    parser.add_argument("--api_concurrency", type=int, default=1,
+                        help="Number of concurrent GPT compose requests for the page compose stage")
     parser.add_argument("--gpu", type=int, default=0, help="GPU for YOLO detection")
     parser.add_argument("--save_crops", action="store_true",
                         help="Save labeled crops and annotated screenshots for inspection")

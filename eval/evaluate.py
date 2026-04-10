@@ -264,10 +264,11 @@ class ModelWrapper:
 # Parsing utilities
 # ---------------------------------------------------------------------------
 COORD_PATTERN_FULL = re.compile(
-    r"click\(start_box='<\|box_start\|>\((\d+),\s*(\d+)\)<\|box_end\|>'\)"
+    r"(?:click|tap)\(start_box='<\|box_start\|>\((\d+),\s*(\d+)\)<\|box_end\|>'\)"
 )
+COORD_PATTERN_ACTION = re.compile(r"(?:click|tap)\((\d+),\s*(\d+)\)")
 COORD_PATTERN_SIMPLE = re.compile(r"\((\d+),\s*(\d+)\)")
-ICON_NAME_PATTERN = re.compile(r"click\s+(.*?)\s+icon")
+ICON_NAME_PATTERN = re.compile(r"(?:click|tap)\s+(.*?)\s+icon")
 
 
 def parse_action(response: str):
@@ -280,6 +281,8 @@ def parse_action(response: str):
     if "complete" in response.lower():
         return "complete", None
     m = COORD_PATTERN_FULL.search(response)
+    if not m:
+        m = COORD_PATTERN_ACTION.search(response)
     if not m:
         m = COORD_PATTERN_SIMPLE.search(response)
     if m:

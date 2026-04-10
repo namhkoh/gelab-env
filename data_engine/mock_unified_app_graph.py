@@ -1,18 +1,30 @@
 """
-Unified launcher-to-app graph builder for the mock drawer + AMEX trajectories.
+Unified launcher-to-app graph builder.
 
-This script:
-1. Renders the synthetic launcher home/app-drawer pages from `mock_simulator.py`
-2. Reads app labels placed in the app drawer
-3. Scans AMEX instruction annotations for trajectories that mention those apps
-4. Starts each matched trajectory from the first step whose package_name matches the app
-5. Uses internal detect/crop/compose helpers to build in-app pages
-6. Connects the drawer app icons directly to the matched trajectory entry pages
-7. Merges duplicated in-app pages that share the same UI structure
-8. Saves unified `ui_structure.json`, `ui_structure_layer.json`, `ui_topology.png`,
+This single script:
+1. Renders the synthetic launcher home/app-drawer pages
+2. Auto-discovers all apps from AMEX instruction annotations (via --annotations_dir)
+3. Reads app labels placed in the app drawer
+4. Scans AMEX instruction annotations for trajectories that mention those apps
+5. Starts each matched trajectory from the first step whose package_name matches the app
+6. Uses internal detect/crop/compose helpers to build in-app pages
+7. Connects the drawer app icons directly to the matched trajectory entry pages
+8. Merges duplicated in-app pages that share the same UI structure
+9. Saves unified ui_structure.json, ui_structure_layer.json, ui_topology.png,
    per-page debug overlays, extracted assets, and GPT-generated page code
 
-Notes:
+Parameters
+----------
+--max_trajectories_per_app : int
+    0 = use all trajectories for every app (default).
+    N > 0 = limit to N successful trajectories per app (useful for quick tests, e.g. 2).
+--annotations_dir : str
+    Directory of AMEX instruction annotation JSONs.
+    When provided, all apps found in those annotations are automatically placed
+    in the mock app drawer, overriding any manual layout_config drawer entries.
+
+Notes
+-----
 - By default, only the contiguous in-app segment is kept after the first matching
   package_name step. Use `--include_post_app_steps` to keep the remainder.
 - `action` is stored as a lowercase semantic action (`tap`, `swipe`, `press_home`, ...)
@@ -28,27 +40,1224 @@ import os
 import random
 import re
 import shutil
-from collections import defaultdict
+import threading
+from collections import Counter, defaultdict, deque
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
-import mock_simulator as launcher_mock
 
+# ---------------------------------------------------------------------------
+# LAUNCHER / SIMULATOR SECTION
+# ---------------------------------------------------------------------------
+
+CANVAS_SIZE = (1080, 2400)
+VISIBLE_VIEWPORT_HEIGHT = 2400
+STATUS_BAR_HEIGHT = 72
+TOP_MARGIN = 48
+SIDE_MARGIN = 56
+SYSTEM_BUTTON_W = 248
+SYSTEM_BUTTON_H = 96
+SYSTEM_BUTTON_Y_OFFSET = -34
+SEARCH_BAR_H = 110
+ICON_TILE_SIZE = 156
+APP_LABEL_GAP = 18
+ICON_GRID_COLS = 4
+APP_DRAWER_PAGE_SIZE = 24
+
+HOME_PAGE_ID = "page_0_home"
+DRAWER_PAGE_ID = "page_1_app_drawer"
+
+EVENTBRITE_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_3_20_16_19_c7de79edba6b442681ddcdc40adb3900/"
+    "2024_3_20_16_19_c7de79edba6b442681ddcdc40adb3900-2_eventbrite_elem20.png"
+)
+SEATGEEK_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_3_20_16_19_c7de79edba6b442681ddcdc40adb3900/"
+    "2024_3_20_16_19_c7de79edba6b442681ddcdc40adb3900-3_seatgeek_elem22.png"
+)
+GALLERY_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-2_gallery_elem15.png"
+)
+NEWS_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-2_news_elem22.png"
+)
+SMARTNEWS_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-2_smartnews_elem27.png"
+)
+KKBOX_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-2_kkbox_elem19.png"
+)
+NOVELSHIP_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_robust/elements/"
+    "2024_4_22_20_29_2ab99c22f31743719b11cf70dc6cb197/"
+    "2024_4_22_20_29_2ab99c22f31743719b11cf70dc6cb197-2_novelship_elem35.png"
+)
+CITYMAPPER_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_robust/elements/"
+    "2024_6_20_14_27_962363f8d8cd4f60bf2ea2d0f578d023/"
+    "2024_6_20_14_27_962363f8d8cd4f60bf2ea2d0f578d023-2_citymapper_elem0.png"
+)
+AUDIO_MACK_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-2_audio_mack_elem4.png"
+)
+SUPERUSER_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-2_superuser_elem29.png"
+)
+BROWSER_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-2_webview_browser_tester_elem31.png"
+)
+MUSIC_REAL_ICON_PATH = Path(
+    "/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023/"
+    "2024_4_9_10_38_1037a32bd0de450985efaa31575e2023-3_music_elem2.png"
+)
+REAL_ICON_SEARCH_ROOTS = [
+    Path("/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements"),
+    Path("/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_robust/elements"),
+]
+
+REAL_ICON_LIBRARY = {
+    "eventbrite": {"label": "Eventbrite", "path": EVENTBRITE_ICON_PATH},
+    "seatgeek": {"label": "SeatGeek", "path": SEATGEEK_ICON_PATH},
+    "gallery_real": {"label": "Gallery", "path": GALLERY_REAL_ICON_PATH},
+    "news_real": {"label": "News", "path": NEWS_REAL_ICON_PATH},
+    "smartnews_real": {"label": "SmartNews", "path": SMARTNEWS_REAL_ICON_PATH},
+    "kkbox": {"label": "KKBOX", "path": KKBOX_REAL_ICON_PATH},
+    "kkbox_real": {"label": "KKBOX", "path": KKBOX_REAL_ICON_PATH},
+    "novelship": {"label": "Novelship", "path": NOVELSHIP_REAL_ICON_PATH},
+    "novelship_real": {"label": "Novelship", "path": NOVELSHIP_REAL_ICON_PATH},
+    "citymapper": {"label": "Citymapper", "path": CITYMAPPER_REAL_ICON_PATH},
+    "citymapper_real": {"label": "Citymapper", "path": CITYMAPPER_REAL_ICON_PATH},
+    "audiomack_real": {"label": "Audiomack", "path": AUDIO_MACK_REAL_ICON_PATH},
+    "superuser_real": {"label": "Superuser", "path": SUPERUSER_REAL_ICON_PATH},
+    "browser_real": {"label": "Browser", "path": BROWSER_REAL_ICON_PATH},
+    "music_real": {"label": "Music", "path": MUSIC_REAL_ICON_PATH},
+}
+RANDOM_HOME_REAL_ASSETS = [
+    "gallery_real",
+    "news_real",
+    "smartnews_real",
+    "kkbox_real",
+    "audiomack_real",
+    "superuser_real",
+    "browser_real",
+    "music_real",
+]
+
+CANONICAL_REAL_ICON_ASSETS = {
+    "kkbox": "kkbox_real",
+    "kkbox_real": "kkbox_real",
+    "novelship": "novelship_real",
+    "novelship_real": "novelship_real",
+    "citymapper": "citymapper_real",
+    "citymapper_real": "citymapper_real",
+}
+ANNOTATION_IGNORED_PACKAGE_PREFIXES = (
+    "com.android.launcher",
+    "com.google.android.apps.nexuslauncher",
+    "com.google.android.googlequicksearchbox",
+    "com.android.permissioncontroller",
+    "com.google.android.permissioncontroller",
+    "com.google.android.gms",
+)
+ANNOTATION_IGNORED_PACKAGES = {"android"}
+ANNOTATION_APP_OVERRIDES = {
+    "com.android.gallery3d": {"label": "Gallery", "asset": "gallery_real", "show_label": False},
+    "com.audiomack": {"label": "Audiomack", "asset": "audiomack_real", "show_label": True},
+    "com.citymapper.app.release": {"label": "Citymapper", "asset": "citymapper_real", "show_label": True},
+    "com.eventbrite.attendee": {"label": "Eventbrite", "asset": "eventbrite", "show_label": False},
+    "com.novelship.novelship": {"label": "Novelship", "asset": "novelship_real", "show_label": True},
+    "com.particlenews.newsbreak": {"label": "NewsBreak", "asset": "news_real", "show_label": True},
+    "com.seatgeek.android": {"label": "SeatGeek", "asset": "seatgeek", "show_label": False},
+    "com.skysoft.kkbox.android": {"label": "KKBOX", "asset": "kkbox_real", "show_label": False},
+    "jp.gocro.smartnews.android": {"label": "SmartNews", "asset": "smartnews_real", "show_label": True},
+}
+ANNOTATION_APP_OVERRIDES = {str(key).lower(): value for key, value in ANNOTATION_APP_OVERRIDES.items()}
+PACKAGE_LABEL_OVERRIDES = {
+    "bbc.mobile.news.ww": "BBC News",
+    "bbc.mobile.sport.ww": "BBC Sport",
+    "com.cnn.mobile.android.phone": "CNN",
+    "com.espn.score_center": "ESPN",
+    "com.google.android.apps.magazines": "Google News",
+    "com.google.android.apps.maps": "Maps",
+    "com.google.android.apps.tasks": "Tasks",
+    "com.google.android.apps.youtube.music": "YouTube Music",
+    "com.google.android.gm": "Gmail",
+    "com.imdb.mobile": "IMDb",
+    "com.microsoft.skydrive": "OneDrive",
+    "com.nbaimd.gametime.nba2011": "NBA Gametime",
+    "com.sayweee.weee": "Weee!",
+    "com.tencent.ibg.joox": "JOOX",
+    "fm.castbox.audiobook.radio.podcast": "Castbox",
+    "grit.storytel.app": "Storytel",
+    "hk.ikea.android": "IKEA",
+    "hko.MyObservatory_v1_0": "MyObservatory",
+    "mnn.Android": "MNN",
+    "musclebooster.workout.home.gym.abs.loseweight": "MuscleBooster",
+    "org.kman.AquaMail": "AquaMail",
+    "org.readera": "ReadEra",
+    "org.thoughtcrime.securesms": "Signal",
+    "softin.my.fast.fitness": "Fast Fitness",
+}
+PACKAGE_LABEL_OVERRIDES = {str(key).lower(): value for key, value in PACKAGE_LABEL_OVERRIDES.items()}
+GENERIC_PACKAGE_TOKENS = {
+    "android",
+    "app",
+    "apps",
+    "com",
+    "consumer",
+    "digital",
+    "fm",
+    "mobile",
+    "net",
+    "office",
+    "org",
+    "phone",
+    "player",
+    "release",
+    "score",
+    "ww",
+}
+
+DEFAULT_LAYOUT_CONFIG = {
+    "metadata": {
+        "style": "realistic_launcher_v2",
+        "random_seed": None,
+    },
+    "_instructions": [
+        "Each icon can use either 'slot' or direct 'x' and 'y' coordinates.",
+        "x and y are the top-left coordinates of the icon tile in pixels.",
+        "You can swap icons by changing slot names, or place them freely with x/y.",
+        "Use asset=random_home_real to sample a realistic app icon from the bundled AMEX asset pool.",
+        f"App drawer icons are auto-paged in chunks of {APP_DRAWER_PAGE_SIZE}; extra icons spill into page_2_app_drawer, page_3_app_drawer, ...",
+    ],
+    "slots": {
+        "home_slot_1": {"x": 99, "y": 760},
+        "home_slot_2": {"x": 341, "y": 760},
+        "home_slot_3": {"x": 583, "y": 760},
+        "home_slot_4": {"x": 825, "y": 760},
+        "home_slot_5": {"x": 99, "y": 1032},
+        "home_slot_6": {"x": 341, "y": 1032},
+        "home_slot_7": {"x": 583, "y": 1032},
+        "home_slot_8": {"x": 825, "y": 1032},
+        "drawer_slot_1": {"x": 132, "y": 560},
+        "drawer_slot_2": {"x": 362, "y": 560},
+        "drawer_slot_3": {"x": 592, "y": 560},
+        "drawer_slot_4": {"x": 822, "y": 560},
+        "drawer_slot_5": {"x": 132, "y": 828},
+        "drawer_slot_6": {"x": 362, "y": 828},
+        "drawer_slot_7": {"x": 592, "y": 828},
+        "drawer_slot_8": {"x": 822, "y": 828},
+        "drawer_slot_9": {"x": 132, "y": 1096},
+        "drawer_slot_10": {"x": 362, "y": 1096},
+        "drawer_slot_11": {"x": 592, "y": 1096},
+        "drawer_slot_12": {"x": 822, "y": 1096},
+        "drawer_slot_13": {"x": 132, "y": 1364},
+        "drawer_slot_14": {"x": 362, "y": 1364},
+        "drawer_slot_15": {"x": 592, "y": 1364},
+        "drawer_slot_16": {"x": 822, "y": 1364},
+        "drawer_slot_17": {"x": 132, "y": 1632},
+        "drawer_slot_18": {"x": 362, "y": 1632},
+        "drawer_slot_19": {"x": 592, "y": 1632},
+        "drawer_slot_20": {"x": 822, "y": 1632},
+        "drawer_slot_21": {"x": 132, "y": 1900},
+        "drawer_slot_22": {"x": 362, "y": 1900},
+        "drawer_slot_23": {"x": 592, "y": 1900},
+        "drawer_slot_24": {"x": 822, "y": 1900},
+        "dock_slot_1": {"x": 204, "y": 1988},
+        "dock_slot_2": {"x": 382, "y": 1988},
+        "dock_slot_3": {"x": 560, "y": 1988},
+        "dock_slot_4": {"x": 738, "y": 1988},
+    },
+    "pages": {
+        "home": {
+            "icons": [
+                {"label": "SeatGeek", "asset": "seatgeek", "slot": "home_slot_1", "show_label": False},
+                {"label": "KKBOX", "asset": "kkbox", "slot": "home_slot_2", "show_label": False},
+                {"label": "Novelship", "asset": "novelship", "slot": "home_slot_3", "show_label": True},
+                {"label": "Citymapper", "asset": "citymapper", "slot": "home_slot_4", "show_label": True},
+                {"asset": "random_home_real", "slot": "home_slot_5", "show_label": False},
+                {"asset": "random_home_real", "slot": "home_slot_6", "show_label": False},
+                {"asset": "random_home_real", "slot": "home_slot_7", "show_label": False},
+                {"asset": "random_home_real", "slot": "home_slot_8", "show_label": False},
+            ],
+            "dock_icons": [
+                {"label": "Phone", "asset": "phone", "slot": "dock_slot_1", "size": 112, "show_label": True},
+                {"label": "Chrome", "asset": "chrome", "slot": "dock_slot_2", "size": 112, "show_label": True},
+                {"label": "Messages", "asset": "messages", "slot": "dock_slot_3", "size": 112, "show_label": True},
+                {"label": "Camera", "asset": "camera", "slot": "dock_slot_4", "size": 112, "show_label": True},
+            ],
+        },
+        "app_drawer": {
+            "icons": [
+                {"label": "SeatGeek", "asset": "seatgeek", "slot": "drawer_slot_1", "show_label": True},
+                {"label": "Eventbrite", "asset": "eventbrite", "slot": "drawer_slot_2", "show_label": True},
+                {"label": "Gallery", "asset": "gallery_real", "slot": "drawer_slot_3", "show_label": True},
+                {"label": "News", "asset": "news_real", "slot": "drawer_slot_4", "show_label": True},
+                {"label": "SmartNews", "asset": "smartnews_real", "slot": "drawer_slot_5", "show_label": True},
+                {"label": "KKBOX", "asset": "kkbox", "slot": "drawer_slot_6", "show_label": True},
+                {"label": "Novelship", "asset": "novelship", "slot": "drawer_slot_7", "show_label": True},
+                {"label": "Citymapper", "asset": "citymapper", "slot": "drawer_slot_8", "show_label": True},
+                {"label": "Audiomack", "asset": "audiomack_real", "slot": "drawer_slot_9", "show_label": True},
+                {"label": "Music", "asset": "music_real", "slot": "drawer_slot_10", "show_label": True},
+            ]
+        },
+    },
+}
+
+
+def _try_font(size: int, bold: bool = False) -> ImageFont.ImageFont:
+    candidates = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    ]
+    for candidate in candidates:
+        try:
+            return ImageFont.truetype(candidate, size=size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
+FONT_SM = _try_font(26)
+FONT_MD = _try_font(34)
+FONT_LG = _try_font(52, bold=True)
+FONT_DATE = _try_font(64, bold=True)
+FONT_XL = _try_font(92, bold=True)
+
+
+def _safe_key(label: str) -> str:
+    key = re.sub(r"[^0-9a-zA-Z]+", "_", label).strip("_")
+    return key or "item"
+
+
+def _unique_layout_key(layout: Dict[str, dict], label: str) -> str:
+    base_key = _safe_key(label)
+    if base_key not in layout:
+        return base_key
+    suffix = 2
+    while f"{base_key}_{suffix}" in layout:
+        suffix += 1
+    return f"{base_key}_{suffix}"
+
+
+def _bbox_center(bbox: List[int]) -> List[int]:
+    x1, y1, x2, y2 = bbox
+    return [int(round((x1 + x2) / 2.0)), int(round((y1 + y2) / 2.0))]
+
+
+def drawer_page_id(page_index: int) -> str:
+    return DRAWER_PAGE_ID if page_index == 0 else f"page_{page_index + 1}_app_drawer"
+
+
+def _build_swipe_transition_mock(
+    target_page: str,
+    action_coord: List[int],
+    lift_coord: List[int],
+    direction: str,
+    icon_bbox: List[int] | None = None,
+) -> dict:
+    """Build a simple swipe transition dict for the mock launcher pages."""
+    if icon_bbox is None:
+        icon_bbox = [
+            min(int(action_coord[0]), int(lift_coord[0])),
+            min(int(action_coord[1]), int(lift_coord[1])),
+            max(int(action_coord[0]), int(lift_coord[0])),
+            max(int(action_coord[1]), int(lift_coord[1])),
+        ]
+    return {
+        "action": "swipe",
+        "target_page": target_page,
+        "action_coord": [int(action_coord[0]), int(action_coord[1])],
+        "lift_coord": [int(lift_coord[0]), int(lift_coord[1])],
+        "icon_bbox": [int(v) for v in icon_bbox],
+        "gesture_direction": direction,
+    }
+
+
+def _merge_dict(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    merged = deepcopy(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _merge_dict(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def _is_annotation_app_package(package_name: str) -> bool:
+    normalized = str(package_name or "").strip().lower()
+    if not normalized or normalized in ANNOTATION_IGNORED_PACKAGES:
+        return False
+    return not any(normalized.startswith(prefix) for prefix in ANNOTATION_IGNORED_PACKAGE_PREFIXES)
+
+
+def _format_package_label(package_name: str) -> str:
+    normalized = str(package_name or "").strip()
+    normalized_key = normalized.lower()
+    if not normalized:
+        return "App"
+    if normalized_key in PACKAGE_LABEL_OVERRIDES:
+        return PACKAGE_LABEL_OVERRIDES[normalized_key]
+    if normalized_key in ANNOTATION_APP_OVERRIDES:
+        return str(ANNOTATION_APP_OVERRIDES[normalized_key]["label"])
+
+    parts = [
+        part
+        for part in re.split(r"[^0-9A-Za-z]+", normalized)
+        if part and part.lower() not in GENERIC_PACKAGE_TOKENS
+    ]
+    if not parts:
+        parts = [segment for segment in normalized.split(".") if segment]
+    if not parts:
+        return normalized
+
+    candidate_words: List[str]
+    if len(parts) >= 2 and parts[0].lower() in {"amazon", "google", "microsoft"}:
+        candidate_words = [parts[0], parts[-1]]
+    elif len(parts) >= 2 and parts[-1].lower() in {"mail", "music", "news", "shopping"}:
+        candidate_words = [parts[-2], parts[-1]]
+    else:
+        candidate_words = [parts[0]]
+
+    label_words: List[str] = []
+    for token in candidate_words[:2]:
+        if any(ch.isupper() for ch in token[1:]):
+            label_words.append(token)
+        elif token.isupper():
+            label_words.append(token)
+        else:
+            label_words.append(token.capitalize())
+    return " ".join(label_words) or normalized
+
+
+def _collect_annotation_app_records(annotations_dir: Path | None) -> List[dict]:
+    if annotations_dir is None or not annotations_dir.exists():
+        return []
+
+    package_counts: Counter[str] = Counter()
+    # Store up to _ICON_SEARCH_ANNOTATION_LIMIT annotation IDs per package so
+    # _annotation_app_icon_spec can try several before falling back to a placeholder.
+    _ICON_SEARCH_ANNOTATION_LIMIT = 10
+    annotation_ids_per_pkg: Dict[str, List[str]] = {}
+    for annot_path in sorted(annotations_dir.glob("*.json")):
+        try:
+            trajectory = json.loads(annot_path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+
+        for step in trajectory.get("steps", []) or []:
+            package_name = str(step.get("package_name", "") or "").strip()
+            if not _is_annotation_app_package(package_name):
+                continue
+            normalized_package = package_name.lower()
+            package_counts[normalized_package] += 1
+            ids = annotation_ids_per_pkg.setdefault(normalized_package, [])
+            if len(ids) < _ICON_SEARCH_ANNOTATION_LIMIT and annot_path.stem not in ids:
+                ids.append(annot_path.stem)
+            break
+
+    return [
+        {
+            "package_name": package_name,
+            "count": count,
+            # Keep first ID as "annotation_id" for backward compat; add full list.
+            "annotation_id": annotation_ids_per_pkg.get(package_name, [""])[0],
+            "annotation_ids": annotation_ids_per_pkg.get(package_name, []),
+        }
+        for package_name, count in sorted(
+            package_counts.items(),
+            key=lambda item: (-item[1], _format_package_label(item[0]).lower(), item[0].lower()),
+        )
+    ]
+
+
+def _collect_annotation_app_packages(annotations_dir: Path | None) -> List[str]:
+    return [record["package_name"] for record in _collect_annotation_app_records(annotations_dir)]
+
+
+def _icon_search_terms(package_name: str, label: str) -> List[str]:
+    tokens: List[str] = []
+    for source_text in (label, package_name):
+        for token in re.split(r"[^0-9a-zA-Z]+", str(source_text or "").lower()):
+            if len(token) < 3 or token in GENERIC_PACKAGE_TOKENS:
+                continue
+            if token not in tokens:
+                tokens.append(token)
+    return tokens
+
+
+# Lazy global icon index: token -> list of (score_bonus, path) built on first use.
+_GLOBAL_ICON_INDEX: Optional[Dict[str, List[Tuple[int, Path]]]] = None
+
+
+def _build_global_icon_index() -> Dict[str, List[Tuple[int, Path]]]:
+    """Scan all REAL_ICON_SEARCH_ROOTS once and build a token -> [path] index."""
+    index: Dict[str, List[Tuple[int, Path]]] = {}
+    for root in REAL_ICON_SEARCH_ROOTS:
+        if not root.exists():
+            continue
+        for candidate_path in root.rglob("*.png"):
+            name = candidate_path.name.lower()
+            parts = re.split(r"[^0-9a-z]+", name)
+            for part in parts:
+                if len(part) >= 3:
+                    bonus = 1 if any(f"-{n}_" in name for n in ("1", "2", "3")) else 0
+                    index.setdefault(part, []).append((bonus, candidate_path))
+    return index
+
+
+def _discover_annotation_icon_path(annotation_id: str, package_name: str, label: str) -> Path | None:
+    search_terms = _icon_search_terms(package_name, label)
+    if not search_terms:
+        return None
+
+    best_path: Path | None = None
+    best_score = -1
+
+    def _score_candidate(candidate_name: str) -> int:
+        s = 0
+        for token in search_terms:
+            if f"_{token}_" in candidate_name or f"-{token}_" in candidate_name:
+                s = max(s, 8)
+            elif token in candidate_name:
+                s = max(s, 4)
+        return s
+
+    # Primary search: within the specific annotation's directory.
+    if annotation_id:
+        for root in REAL_ICON_SEARCH_ROOTS:
+            candidate_dir = root / annotation_id
+            if not candidate_dir.exists():
+                continue
+            for candidate_path in candidate_dir.glob("*.png"):
+                candidate_name = candidate_path.name.lower()
+                score = _score_candidate(candidate_name)
+                if score <= 0:
+                    continue
+                if "-1_" in candidate_name or "-2_" in candidate_name or "-3_" in candidate_name:
+                    score += 1
+                if score > best_score or (score == best_score and best_path and len(candidate_name) < len(best_path.name)):
+                    best_path = candidate_path
+                    best_score = score
+
+    if best_path is not None:
+        return best_path
+
+    # Fallback: global index search across all annotation directories.
+    global _GLOBAL_ICON_INDEX
+    if _GLOBAL_ICON_INDEX is None:
+        _GLOBAL_ICON_INDEX = _build_global_icon_index()
+
+    candidates: Dict[Path, int] = {}
+    for token in search_terms:
+        for bonus, path in _GLOBAL_ICON_INDEX.get(token, []):
+            name = path.name.lower()
+            score = _score_candidate(name) + bonus
+            if score > 0:
+                candidates[path] = max(candidates.get(path, 0), score)
+
+    for path, score in sorted(candidates.items(), key=lambda kv: (-kv[1], len(kv[0].name))):
+        return path
+
+    return None
+
+
+def _annotation_app_icon_spec(
+    package_name: str,
+    annotation_id: str = "",
+    annotation_ids: Optional[List[str]] = None,
+) -> dict:
+    normalized_package = str(package_name or "").strip().lower()
+    override = ANNOTATION_APP_OVERRIDES.get(normalized_package, {})
+    label = str(override.get("label") or _format_package_label(package_name))
+    asset = str(override.get("asset") or normalized_package)
+
+    # Try each available annotation ID until a real icon is found.
+    ids_to_try: List[str] = []
+    if annotation_id:
+        ids_to_try.append(annotation_id)
+    for aid in (annotation_ids or []):
+        if aid and aid not in ids_to_try:
+            ids_to_try.append(aid)
+
+    discovered_icon_path: Optional[Path] = None
+    for aid in ids_to_try:
+        discovered_icon_path = _discover_annotation_icon_path(aid, normalized_package, label)
+        if discovered_icon_path is not None:
+            break
+
+    if discovered_icon_path is not None and asset not in REAL_ICON_LIBRARY:
+        REAL_ICON_LIBRARY[asset] = {"label": label, "path": discovered_icon_path}
+    return {
+        "label": label,
+        "asset": asset,
+        "package_name": normalized_package,
+        "annotation_id": ids_to_try[0] if ids_to_try else "",
+        "layout_key": f"app_{_safe_key(package_name)}",
+        "show_label": bool(override["show_label"]) if "show_label" in override else True,
+    }
+
+
+def _populate_drawer_icons_from_annotations(layout_config: dict, annotations_dir: Path | None) -> dict:
+    annotation_records = _collect_annotation_app_records(annotations_dir)
+    if not annotation_records:
+        return layout_config
+
+    config = deepcopy(layout_config)
+    pages = config.setdefault("pages", {})
+    drawer_config = pages.setdefault("app_drawer", {})
+    drawer_config["icons"] = [
+        _annotation_app_icon_spec(
+            str(record.get("package_name") or ""),
+            annotation_id=str(record.get("annotation_id") or ""),
+            annotation_ids=list(record.get("annotation_ids") or []),
+        )
+        for record in annotation_records
+    ]
+
+    metadata = config.setdefault("metadata", {})
+    metadata["annotation_app_count"] = len(annotation_records)
+    if annotations_dir is not None:
+        metadata["annotations_dir"] = str(annotations_dir)
+    return config
+
+
+def _load_layout_config(config_path: Path | None, annotations_dir: Path | None = None) -> dict:
+    config = deepcopy(DEFAULT_LAYOUT_CONFIG)
+    if config_path and config_path.exists():
+        override = json.loads(config_path.read_text(encoding="utf-8"))
+        if isinstance(override, dict):
+            config = _merge_dict(config, override)
+    config = _populate_drawer_icons_from_annotations(config, annotations_dir)
+    return config
+
+
+def _build_rng(layout_config: dict) -> random.Random:
+    metadata = layout_config.get("metadata", {})
+    seed = metadata.get("random_seed")
+    return random.Random(seed)
+
+
+def _resolve_icon_position(spec: dict, slots: Dict[str, dict]) -> Tuple[int, int]:
+    position = spec.get("position") if isinstance(spec.get("position"), dict) else {}
+    slot_name = spec.get("slot") or position.get("slot")
+    if slot_name:
+        slot = slots.get(str(slot_name))
+        if not isinstance(slot, dict):
+            raise ValueError(f"Unknown slot: {slot_name}")
+        return int(slot["x"]), int(slot["y"])
+
+    x = spec.get("x", position.get("x"))
+    y = spec.get("y", position.get("y"))
+    if x is None or y is None:
+        raise ValueError(f"Icon spec must provide slot or x/y: {spec}")
+    return int(x), int(y)
+
+
+def _app_drawer_page_size(layout_config: dict) -> int:
+    drawer_config = layout_config.get("pages", {}).get("app_drawer", {})
+    page_size = drawer_config.get("page_size", APP_DRAWER_PAGE_SIZE)
+    try:
+        page_size = int(page_size)
+    except (TypeError, ValueError):
+        page_size = APP_DRAWER_PAGE_SIZE
+    return max(1, page_size)
+
+
+def _chunk_app_drawer_icons(layout_config: dict) -> List[List[dict]]:
+    drawer_icons = list(layout_config.get("pages", {}).get("app_drawer", {}).get("icons", []) or [])
+    if not drawer_icons:
+        return [[]]
+    page_size = _app_drawer_page_size(layout_config)
+    return [drawer_icons[idx: idx + page_size] for idx in range(0, len(drawer_icons), page_size)]
+
+
+def _drawer_slot_names(slots: Dict[str, dict]) -> List[str]:
+    def _slot_order(slot_name: str) -> Tuple[int, str]:
+        match = re.search(r"(\d+)$", str(slot_name))
+        if match:
+            return int(match.group(1)), str(slot_name)
+        return 10**9, str(slot_name)
+
+    return sorted(
+        [str(slot_name) for slot_name in slots if str(slot_name).startswith("drawer_slot_")],
+        key=_slot_order,
+    )
+
+
+def _normalize_drawer_page_icons(icon_specs: List[dict], slots: Dict[str, dict]) -> List[dict]:
+    drawer_slots = _drawer_slot_names(slots)
+    if not drawer_slots:
+        return [deepcopy(spec) for spec in icon_specs if isinstance(spec, dict)]
+
+    normalized_specs: List[dict] = []
+    for idx, spec in enumerate(icon_specs):
+        if not isinstance(spec, dict):
+            continue
+        normalized_spec = deepcopy(spec)
+        position = normalized_spec.get("position") if isinstance(normalized_spec.get("position"), dict) else None
+        has_explicit_xy = (
+            normalized_spec.get("x") is not None
+            or normalized_spec.get("y") is not None
+            or (position is not None and position.get("x") is not None and position.get("y") is not None)
+        )
+        if not has_explicit_xy:
+            normalized_spec["slot"] = drawer_slots[idx % len(drawer_slots)]
+            if position is not None:
+                position.pop("slot", None)
+        normalized_specs.append(normalized_spec)
+    return normalized_specs
+
+
+def _new_canvas(bg_color: Tuple[int, int, int]) -> Image.Image:
+    canvas = Image.new("RGB", CANVAS_SIZE, bg_color)
+    draw = ImageDraw.Draw(canvas)
+    draw.rectangle([0, 0, CANVAS_SIZE[0], VISIBLE_VIEWPORT_HEIGHT], fill=bg_color)
+    return canvas
+
+
+def _blend_color(start: Tuple[int, int, int], end: Tuple[int, int, int], t: float) -> Tuple[int, int, int]:
+    return tuple(int(round(start[i] + (end[i] - start[i]) * t)) for i in range(3))
+
+
+def _draw_vertical_gradient(draw: ImageDraw.ImageDraw, top: Tuple[int, int, int], bottom: Tuple[int, int, int]) -> None:
+    for y in range(VISIBLE_VIEWPORT_HEIGHT):
+        t = y / max(VISIBLE_VIEWPORT_HEIGHT - 1, 1)
+        draw.line([(0, y), (CANVAS_SIZE[0], y)], fill=_blend_color(top, bottom, t))
+
+
+def _draw_home_wallpaper(draw: ImageDraw.ImageDraw) -> None:
+    _draw_vertical_gradient(draw, (97, 132, 219), (224, 233, 252))
+    draw.ellipse([-120, -120, 420, 320], fill=(133, 166, 241))
+    draw.ellipse([650, -40, 1180, 420], fill=(187, 205, 247))
+    draw.ellipse([710, 100, 1220, 610], fill=(237, 242, 252))
+    draw.polygon([(0, 1660), (230, 1420), (540, 1710), (860, 1380), (1080, 1560), (1080, 2400), (0, 2400)], fill=(210, 221, 244))
+    draw.polygon([(0, 1820), (250, 1620), (480, 1870), (760, 1695), (1080, 1900), (1080, 2400), (0, 2400)], fill=(224, 232, 248))
+
+
+def _draw_app_drawer_background(draw: ImageDraw.ImageDraw) -> None:
+    _draw_vertical_gradient(draw, (197, 210, 238), (241, 244, 250))
+    draw.ellipse([-180, -60, 360, 420], fill=(172, 191, 234))
+    draw.ellipse([760, -90, 1250, 360], fill=(223, 231, 246))
+    draw.rounded_rectangle([20, 160, 1060, 2390], radius=72, fill=(248, 249, 252), outline=(224, 228, 237), width=2)
+
+
+def _draw_chip(draw: ImageDraw.ImageDraw, bbox: List[int], text: str, fill: Tuple[int, int, int], text_fill: Tuple[int, int, int]) -> None:
+    draw.rounded_rectangle(bbox, radius=24, fill=fill)
+    text_box = draw.textbbox((0, 0), text, font=FONT_SM)
+    text_w = text_box[2] - text_box[0]
+    text_h = text_box[3] - text_box[1]
+    draw.text((bbox[0] + (bbox[2] - bbox[0] - text_w) / 2, bbox[1] + (bbox[3] - bbox[1] - text_h) / 2 - 2), text, fill=text_fill, font=FONT_SM)
+
+
+def _draw_status_bar(draw: ImageDraw.ImageDraw) -> None:
+    text_fill = (18, 22, 30)
+    draw.text((SIDE_MARGIN, 18), "9:41", fill=text_fill, font=FONT_MD)
+    bar_x = CANVAS_SIZE[0] - 200
+    for idx, height in enumerate((10, 14, 18, 22)):
+        x = bar_x + idx * 10
+        draw.rounded_rectangle([x, 46 - height, x + 6, 46], radius=2, fill=text_fill)
+    draw.arc([bar_x + 54, 18, bar_x + 92, 56], start=210, end=330, fill=text_fill, width=3)
+    draw.arc([bar_x + 60, 24, bar_x + 86, 50], start=215, end=325, fill=text_fill, width=3)
+    draw.ellipse([bar_x + 70, 40, bar_x + 76, 46], fill=text_fill)
+    battery = [CANVAS_SIZE[0] - 86, 22, CANVAS_SIZE[0] - 24, 48]
+    draw.rounded_rectangle(battery, radius=7, outline=text_fill, width=3)
+    draw.rectangle([battery[2], battery[1] + 7, battery[2] + 6, battery[3] - 7], fill=text_fill)
+    draw.rounded_rectangle([battery[0] + 4, battery[1] + 4, battery[0] + 38, battery[3] - 4], radius=4, fill=text_fill)
+
+
+def _draw_system_buttons(draw: ImageDraw.ImageDraw, layout: Dict[str, dict]) -> None:
+    button_top = TOP_MARGIN + STATUS_BAR_HEIGHT + SYSTEM_BUTTON_Y_OFFSET
+    back_bbox = [SIDE_MARGIN, button_top, SIDE_MARGIN + SYSTEM_BUTTON_W, button_top + SYSTEM_BUTTON_H]
+    home_bbox = [
+        CANVAS_SIZE[0] - SIDE_MARGIN - SYSTEM_BUTTON_W,
+        button_top,
+        CANVAS_SIZE[0] - SIDE_MARGIN,
+        button_top + SYSTEM_BUTTON_H,
+    ]
+    draw.rounded_rectangle(back_bbox, radius=28, fill=(255, 205, 205), outline=(220, 154, 154), width=3)
+    draw.rounded_rectangle(home_bbox, radius=28, fill=(205, 247, 205), outline=(136, 191, 136), width=3)
+
+    for label, bbox in (("back", back_bbox), ("home", home_bbox)):
+        text_box = draw.textbbox((0, 0), label, font=FONT_MD)
+        text_w = text_box[2] - text_box[0]
+        text_h = text_box[3] - text_box[1]
+        text_x = int((bbox[0] + bbox[2] - text_w) / 2)
+        text_y = int((bbox[1] + bbox[3] - text_h) / 2) - 2
+        draw.text((text_x, text_y), label, fill=(32, 36, 44), font=FONT_MD)
+    layout["back"] = {"bbox": back_bbox, "type": "system"}
+    layout["home"] = {"bbox": home_bbox, "type": "system"}
+
+
+def _draw_page_indicator(draw: ImageDraw.ImageDraw, page_index: int, total_pages: int) -> None:
+    if total_pages <= 1:
+        return
+    dot_radius = 11
+    dot_gap = 18
+    total_width = total_pages * dot_radius * 2 + (total_pages - 1) * dot_gap
+    start_x = int((CANVAS_SIZE[0] - total_width) / 2)
+    center_y = 2288
+    for idx in range(total_pages):
+        center_x = start_x + dot_radius + idx * (dot_radius * 2 + dot_gap)
+        fill = (52, 58, 70) if idx == page_index else (196, 202, 214)
+        draw.ellipse(
+            [center_x - dot_radius, center_y - dot_radius, center_x + dot_radius, center_y + dot_radius],
+            fill=fill,
+        )
+
+
+def _draw_search_bar(draw: ImageDraw.ImageDraw, y: int, placeholder: str) -> List[int]:
+    bbox = [SIDE_MARGIN, y, CANVAS_SIZE[0] - SIDE_MARGIN, y + SEARCH_BAR_H]
+    draw.rounded_rectangle(bbox, radius=48, fill=(255, 255, 255), outline=(223, 228, 236), width=2)
+    draw.ellipse([bbox[0] + 30, y + 32, bbox[0] + 64, y + 66], outline=(132, 138, 150), width=4)
+    draw.line([bbox[0] + 57, y + 58, bbox[0] + 76, y + 77], fill=(132, 138, 150), width=4)
+    draw.text((bbox[0] + 106, y + 28), placeholder, fill=(109, 115, 127), font=FONT_MD)
+    return bbox
+
+
+def _placeholder_icon(label: str, fill: Tuple[int, int, int], size: int) -> Image.Image:
+    icon = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    icon_draw = ImageDraw.Draw(icon)
+    icon_draw.rounded_rectangle([0, 0, size - 1, size - 1], radius=34, fill=fill)
+    initials = "".join(part[0] for part in label.split()[:2]).upper() or "A"
+    text_box = icon_draw.textbbox((0, 0), initials, font=FONT_LG)
+    text_w = text_box[2] - text_box[0]
+    text_h = text_box[3] - text_box[1]
+    icon_draw.text(
+        ((size - text_w) / 2, (size - text_h) / 2 - 6),
+        initials,
+        fill=(255, 255, 255),
+        font=FONT_LG,
+    )
+    return icon
+
+
+def _load_real_icon(path: Path, size: int) -> Image.Image:
+    if not path.exists():
+        return _placeholder_icon(path.stem, (108, 132, 255), size)
+    icon = Image.open(path).convert("RGBA")
+    fitted = ImageOps.contain(icon, (size, size))
+    tile = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    offset = ((size - fitted.width) // 2, (size - fitted.height) // 2)
+    tile.paste(fitted, offset, fitted)
+    return tile
+
+
+def _icon_image_for_asset(asset_name: str, label: str, size: int) -> Image.Image:
+    normalized = str(asset_name or "").strip().lower()
+    placeholder_colors = {
+        "maps": (72, 192, 124),
+        "camera": (102, 102, 118),
+        "chat": (255, 178, 87),
+        "files": (119, 184, 255),
+        "clock": (94, 108, 245),
+        "photos": (233, 118, 168),
+        "phone": (76, 190, 124),
+        "chrome": (76, 126, 250),
+        "messages": (92, 214, 167),
+    }
+
+    if normalized == "eventbrite":
+        return _load_real_icon(EVENTBRITE_ICON_PATH, size)
+    if normalized == "seatgeek":
+        return _load_real_icon(SEATGEEK_ICON_PATH, size)
+    if normalized in REAL_ICON_LIBRARY:
+        return _load_real_icon(REAL_ICON_LIBRARY[normalized]["path"], size)
+    return _placeholder_icon(label, placeholder_colors.get(normalized, (108, 132, 255)), size)
+
+
+def _resolve_icon_asset(
+    asset_name: str,
+    label: str,
+    size: int,
+    render_state: Dict[str, Any],
+) -> Tuple[Image.Image, str, str]:
+    normalized = str(asset_name or "").strip().lower()
+    final_label = label
+    resolved_asset = normalized
+    canonical_asset = CANONICAL_REAL_ICON_ASSETS.get(normalized, normalized)
+
+    if normalized == "random_home_real":
+        candidates = [
+            asset
+            for asset in RANDOM_HOME_REAL_ASSETS
+            if CANONICAL_REAL_ICON_ASSETS.get(asset, asset) not in render_state["used_random_assets"]
+        ]
+        if not candidates:
+            render_state["used_random_assets"].clear()
+            candidates = list(RANDOM_HOME_REAL_ASSETS)
+        resolved_asset = render_state["rng"].choice(candidates)
+        render_state["used_random_assets"].add(CANONICAL_REAL_ICON_ASSETS.get(resolved_asset, resolved_asset))
+        final_label = REAL_ICON_LIBRARY[resolved_asset]["label"]
+        return _icon_image_for_asset(resolved_asset, final_label, size), final_label, resolved_asset
+
+    if normalized in REAL_ICON_LIBRARY:
+        render_state["used_random_assets"].add(canonical_asset)
+        final_label = label or REAL_ICON_LIBRARY[normalized]["label"]
+    return _icon_image_for_asset(normalized, final_label or label, size), (final_label or label), resolved_asset
+
+
+def _draw_icon_with_label(
+    canvas: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    label: str,
+    icon_x: int,
+    icon_y: int,
+    icon_image: Image.Image,
+    layout: Dict[str, dict],
+    layout_key: str | None = None,
+    label_fill: Tuple[int, int, int] = (26, 30, 38),
+    icon_size: int = ICON_TILE_SIZE,
+    show_label: bool = True,
+) -> None:
+    fitted = ImageOps.contain(icon_image.convert("RGBA"), (icon_size, icon_size))
+    tile = Image.new("RGBA", (icon_size, icon_size), (0, 0, 0, 0))
+    offset = ((icon_size - fitted.width) // 2, (icon_size - fitted.height) // 2)
+    tile.paste(fitted, offset, fitted)
+    canvas.paste(tile, (icon_x, icon_y), tile)
+
+    key = _unique_layout_key(layout, layout_key or label or "icon")
+    layout[key] = {"bbox": [icon_x, icon_y, icon_x + icon_size, icon_y + icon_size], "type": "normal"}
+
+    if show_label and label:
+        # Truncate by pixel width so the label never overflows the icon tile boundary.
+        display_label = label
+        text_box = draw.textbbox((0, 0), display_label, font=FONT_SM)
+        text_w = text_box[2] - text_box[0]
+        if text_w > icon_size:
+            for end in range(len(display_label) - 1, 0, -1):
+                candidate = display_label[:end] + "\u2026"
+                tb = draw.textbbox((0, 0), candidate, font=FONT_SM)
+                if tb[2] - tb[0] <= icon_size:
+                    display_label = candidate
+                    text_w = tb[2] - tb[0]
+                    break
+        label_x = int(icon_x + (icon_size - text_w) / 2)
+        label_y = icon_y + icon_size + APP_LABEL_GAP
+        draw.text((label_x, label_y), display_label, fill=label_fill, font=FONT_SM)
+
+
+def _draw_configured_icons(
+    canvas: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    icon_specs: List[dict],
+    slots: Dict[str, dict],
+    layout: Dict[str, dict],
+    render_state: Dict[str, Any],
+    page_name: str,
+) -> None:
+    for idx, spec in enumerate(icon_specs):
+        if not isinstance(spec, dict):
+            continue
+        label = str(spec.get("label") or "")
+        asset = str(spec.get("asset") or label or f"icon_{idx}")
+        icon_size = int(spec.get("size", ICON_TILE_SIZE))
+        icon_x, icon_y = _resolve_icon_position(spec, slots)
+        icon_image, resolved_label, resolved_asset = _resolve_icon_asset(asset, label, icon_size, render_state)
+        _draw_icon_with_label(
+            canvas,
+            draw,
+            label=resolved_label,
+            icon_x=icon_x,
+            icon_y=icon_y,
+            icon_image=icon_image,
+            layout=layout,
+            layout_key=str(spec.get("layout_key") or resolved_label or f"icon_{idx}"),
+            icon_size=icon_size,
+            show_label=bool(spec.get("show_label", True)),
+        )
+        render_state["resolved_icons"].append(
+            {
+                "page": page_name,
+                "label": resolved_label,
+                "asset": resolved_asset,
+                "x": icon_x,
+                "y": icon_y,
+                "size": icon_size,
+                "slot": spec.get("slot"),
+                "source_path": str(REAL_ICON_LIBRARY[resolved_asset]["path"]) if resolved_asset in REAL_ICON_LIBRARY else "",
+            }
+        )
+
+
+def _icon_specs_bounds(icon_specs: List[dict], slots: Dict[str, dict]) -> List[int] | None:
+    boxes: List[List[int]] = []
+    for spec in icon_specs:
+        if not isinstance(spec, dict):
+            continue
+        try:
+            icon_x, icon_y = _resolve_icon_position(spec, slots)
+        except Exception:
+            continue
+        icon_size = int(spec.get("size", ICON_TILE_SIZE))
+        boxes.append([icon_x, icon_y, icon_x + icon_size, icon_y + icon_size])
+    if not boxes:
+        return None
+    min_x = min(box[0] for box in boxes)
+    min_y = min(box[1] for box in boxes)
+    max_x = max(box[2] for box in boxes)
+    max_y = max(box[3] for box in boxes)
+    return [min_x, min_y, max_x, max_y]
+
+
+def _draw_home_page(layout_config: dict, render_state: Dict[str, Any]) -> Tuple[Image.Image, Dict[str, dict], dict]:
+    canvas = _new_canvas((239, 245, 255))
+    draw = ImageDraw.Draw(canvas)
+    layout: Dict[str, dict] = {}
+    slots = layout_config.get("slots", {})
+    home_config = layout_config.get("pages", {}).get("home", {})
+
+    _draw_home_wallpaper(draw)
+    draw.rounded_rectangle([40, 224, 520, 450], radius=56, fill=(255, 255, 255))
+    draw.rounded_rectangle([560, 224, 1040, 450], radius=56, fill=(255, 255, 255))
+    draw.text((74, 258), "17", fill=(45, 53, 74), font=FONT_XL)
+    draw.text((232, 274), "Wed", fill=(64, 72, 92), font=FONT_DATE)
+    draw.text((596, 270), "18°C", fill=(45, 53, 74), font=FONT_XL)
+
+    _draw_status_bar(draw)
+    _draw_system_buttons(draw, layout)
+    _draw_configured_icons(canvas, draw, home_config.get("icons", []), slots, layout, render_state, "home")
+
+    dock_icons = home_config.get("dock_icons", [])
+    dock_bounds = _icon_specs_bounds(dock_icons, slots)
+    if dock_bounds is None:
+        dock_bbox = [94, 1934, 960, 2226]
+    else:
+        min_x, min_y, max_x, max_y = dock_bounds
+        dock_bbox = [
+            max(72, min_x - 110),
+            max(1860, min_y - 34),
+            min(CANVAS_SIZE[0] - 72, max_x + 110),
+            min(VISIBLE_VIEWPORT_HEIGHT - 140, max_y + 116),
+        ]
+    draw.rounded_rectangle(dock_bbox, radius=98, fill=(249, 250, 253))
+    _draw_configured_icons(canvas, draw, dock_icons, slots, layout, render_state, "home_dock")
+
+    swipe_zone = [420, 2326, 660, 2360]
+    draw.rounded_rectangle(swipe_zone, radius=18, fill=(42, 46, 56))
+    layout["drawer_handle"] = {"bbox": swipe_zone, "type": "normal"}
+
+    swipe_transition = _build_swipe_transition_mock(
+        drawer_page_id(0),
+        action_coord=[540, 2343],
+        lift_coord=[540, 1460],
+        direction="up",
+        icon_bbox=[500, 1460, 580, 2343],
+    )
+    return canvas, layout, swipe_transition
+
+
+def _draw_app_drawer_page(
+    layout_config: dict,
+    render_state: Dict[str, Any],
+    page_index: int = 0,
+    drawer_icons: List[dict] | None = None,
+    total_pages: int | None = None,
+    page_id: str | None = None,
+) -> Tuple[Image.Image, Dict[str, dict]]:
+    canvas = _new_canvas((246, 247, 251))
+    draw = ImageDraw.Draw(canvas)
+    layout: Dict[str, dict] = {}
+    slots = layout_config.get("slots", {})
+    drawer_pages = _chunk_app_drawer_icons(layout_config)
+    resolved_total_pages = int(total_pages) if total_pages is not None else len(drawer_pages)
+    resolved_page_icons = drawer_icons if drawer_icons is not None else drawer_pages[min(page_index, len(drawer_pages) - 1)]
+    resolved_page_icons = _normalize_drawer_page_icons(resolved_page_icons, slots)
+    resolved_page_id = page_id or drawer_page_id(page_index)
+
+    _draw_app_drawer_background(draw)
+    _draw_status_bar(draw)
+    _draw_system_buttons(draw, layout)
+    layout["app_drawer_search"] = {"bbox": _draw_search_bar(draw, 220, "Search apps"), "type": "normal"}
+    draw.text((SIDE_MARGIN, 402), "All apps", fill=(28, 31, 39), font=FONT_LG)
+    if resolved_total_pages > 1:
+        indicator_text = f"{page_index + 1}/{resolved_total_pages}"
+        text_box = draw.textbbox((0, 0), indicator_text, font=FONT_SM)
+        text_w = text_box[2] - text_box[0]
+        draw.text((CANVAS_SIZE[0] - SIDE_MARGIN - text_w, 416), indicator_text, fill=(90, 98, 112), font=FONT_SM)
+        _draw_page_indicator(draw, page_index, resolved_total_pages)
+    _draw_configured_icons(canvas, draw, resolved_page_icons, slots, layout, render_state, resolved_page_id)
+
+    draw.rounded_rectangle([446, 2340, 634, 2374], radius=18, fill=(74, 81, 94))
+    layout["drawer_handle"] = {"bbox": [446, 2340, 634, 2374], "type": "normal"}
+
+    return canvas, layout
+
+
+def _draw_app_drawer_pages(layout_config: dict, render_state: Dict[str, Any]) -> List[dict]:
+    drawer_icon_pages = _chunk_app_drawer_icons(layout_config)
+    total_pages = len(drawer_icon_pages)
+    drawer_pages: List[dict] = []
+    slots = layout_config.get("slots", {})
+    for page_index, page_icons in enumerate(drawer_icon_pages):
+        page_id = drawer_page_id(page_index)
+        normalized_page_icons = _normalize_drawer_page_icons(page_icons, slots)
+        page_image, page_layout = _draw_app_drawer_page(
+            layout_config,
+            render_state,
+            page_index=page_index,
+            drawer_icons=normalized_page_icons,
+            total_pages=total_pages,
+            page_id=page_id,
+        )
+        drawer_pages.append({
+            "page_id": page_id,
+            "image": page_image,
+            "layout": page_layout,
+            "icons": normalized_page_icons,
+            "depth": page_index + 1,
+        })
+    return drawer_pages
+
+
+def _build_mock_ui_structure(home_layout: Dict[str, dict], drawer_pages: List[dict], swipe_transition: dict) -> dict:
+    """Build the launcher-only ui_structure dict (used internally by _render_launcher_bundle)."""
+    home_button_bbox = home_layout["home"]["bbox"]
+    pages = {
+        HOME_PAGE_ID: {
+            "image": f"{HOME_PAGE_ID}.png",
+            "depth": 0,
+            "layout": home_layout,
+            "transitions": [
+                swipe_transition,
+                {
+                    "action": "PRESS_HOME",
+                    "target_page": HOME_PAGE_ID,
+                    "action_coord": _bbox_center(home_button_bbox),
+                    "icon_bbox": home_button_bbox,
+                },
+            ],
+        }
+    }
+
+    for page_index, drawer_page in enumerate(drawer_pages):
+        page_id = str(drawer_page["page_id"])
+        drawer_layout = drawer_page["layout"]
+        back_button_bbox = drawer_layout["back"]["bbox"]
+        drawer_home_bbox = drawer_layout["home"]["bbox"]
+        transitions = [
+            {
+                "action": "PRESS_BACK",
+                "target_page": HOME_PAGE_ID,
+                "action_coord": _bbox_center(back_button_bbox),
+                "icon_bbox": back_button_bbox,
+            },
+            {
+                "action": "PRESS_HOME",
+                "target_page": HOME_PAGE_ID,
+                "action_coord": _bbox_center(drawer_home_bbox),
+                "icon_bbox": drawer_home_bbox,
+            },
+        ]
+
+        # Keep app-drawer pagination to a single swipe edge per drawer page.
+        # Prefer the forward paging gesture; only the last page keeps a single
+        # backward swipe so intermediate pages do not fan out into multiple
+        # swipe transitions.
+        # Horizontal swipe: next page = swipe left (right-to-left),
+        #                    prev page = swipe right (left-to-right).
+        if page_index + 1 < len(drawer_pages):
+            transitions.append(
+                _build_swipe_transition_mock(
+                    drawer_pages[page_index + 1]["page_id"],
+                    action_coord=[900, 1200],
+                    lift_coord=[180, 1200],
+                    direction="left",
+                    icon_bbox=[180, 1100, 900, 1300],
+                )
+            )
+        elif page_index > 0:
+            transitions.append(
+                _build_swipe_transition_mock(
+                    drawer_pages[page_index - 1]["page_id"],
+                    action_coord=[180, 1200],
+                    lift_coord=[900, 1200],
+                    direction="right",
+                    icon_bbox=[180, 1100, 900, 1300],
+                )
+            )
+
+        pages[page_id] = {
+            "image": f"{page_id}.png",
+            "depth": int(drawer_page.get("depth", page_index + 1)),
+            "layout": drawer_layout,
+            "transitions": transitions,
+        }
+
+    return {
+        "pages": pages,
+        "metadata": {
+            "source": "mock_simulator",
+            "canvas_size": list(CANVAS_SIZE),
+            "visible_viewport_height": VISIBLE_VIEWPORT_HEIGHT,
+            "total_pages": len(pages),
+            "icon_sources": {
+                asset_name: str(asset_info["path"])
+                for asset_name, asset_info in REAL_ICON_LIBRARY.items()
+            },
+        },
+    }
+
+
+def _render_launcher_bundle(layout_config: dict) -> Dict[str, Any]:
+    render_state: Dict[str, Any] = {
+        "rng": _build_rng(layout_config),
+        "used_random_assets": set(),
+        "resolved_icons": [],
+    }
+
+    home_img, home_layout, swipe_transition = _draw_home_page(layout_config, render_state)
+    drawer_pages = _draw_app_drawer_pages(layout_config, render_state)
+    ui_structure = _build_mock_ui_structure(home_layout, drawer_pages, swipe_transition)
+
+    return {
+        "page_images": {
+            HOME_PAGE_ID: home_img,
+            **{str(page["page_id"]): page["image"] for page in drawer_pages},
+        },
+        "ui_structure": ui_structure,
+        "drawer_page_specs": [
+            {
+                "page_id": str(page["page_id"]),
+                "icons": deepcopy(page.get("icons", [])),
+            }
+            for page in drawer_pages
+        ],
+        "resolved_icons": list(render_state["resolved_icons"]),
+    }
+
+
+# ---------------------------------------------------------------------------
+# GRAPH BUILDER SECTION
+# ---------------------------------------------------------------------------
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_LAYOUT_CONFIG_PATH = SCRIPT_DIR / "mock_simulator_layout_config.json"
 
 action_compose = None
-
-HOME_PAGE_ID = launcher_mock.HOME_PAGE_ID
-DRAWER_PAGE_ID = launcher_mock.DRAWER_PAGE_ID
-OUTPUT_CANVAS_SIZE = launcher_mock.CANVAS_SIZE
-VISIBLE_VIEWPORT_HEIGHT = launcher_mock.VISIBLE_VIEWPORT_HEIGHT
 
 
 @dataclass
@@ -58,6 +1267,7 @@ class DrawerAppSpec:
     slug: str
     layout_key: str
     bbox: List[int]
+    launcher_page_id: str
     match_tokens: set[str]
 
 
@@ -89,14 +1299,14 @@ _AC_GELAB_HOME_COLOR = (200, 255, 200)
 _AC_NAV_BTN_W = 128
 _AC_NAV_BTN_H = 52
 _AC_NAV_STRIP_H = _AC_NAV_BTN_H + 20
-_AC_PHONE_CANVAS_SIZE = (OUTPUT_CANVAS_SIZE[0], OUTPUT_CANVAS_SIZE[1] - _AC_NAV_STRIP_H)
+_AC_PHONE_CANVAS_SIZE = (CANVAS_SIZE[0], CANVAS_SIZE[1] - _AC_NAV_STRIP_H)
 _AC_PHONE_OFFSET_X = 0
 _AC_PHONE_OFFSET_Y = _AC_NAV_STRIP_H
 _AC_GELAB_BACK_BBOX = [10, 8, 10 + _AC_NAV_BTN_W, 8 + _AC_NAV_BTN_H]
 _AC_GELAB_HOME_BBOX = [
-    OUTPUT_CANVAS_SIZE[0] - 10 - _AC_NAV_BTN_W,
+    CANVAS_SIZE[0] - 10 - _AC_NAV_BTN_W,
     8,
-    OUTPUT_CANVAS_SIZE[0] - 10,
+    CANVAS_SIZE[0] - 10,
     8 + _AC_NAV_BTN_H,
 ]
 _AC_STYLING_CODE_PROMPT = """\
@@ -129,6 +1339,7 @@ Available variables:
 Output ONLY a ```python code block with drawing commands."""
 _ac_yolo_model = None
 _ac_ocr_reader = None
+_ac_api_client_local = threading.local()
 
 
 def _ac_try_load_font(size: int):
@@ -472,18 +1683,29 @@ def _ac_persist_extracted_assets(elements: List[dict], screenshot_name: str,
     return asset_backed
 
 
-def _ac_load_api_client():
+def _ac_load_api_client(verbose: bool = True):
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        print("OpenAI client skipped: OPENAI_API_KEY not set.")
+        if verbose:
+            print("OpenAI client skipped: OPENAI_API_KEY not set.")
         return None
     try:
         from openai import OpenAI
     except ModuleNotFoundError:
-        print("OpenAI client skipped: openai package not installed.")
+        if verbose:
+            print("OpenAI client skipped: openai package not installed.")
         return None
-    print("OpenAI client initialized.")
+    if verbose:
+        print("OpenAI client initialized.")
     return OpenAI(api_key=api_key)
+
+
+def _ac_get_thread_api_client():
+    client = getattr(_ac_api_client_local, "client", None)
+    if client is None:
+        client = _ac_load_api_client(verbose=False)
+        _ac_api_client_local.client = client
+    return client
 
 
 def _ac_encode_image_base64(image_path: str) -> str:
@@ -931,13 +2153,13 @@ def _ac_ensure_system_layout(layout: Optional[dict]) -> dict:
 
 def _ac_draw_system_nav_overlay(image: Image.Image) -> Image.Image:
     canvas = image.convert("RGB") if image.mode != "RGB" else image.copy()
-    if canvas.size != OUTPUT_CANVAS_SIZE:
-        fitted, _, _, _ = _ac_fit_image_to_box(canvas, OUTPUT_CANVAS_SIZE, _AC_BG_WHITE)
+    if canvas.size != CANVAS_SIZE:
+        fitted, _, _, _ = _ac_fit_image_to_box(canvas, CANVAS_SIZE, _AC_BG_WHITE)
         canvas = fitted
 
     draw = ImageDraw.Draw(canvas)
     font = _ac_try_load_font(22)
-    draw.rectangle([0, 0, OUTPUT_CANVAS_SIZE[0], _AC_NAV_STRIP_H], fill=(245, 245, 248))
+    draw.rectangle([0, 0, CANVAS_SIZE[0], _AC_NAV_STRIP_H], fill=(245, 245, 248))
     draw.rounded_rectangle(_AC_GELAB_BACK_BBOX, radius=12, fill=_AC_GELAB_BACK_COLOR, outline=(220, 170, 170), width=2)
     draw.rounded_rectangle(_AC_GELAB_HOME_BBOX, radius=12, fill=_AC_GELAB_HOME_COLOR, outline=(160, 210, 160), width=2)
     for label, bbox in (("back", _AC_GELAB_BACK_BBOX), ("home", _AC_GELAB_HOME_BBOX)):
@@ -1074,7 +2296,7 @@ def _ac_compose_page(client, model_name: str,
         page_img, layout = _ac_fallback_compose(elements, orig_size, screenshot_path)
         render_status = "fallback_compose"
 
-    final_canvas = Image.new("RGB", OUTPUT_CANVAS_SIZE, _AC_BG_WHITE)
+    final_canvas = Image.new("RGB", CANVAS_SIZE, _AC_BG_WHITE)
     final_canvas.paste(page_img.convert("RGB"), (_AC_PHONE_OFFSET_X, _AC_PHONE_OFFSET_Y))
 
     shifted_layout = {}
@@ -1110,7 +2332,7 @@ def _ac_save_page_code(code_dir: str, page_id: str, screenshot_name: str,
         f"# styling_source: {code_artifact.get('styling_source', '')}",
         f"# render_status: {code_artifact.get('render_status', '')}",
         "# This code targets the original screenshot resolution.",
-        f"# The final runtime image is then rendered into the {OUTPUT_CANVAS_SIZE[0]}x{OUTPUT_CANVAS_SIZE[1]} canvas with a top nav strip.",
+        f"# The final runtime image is then rendered into the {CANVAS_SIZE[0]}x{CANVAS_SIZE[1]} canvas with a top nav strip.",
     ]
     contents = "\n".join(header_lines) + "\n\n"
     contents += "# --- GPT styling skeleton ---\n"
@@ -1252,7 +2474,7 @@ def _ac_build_action_bbox(step: dict, raw_action: str) -> List[int]:
     raw_action = _ac_normalize_raw_action_name(raw_action).upper()
     touch = _ac_safe_coord_pair(step.get("touch_coord") or [])
     lift = _ac_safe_coord_pair(step.get("lift_coord") or [])
-    if raw_action in ("TYPE", "PRESS_BACK", "PRESS_HOME", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE"):
+    if raw_action in ("PRESS_BACK", "PRESS_HOME", "TASK_COMPLETE", "TASK_IMPOSSIBLE"):
         return [0, 0, 0, 0]
     if touch == [0, 0]:
         return [0, 0, 0, 0]
@@ -1263,7 +2485,7 @@ def _ac_build_action_bbox(step: dict, raw_action: str) -> List[int]:
 
 def _ac_build_action_point(step: dict, raw_action: str) -> List[int]:
     raw_action = _ac_normalize_raw_action_name(raw_action).upper()
-    if raw_action in ("TYPE", "PRESS_BACK", "PRESS_HOME", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE"):
+    if raw_action in ("PRESS_BACK", "PRESS_HOME", "TASK_COMPLETE", "TASK_IMPOSSIBLE"):
         return [0, 0]
     return _ac_safe_coord_pair(step.get("touch_coord") or [])
 
@@ -1421,13 +2643,23 @@ def _ac_resolve_transition(step: dict,
             transition["icon_bbox"] = canvas_action_bbox
     elif raw_upper in ("TYPE", "TEXT"):
         transition["action"] = resolved_target if _ac_is_layout_target(resolved_target, layout) else "type"
-        transition["icon_bbox"] = [0, 0, 0, 0]
+        if _ac_is_layout_target(resolved_target, layout):
+            transition["icon_bbox"] = layout.get(resolved_target, [0, 0, 0, 0])
+        elif _ac_is_valid_bbox(canvas_action_bbox):
+            transition["icon_bbox"] = canvas_action_bbox
+        else:
+            transition["icon_bbox"] = [0, 0, 0, 0]
     elif raw_upper in ("SWIPE", "SCROLL"):
         transition["action"] = resolved_target if _ac_is_layout_target(resolved_target, layout) else "swipe"
         transition["icon_bbox"] = canvas_action_bbox
     elif raw_upper == "PRESS_ENTER":
         transition["action"] = resolved_target if _ac_is_layout_target(resolved_target, layout) else "press_enter"
-        transition["icon_bbox"] = [0, 0, 0, 0]
+        if _ac_is_layout_target(resolved_target, layout):
+            transition["icon_bbox"] = layout.get(resolved_target, [0, 0, 0, 0])
+        elif _ac_is_valid_bbox(canvas_action_bbox):
+            transition["icon_bbox"] = canvas_action_bbox
+        else:
+            transition["icon_bbox"] = [0, 0, 0, 0]
     elif raw_upper == "PRESS_BACK":
         transition["action"] = "back"
         transition["icon_bbox"] = layout.get("back", _AC_GELAB_BACK_BBOX)
@@ -1482,19 +2714,17 @@ def _ac_stored_transition_action_coord(transition: dict) -> List[int]:
     canvas_action_point = _ac_safe_coord_pair(transition.get("canvas_action_point") or [])
     canvas_action_bbox = transition.get("canvas_action_bbox") or [0, 0, 0, 0]
     icon_bbox = transition.get("icon_bbox") or [0, 0, 0, 0]
-    if raw_action in ("TYPE", "TEXT", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE"):
+    if raw_action in ("TASK_COMPLETE", "TASK_IMPOSSIBLE"):
         return [0, 0]
-    if raw_action in ("SWIPE", "SCROLL", "TAP", "CLICK"):
-        if _ac_is_valid_point(canvas_action_point):
-            return [int(canvas_action_point[0]), int(canvas_action_point[1])]
-        if _ac_is_valid_bbox(canvas_action_bbox):
-            return _ac_bbox_center_point(canvas_action_bbox)
     if raw_action in ("PRESS_BACK", "PRESS_HOME") and _ac_is_valid_bbox(icon_bbox):
-        return _ac_bbox_center_point(icon_bbox)
-    if _ac_is_valid_bbox(icon_bbox):
         return _ac_bbox_center_point(icon_bbox)
     if _ac_is_valid_point(canvas_action_point):
         return [int(canvas_action_point[0]), int(canvas_action_point[1])]
+    if raw_action in ("SWIPE", "SCROLL", "TAP", "CLICK"):
+        if _ac_is_valid_bbox(canvas_action_bbox):
+            return _ac_bbox_center_point(canvas_action_bbox)
+    if _ac_is_valid_bbox(icon_bbox):
+        return _ac_bbox_center_point(icon_bbox)
     if _ac_is_valid_bbox(canvas_action_bbox):
         return _ac_bbox_center_point(canvas_action_bbox)
     return [0, 0]
@@ -1525,7 +2755,7 @@ def _ac_debug_bbox_for_transition(transition: dict, action_coord: List[int]) -> 
     raw_action = _ac_normalize_raw_action_name(transition.get("raw_action", "")).upper()
     canvas_action_bbox = transition.get("canvas_action_bbox") or [0, 0, 0, 0]
     icon_bbox = transition.get("icon_bbox") or [0, 0, 0, 0]
-    if raw_action in ("TYPE", "TEXT", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE"):
+    if raw_action in ("TASK_COMPLETE", "TASK_IMPOSSIBLE"):
         return [0, 0, 0, 0]
     if raw_action in ("SWIPE", "SCROLL") and _ac_is_valid_bbox(canvas_action_bbox):
         return [int(v) for v in canvas_action_bbox]
@@ -1552,7 +2782,11 @@ def _ac_debug_transition_label(idx: int, transition: dict) -> str:
 
 def _ac_should_draw_non_spatial_debug_label(transition: dict) -> bool:
     raw_action = _ac_normalize_raw_action_name(transition.get("raw_action", "")).upper()
-    return raw_action in ("TYPE", "TEXT", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE")
+    action_coord = _ac_stored_transition_action_coord(transition)
+    debug_bbox = _ac_debug_bbox_for_transition(transition, action_coord)
+    return raw_action in ("TYPE", "TEXT", "PRESS_ENTER", "TASK_COMPLETE", "TASK_IMPOSSIBLE") and not (
+        _ac_is_valid_point(action_coord) or _ac_is_valid_bbox(debug_bbox)
+    )
 
 
 def _ac_save_action_debug_overlay(page_image_path: str,
@@ -1576,13 +2810,43 @@ def _ac_save_action_debug_overlay(page_image_path: str,
     for idx, transition in enumerate(transitions or []):
         edge_color, label_bg = palette[idx % len(palette)]
         action_coord = _ac_stored_transition_action_coord(transition)
+        lift_coord = _ac_stored_transition_lift_coord(transition)
         debug_bbox = _ac_debug_bbox_for_transition(transition, action_coord)
         label = _ac_debug_transition_label(idx, transition)
         if _ac_is_valid_bbox(debug_bbox):
             draw.rectangle(debug_bbox, outline=edge_color, width=3)
+        if _ac_is_valid_point(action_coord) and _ac_is_valid_point(lift_coord):
+            start = (int(action_coord[0]), int(action_coord[1]))
+            end = (int(lift_coord[0]), int(lift_coord[1]))
+            draw.line([start, end], fill=edge_color, width=4)
+            dx = end[0] - start[0]
+            dy = end[1] - start[1]
+            length = max((dx * dx + dy * dy) ** 0.5, 1.0)
+            unit_x = dx / length
+            unit_y = dy / length
+            perp_x = -unit_y
+            perp_y = unit_x
+            arrow_size = 8
+            arrow_base_x = end[0] - unit_x * arrow_size
+            arrow_base_y = end[1] - unit_y * arrow_size
+            wing = arrow_size * 0.5
+            draw.polygon(
+                [
+                    end,
+                    (
+                        int(round(arrow_base_x + perp_x * wing)),
+                        int(round(arrow_base_y + perp_y * wing)),
+                    ),
+                    (
+                        int(round(arrow_base_x - perp_x * wing)),
+                        int(round(arrow_base_y - perp_y * wing)),
+                    ),
+                ],
+                fill=edge_color,
+            )
         if _ac_is_valid_point(action_coord):
             px, py = int(action_coord[0]), int(action_coord[1])
-            draw.rectangle([px - 4, py - 4, px + 4, py + 4], fill=edge_color, outline=(255, 255, 255), width=1)
+            draw.ellipse([px - 6, py - 6, px + 6, py + 6], fill=edge_color, outline=(255, 255, 255), width=1)
             text_bbox = draw.textbbox((0, 0), label, font=font)
             text_w = text_bbox[2] - text_bbox[0]
             text_h = text_bbox[3] - text_bbox[1]
@@ -1633,14 +2897,33 @@ def _tokenize_words(text: str) -> List[str]:
     return [token for token in re.split(r"[^0-9a-z]+", str(text or "").lower()) if token]
 
 
+_NON_DISTINCT_MATCH_TOKENS = set(GENERIC_PACKAGE_TOKENS) | {
+    "amazon",
+    "bbc",
+    "google",
+    "mail",
+    "maps",
+    "microsoft",
+    "music",
+    "news",
+    "player",
+    "podcast",
+    "podcasts",
+    "shopping",
+    "sport",
+    "sports",
+    "tasks",
+}
+
+
 def _build_match_tokens(label: str, asset: str) -> set[str]:
     tokens: set[str] = set()
     for candidate in (label, asset, str(asset).replace("_real", "")):
         compact = _normalize_compact(candidate)
-        if len(compact) >= 3:
+        if len(compact) >= 3 and compact not in _NON_DISTINCT_MATCH_TOKENS:
             tokens.add(compact)
         for token in _tokenize_words(candidate):
-            if len(token) >= 3:
+            if len(token) >= 3 and token not in _NON_DISTINCT_MATCH_TOKENS:
                 tokens.add(token)
     return tokens
 
@@ -1669,17 +2952,24 @@ def _resolve_spec_label(spec: dict) -> str:
     if label:
         return label
     asset = str(spec.get("asset") or "").strip().lower()
-    if asset in launcher_mock.REAL_ICON_LIBRARY:
-        return str(launcher_mock.REAL_ICON_LIBRARY[asset]["label"])
+    if asset in REAL_ICON_LIBRARY:
+        return str(REAL_ICON_LIBRARY[asset]["label"])
     return asset or "app"
 
 
-def _find_layout_key(layout: Dict[str, List[int]], preferred_label: str, asset: str) -> Optional[str]:
+def _find_layout_key(
+    layout: Dict[str, List[int]],
+    preferred_label: str,
+    asset: str,
+    explicit_layout_key: str = "",
+) -> Optional[str]:
     candidates = [
+        str(explicit_layout_key or "").strip(),
+        _safe_key(str(explicit_layout_key or "").strip()),
         str(preferred_label or "").strip(),
-        launcher_mock._safe_key(str(preferred_label or "").strip()),
+        _safe_key(str(preferred_label or "").strip()),
         str(asset or "").strip(),
-        launcher_mock._safe_key(str(asset or "").strip()),
+        _safe_key(str(asset or "").strip()),
     ]
     lowered = {key.lower(): key for key in layout}
     for candidate in candidates:
@@ -1693,28 +2983,38 @@ def _find_layout_key(layout: Dict[str, List[int]], preferred_label: str, asset: 
     return None
 
 
-def _extract_drawer_apps(layout_config: dict, drawer_layout: Dict[str, List[int]]) -> List[DrawerAppSpec]:
+def _extract_drawer_apps(drawer_page_specs: List[dict],
+                         launcher_pages: Dict[str, dict]) -> List[DrawerAppSpec]:
     apps: List[DrawerAppSpec] = []
-    drawer_icons = layout_config.get("pages", {}).get("app_drawer", {}).get("icons", [])
-    for spec in drawer_icons:
-        if not isinstance(spec, dict):
-            continue
-        label = _resolve_spec_label(spec)
-        asset = str(spec.get("asset") or label)
-        layout_key = _find_layout_key(drawer_layout, label, asset)
-        if layout_key is None:
-            continue
-        slug = _normalize_compact(label or asset)
-        if not slug:
-            continue
-        apps.append(DrawerAppSpec(
-            label=label,
-            asset=asset,
-            slug=slug,
-            layout_key=layout_key,
-            bbox=[int(v) for v in drawer_layout[layout_key]],
-            match_tokens=_build_match_tokens(label, asset),
-        ))
+    for page_spec in drawer_page_specs:
+        page_id = str(page_spec.get("page_id", "") or "")
+        page = launcher_pages.get(page_id, {})
+        page_layout = page.get("layout", {}) or {}
+        for spec in page_spec.get("icons", []) or []:
+            if not isinstance(spec, dict):
+                continue
+            label = _resolve_spec_label(spec)
+            asset = str(spec.get("asset") or label)
+            layout_key = _find_layout_key(
+                page_layout,
+                label,
+                asset,
+                explicit_layout_key=str(spec.get("layout_key") or ""),
+            )
+            if layout_key is None:
+                continue
+            slug = _normalize_compact(label or asset)
+            if not slug:
+                continue
+            apps.append(DrawerAppSpec(
+                label=label,
+                asset=asset,
+                slug=slug,
+                layout_key=layout_key,
+                bbox=[int(v) for v in page_layout[layout_key]],
+                launcher_page_id=page_id,
+                match_tokens=_build_match_tokens(label, asset),
+            ))
     return apps
 
 
@@ -2001,6 +3301,36 @@ def _transition_action_location_signature_from_serialized(serialized: dict) -> T
     return ("fallback", raw_action, target_element, type_text, gesture_direction)
 
 
+def _transition_spatial_metadata_from_serialized(serialized: dict) -> dict:
+    action_coord = serialized.get("action_coord") or [0, 0]
+    lift_coord = serialized.get("lift_coord") or [0, 0]
+    icon_bbox = serialized.get("icon_bbox") or [0, 0, 0, 0]
+    raw_action = str(serialized.get("raw_action", "") or "").strip().upper()
+
+    has_action_coord = _valid_point(action_coord)
+    has_lift_coord = _valid_point(lift_coord)
+    has_icon_bbox = _valid_bbox(icon_bbox)
+    spatial_anchor_type = "point" if has_action_coord else ("bbox" if has_icon_bbox else "none")
+    spatial_anchor_valid = has_action_coord or has_icon_bbox
+    if raw_action in ("SWIPE", "SCROLL"):
+        spatial_path_valid = has_action_coord and has_lift_coord
+    else:
+        spatial_path_valid = spatial_anchor_valid
+
+    metadata = {
+        "spatial_anchor_type": spatial_anchor_type,
+        "spatial_anchor_valid": spatial_anchor_valid,
+        "spatial_path_valid": spatial_path_valid,
+    }
+    if has_action_coord:
+        metadata["action_coord"] = [int(action_coord[0]), int(action_coord[1])]
+    if has_lift_coord:
+        metadata["lift_coord"] = [int(lift_coord[0]), int(lift_coord[1])]
+    if has_icon_bbox:
+        metadata["icon_bbox"] = [int(v) for v in icon_bbox]
+    return metadata
+
+
 def _dedupe_serialized_transitions(transitions: List[dict]) -> List[dict]:
     deduped: List[dict] = []
     seen_signatures: set[str] = set()
@@ -2062,6 +3392,8 @@ def _build_ui_layer(pages: Dict[str, dict], root_page_id: str) -> dict:
             "trajectory_ids_full": list(page.get("trajectory_ids_full", [])),
             "trace_steps": list(page.get("trace_steps", [])),
             "page_summary": deepcopy(page.get("page_summary", {})),
+            "is_task_conditioned_entry_page": bool(page.get("is_task_conditioned_entry_page", False)),
+            "entry_metadata": deepcopy(page.get("entry_metadata", {})),
             "transitions": non_system,
             "subnodes": subnodes,
         }
@@ -2077,7 +3409,7 @@ def _build_ui_layer(pages: Dict[str, dict], root_page_id: str) -> dict:
         "root": root,
         "metadata": {
             "source": "mock_unified_app_graph",
-            "canvas_size": list(OUTPUT_CANVAS_SIZE),
+            "canvas_size": list(CANVAS_SIZE),
             "total_pages": len(pages),
         },
     }
@@ -2106,6 +3438,8 @@ def _save_ui_structure(output_dir: Path,
             "trajectory_ids_full": list(page.get("trajectory_ids_full", [])),
             "trace_steps": list(page.get("trace_steps", [])),
             "page_summary": deepcopy(page.get("page_summary", {})),
+            "is_task_conditioned_entry_page": bool(page.get("is_task_conditioned_entry_page", False)),
+            "entry_metadata": deepcopy(page.get("entry_metadata", {})),
         }
 
     ui_structure = {
@@ -2113,7 +3447,7 @@ def _save_ui_structure(output_dir: Path,
         "metadata": {
             **metadata,
             "source": "mock_unified_app_graph",
-            "canvas_size": list(OUTPUT_CANVAS_SIZE),
+            "canvas_size": list(CANVAS_SIZE),
             "root_page_id": root_page_id,
             "total_pages": len(serialized_pages),
         },
@@ -2143,42 +3477,72 @@ def _make_page_summary(page_name: str,
     }
 
 
-def _launcher_transition_from_mock(swipe_transition: dict, target_page: str) -> dict:
-    return {
-        "raw_action": "SWIPE",
-        "action": "swipe",
-        "action_kind": "swipe",
-        "target_page": target_page,
-        "canvas_action_bbox": [int(v) for v in swipe_transition.get("icon_bbox", [0, 0, 0, 0])],
-        "canvas_action_point": [int(v) for v in swipe_transition.get("action_coord", [0, 0])],
-        "canvas_lift_coord": [int(v) for v in swipe_transition.get("lift_coord", [0, 0])],
-        "icon_bbox": [int(v) for v in swipe_transition.get("icon_bbox", [0, 0, 0, 0])],
-        "type_text": "",
-        "gesture_direction": str(swipe_transition.get("gesture_direction", "") or ""),
-    }
+def _launcher_transition_from_mock(transition: dict) -> dict:
+    action = str(transition.get("action", "") or "").strip().lower()
+    target_page = str(transition.get("target_page", "") or "")
+
+    if action == "swipe":
+        return {
+            "raw_action": "SWIPE",
+            "action": "swipe",
+            "action_kind": "swipe",
+            "target_page": target_page,
+            "canvas_action_bbox": [int(v) for v in transition.get("icon_bbox", [0, 0, 0, 0])],
+            "canvas_action_point": [int(v) for v in transition.get("action_coord", [0, 0])],
+            "canvas_lift_coord": [int(v) for v in transition.get("lift_coord", [0, 0])],
+            "icon_bbox": [int(v) for v in transition.get("icon_bbox", [0, 0, 0, 0])],
+            "type_text": "",
+            "gesture_direction": str(transition.get("gesture_direction", "") or ""),
+        }
+
+    if action == "press_back":
+        return {
+            **action_compose._build_system_transition(
+                raw_action="PRESS_BACK",
+                action="back",
+                target_page=target_page,
+                icon_bbox=transition.get("icon_bbox", [0, 0, 0, 0]),
+            ),
+            "action_kind": "press_back",
+        }
+
+    if action == "press_home":
+        return {
+            **action_compose._build_system_transition(
+                raw_action="PRESS_HOME",
+                action="home",
+                target_page=target_page,
+                icon_bbox=transition.get("icon_bbox", [0, 0, 0, 0]),
+            ),
+            "action_kind": "press_home",
+        }
+
+    raise ValueError(f"Unsupported launcher mock action: {transition.get('action')}")
 
 
 def _save_mock_pages(output_dir: Path,
-                     layout_config: dict) -> Tuple[Dict[str, List[int]], Dict[str, List[int]], Dict[str, Any]]:
-    render_state: Dict[str, Any] = {
-        "rng": launcher_mock._build_rng(layout_config),
-        "used_random_assets": set(),
-        "resolved_icons": [],
-    }
-    home_img, home_layout_typed, swipe_transition = launcher_mock._draw_home_page(layout_config, render_state)
-    drawer_img, drawer_layout_typed = launcher_mock._draw_app_drawer_page(layout_config, render_state)
-
+                     layout_config: dict) -> Tuple[Dict[str, dict], List[dict], Dict[str, Any]]:
+    launcher_bundle = _render_launcher_bundle(layout_config)
     pages_dir = output_dir / "pages"
     pages_dir.mkdir(parents=True, exist_ok=True)
-    home_img.save(pages_dir / f"{HOME_PAGE_ID}.png")
-    drawer_img.save(pages_dir / f"{DRAWER_PAGE_ID}.png")
+    for page_id, image in launcher_bundle["page_images"].items():
+        image.save(pages_dir / f"{page_id}.png")
+
+    launcher_pages: Dict[str, dict] = {}
+    for page_id, page in launcher_bundle["ui_structure"]["pages"].items():
+        launcher_pages[page_id] = {
+            "page_id": page_id,
+            "image": page["image"],
+            "depth": int(page["depth"]),
+            "layout": _typed_layout_to_plain(page["layout"]),
+            "transitions": deepcopy(page.get("transitions", [])),
+        }
 
     return (
-        _typed_layout_to_plain(home_layout_typed),
-        _typed_layout_to_plain(drawer_layout_typed),
+        launcher_pages,
+        deepcopy(launcher_bundle.get("drawer_page_specs", [])),
         {
-            "swipe_transition": swipe_transition,
-            "resolved_icons": render_state["resolved_icons"],
+            "resolved_icons": launcher_bundle.get("resolved_icons", []),
         },
     )
 
@@ -2206,6 +3570,65 @@ def _step_context_for_segment(segment_trajectory: dict, local_idx: int) -> dict:
     context["source_episode_id"] = segment_trajectory.get("episode_id", "")
     context["global_step_index"] = segment_trajectory["steps"][local_idx].get("source_step_index", local_idx + 1)
     return context
+
+
+def _compose_segment_page_record(page_job: dict,
+                                 pages_dir: Path,
+                                 code_dir: Path,
+                                 model_name: str,
+                                 client=None,
+                                 use_thread_client: bool = False) -> dict:
+    page_id = page_job["page_id"]
+    compose_client = _ac_get_thread_api_client() if use_thread_client else client
+
+    try:
+        page_img, layout, code_artifact = action_compose.compose_page(
+            compose_client,
+            model_name,
+            page_job["asset_elements"],
+            page_job["orig_size"],
+            page_job["screenshot_path"],
+            page_job["step_context"],
+        )
+        page_img, layout = action_compose._ensure_system_nav_controls(page_img, layout)
+        page_img.save(pages_dir / f"{page_id}.png")
+        action_compose._save_page_code(
+            str(code_dir),
+            page_id,
+            page_job["screenshot_name"],
+            page_job["step_context"],
+            code_artifact,
+        )
+    except Exception as exc:
+        raise RuntimeError(f"compose failed for {page_id}: {exc}") from exc
+
+    layout = action_compose._ensure_system_layout(layout)
+    anno_stats = page_job["anno_stats"]
+    return {
+        "message": (
+            f"        -> page_id={page_id} "
+            f"detected={page_job['detected_count']} "
+            f"anno_loaded={anno_stats.get('loaded', 0)} "
+            f"layout={len(layout)}"
+        ),
+        "page_row": {
+            "page_id": page_id,
+            "image": f"{page_id}.png",
+            "depth": page_job["depth"],
+            "layout": layout,
+            "orig_size": tuple(page_job["orig_size"]),
+            "step": page_job["step"],
+            "step_context": page_job["step_context"],
+            "episode_id": page_job["episode_id"],
+            "page_name": page_job["page_name"],
+            "application_id": page_job["application_id"],
+            "application_name": page_job["application_name"],
+            "trajectory_ids": [page_job["episode_id"]],
+            "trajectory_ids_full": [page_job["trajectory_id_full"]],
+            "trace_steps": [page_job["trace_step"]],
+            "anno_stats": anno_stats,
+        },
+    }
 
 
 def _compose_segment_pages(match: MatchedTrajectory,
@@ -2240,7 +3663,7 @@ def _compose_segment_pages(match: MatchedTrajectory,
     code_dir.mkdir(parents=True, exist_ok=True)
     assets_dir.mkdir(parents=True, exist_ok=True)
 
-    page_rows: List[dict] = []
+    page_jobs: List[dict] = []
     manifest_rows: List[dict] = []
     matched_rows: List[dict] = []
 
@@ -2277,37 +3700,11 @@ def _compose_segment_pages(match: MatchedTrajectory,
             str(assets_dir),
             step_context,
         )
-
-        page_img, layout, code_artifact = action_compose.compose_page(
-            client,
-            model_name,
-            asset_elements,
-            orig_size,
-            screenshot_path,
-            step_context,
-        )
-        page_img, layout = action_compose._ensure_system_nav_controls(page_img, layout)
-        page_img.save(pages_dir / f"{page_id}.png")
-        action_compose._save_page_code(
-            str(code_dir),
-            page_id,
-            screenshot_name,
-            step_context,
-            code_artifact,
-        )
-        print(
-            f"        -> page_id={page_id} "
-            f"detected={len(elements)} "
-            f"anno_loaded={anno_stats.get('loaded', 0)} "
-            f"layout={len(layout)}"
-        )
-
-        layout = action_compose._ensure_system_layout(layout)
-        page_rows.append({
+        page_jobs.append({
             "page_id": page_id,
-            "image": f"{page_id}.png",
-            "depth": 3 + local_idx,
-            "layout": layout,
+            "screenshot_name": screenshot_name,
+            "screenshot_path": screenshot_path,
+            "asset_elements": asset_elements,
             "orig_size": tuple(orig_size),
             "step": step,
             "step_context": step_context,
@@ -2315,10 +3712,11 @@ def _compose_segment_pages(match: MatchedTrajectory,
             "page_name": f"{app.label} {match.episode_id[:8]} step {local_idx + 1}",
             "application_id": app.slug,
             "application_name": app.label,
-            "trajectory_ids": [match.episode_id],
-            "trajectory_ids_full": [_full_trajectory_id(match)],
-            "trace_steps": [step.get("source_step_index", local_idx + 1)],
+            "trajectory_id_full": _full_trajectory_id(match),
+            "trace_step": step.get("source_step_index", local_idx + 1),
             "anno_stats": anno_stats,
+            "detected_count": len(elements),
+            "depth": 3 + local_idx,
         })
 
         for elem in asset_elements:
@@ -2346,8 +3744,45 @@ def _compose_segment_pages(match: MatchedTrajectory,
             "package_name": step.get("package_name", ""),
         })
 
-    if not page_rows:
+    if not page_jobs:
         return [], manifest_rows, matched_rows
+
+    page_rows_by_index: List[Optional[dict]] = [None] * len(page_jobs)
+    api_concurrency = max(1, int(getattr(args, "api_concurrency", 1) or 1))
+    use_parallel_compose = client is not None and api_concurrency > 1 and len(page_jobs) > 1
+
+    if use_parallel_compose:
+        print(f"      composing page renderings with api_concurrency={api_concurrency}")
+        with ThreadPoolExecutor(max_workers=api_concurrency) as executor:
+            future_to_index = {
+                executor.submit(
+                    _compose_segment_page_record,
+                    page_job=page_job,
+                    pages_dir=pages_dir,
+                    code_dir=code_dir,
+                    model_name=model_name,
+                    use_thread_client=True,
+                ): page_index
+                for page_index, page_job in enumerate(page_jobs)
+            }
+            for future in as_completed(future_to_index):
+                page_index = future_to_index[future]
+                result = future.result()
+                print(result["message"])
+                page_rows_by_index[page_index] = result["page_row"]
+    else:
+        for page_index, page_job in enumerate(page_jobs):
+            result = _compose_segment_page_record(
+                page_job=page_job,
+                pages_dir=pages_dir,
+                code_dir=code_dir,
+                model_name=model_name,
+                client=client,
+            )
+            print(result["message"])
+            page_rows_by_index[page_index] = result["page_row"]
+
+    page_rows = [page for page in page_rows_by_index if page is not None]
 
     for idx, page in enumerate(page_rows):
         next_page_id = page_rows[idx + 1]["page_id"] if idx + 1 < len(page_rows) else page["page_id"]
@@ -2403,80 +3838,52 @@ def _compose_segment_pages(match: MatchedTrajectory,
     return page_rows, manifest_rows, matched_rows
 
 
-def _build_rich_launcher_pages(home_layout: Dict[str, List[int]],
-                               drawer_layout: Dict[str, List[int]],
-                               swipe_transition: dict,
+def _build_rich_launcher_pages(launcher_pages: Dict[str, dict],
                                drawer_apps: List[DrawerAppSpec],
                                app_entry_pages: Dict[str, List[str]]) -> Dict[str, dict]:
     pages: Dict[str, dict] = {}
 
-    home_transitions = [
-        _launcher_transition_from_mock(swipe_transition, DRAWER_PAGE_ID),
-        {
-            **action_compose._build_system_transition(
-                raw_action="PRESS_HOME",
-                action="home",
-                target_page=HOME_PAGE_ID,
-                icon_bbox=home_layout.get("home", [0, 0, 0, 0]),
-            ),
-            "action_kind": "press_home",
-        },
-    ]
-    pages[HOME_PAGE_ID] = {
-        "page_id": HOME_PAGE_ID,
-        "image": f"{HOME_PAGE_ID}.png",
-        "depth": 0,
-        "layout": home_layout,
-        "transitions": home_transitions,
-        "page_name": "Home",
-        "application_id": "launcher",
-        "application_name": "Launcher",
-        "trajectory_ids": [],
-        "trace_steps": [],
-        "page_summary": _make_page_summary("Home", "launcher", "Launcher", home_layout, page_family="home"),
-    }
+    for page_id, launcher_page in launcher_pages.items():
+        layout = deepcopy(launcher_page.get("layout", {}))
+        base_transitions = [
+            _launcher_transition_from_mock(transition)
+            for transition in launcher_page.get("transitions", [])
+        ]
+        if page_id == HOME_PAGE_ID:
+            page_name = "Home"
+            page_family = "home"
+        elif page_id == DRAWER_PAGE_ID:
+            page_name = "App Drawer"
+            page_family = "app_drawer"
+        else:
+            suffix = page_id.split("_")[1] if "_" in page_id else page_id
+            page_name = f"App Drawer {suffix}"
+            page_family = "app_drawer"
 
-    drawer_transitions: List[dict] = [
-        {
-            **action_compose._build_system_transition(
-                raw_action="PRESS_BACK",
-                action="back",
-                target_page=HOME_PAGE_ID,
-                icon_bbox=drawer_layout.get("back", [0, 0, 0, 0]),
-            ),
-            "action_kind": "press_back",
-        },
-        {
-            **action_compose._build_system_transition(
-                raw_action="PRESS_HOME",
-                action="home",
-                target_page=HOME_PAGE_ID,
-                icon_bbox=drawer_layout.get("home", [0, 0, 0, 0]),
-            ),
-            "action_kind": "press_home",
-        },
-    ]
+        pages[page_id] = {
+            "page_id": page_id,
+            "image": str(launcher_page.get("image") or f"{page_id}.png"),
+            "depth": int(launcher_page.get("depth", 0)),
+            "layout": layout,
+            "transitions": base_transitions,
+            "page_name": page_name,
+            "application_id": "launcher",
+            "application_name": "Launcher",
+            "trajectory_ids": [],
+            "trace_steps": [],
+            "page_summary": _make_page_summary(page_name, "launcher", "Launcher", layout, page_family=page_family),
+        }
+
     for app in drawer_apps:
+        if app.launcher_page_id not in pages:
+            continue
         entry_pages = _ordered_unique(app_entry_pages.get(app.slug, []))
         if not entry_pages:
             continue
         for first_page in entry_pages:
             transition = _build_tap_transition(first_page, app.layout_key, app.bbox, raw_action="TAP")
-            drawer_transitions.append(transition)
+            pages[app.launcher_page_id]["transitions"].append(transition)
 
-    pages[DRAWER_PAGE_ID] = {
-        "page_id": DRAWER_PAGE_ID,
-        "image": f"{DRAWER_PAGE_ID}.png",
-        "depth": 1,
-        "layout": drawer_layout,
-        "transitions": drawer_transitions,
-        "page_name": "App Drawer",
-        "application_id": "launcher",
-        "application_name": "Launcher",
-        "trajectory_ids": [],
-        "trace_steps": [],
-        "page_summary": _make_page_summary("App Drawer", "launcher", "Launcher", drawer_layout, page_family="app_drawer"),
-    }
     return pages
 
 
@@ -2569,6 +3976,7 @@ def _topology_transition_group_key(transition: dict) -> Tuple[str, Tuple[Any, ..
     return (
         str(serialized.get("target_page", "") or "").strip(),
         tuple(sorted(semantic_payload.items())),
+        _transition_action_location_signature_from_serialized(serialized),
     )
 
 
@@ -2597,7 +4005,7 @@ def _iter_topology_transitions(
             existing = best_by_group.get(transition_group_key)
             if existing is None or candidate_rank > existing[0]:
                 best_by_group[transition_group_key] = (candidate_rank, transition, action_label, idx)
-        for (target_page, _), (_, transition, action_label, first_idx) in sorted(
+        for transition_group_key, (_, transition, action_label, first_idx) in sorted(
             best_by_group.items(),
             key=lambda item: (
                 int(pages[item[0][0]].get("depth", 0)),
@@ -2605,6 +4013,7 @@ def _iter_topology_transitions(
                 str(item[0][0]),
             ),
         ):
+            target_page = str(transition_group_key[0])
             yield page_id, target_page, transition, action_label
 
 
@@ -2644,6 +4053,50 @@ def _build_primary_parent_map(
             child_order[(page_id, target_page)] = idx
             primary_parent.setdefault(target_page, page_id)
     return primary_parent, child_order, page_order
+
+
+
+def _recompute_output_page_depths(
+    pages: Dict[str, dict],
+    root_page_id: str,
+) -> Dict[str, dict]:
+    normalized_pages = {
+        page_id: deepcopy(page)
+        for page_id, page in pages.items()
+    }
+    if root_page_id not in normalized_pages:
+        return normalized_pages
+
+    computed_depths: Dict[str, int] = {root_page_id: 0}
+    queue: deque[str] = deque([root_page_id])
+
+    while queue:
+        page_id = queue.popleft()
+        page = normalized_pages[page_id]
+        source_depth = computed_depths[page_id]
+        for transition in page.get("transitions", []):
+            target_page = str(transition.get("target_page", "") or "")
+            if not target_page or target_page == page_id or target_page not in normalized_pages:
+                continue
+            if not _should_keep_transition(page, transition, normalized_pages):
+                continue
+            if _transition_action_label(transition) in ("press_back", "press_home"):
+                continue
+            candidate_depth = source_depth + 1
+            if candidate_depth < computed_depths.get(target_page, 10**9):
+                computed_depths[target_page] = candidate_depth
+                queue.append(target_page)
+
+    for page_id, page in normalized_pages.items():
+        if page_id in computed_depths:
+            page["depth"] = computed_depths[page_id]
+            continue
+        if _page_merge_group_id(page) == "launcher":
+            page["depth"] = int(page.get("depth", 0))
+            continue
+        page["depth"] = max(2, int(page.get("depth", 2)))
+
+    return normalized_pages
 
 
 def _sorted_depth_buckets_for_topology(
@@ -2712,14 +4165,26 @@ def _build_topology_tree_payload(pages: Dict[str, dict], root_page_id: str) -> d
         page = pages[page_id]
         outgoing_transitions = []
         for _, target_page, transition, action_label in _iter_topology_transitions(pages, [page_id]):
-            outgoing_transitions.append({
+            serialized = _serialize_transition(transition)
+            edge_payload = {
                 "target_page_id": target_page,
                 "action": action_label,
                 "raw_action": str(transition.get("raw_action", "") or ""),
                 "target_element": str(transition.get("target_element", transition.get("action", "")) or ""),
                 "type_text": str(transition.get("type_text", "") or ""),
                 "gesture_direction": str(transition.get("gesture_direction", "") or ""),
-            })
+            }
+            edge_payload.update(_transition_spatial_metadata_from_serialized(serialized))
+            source_trace_page = str(serialized.get("source_trace_page", "") or "").strip()
+            if source_trace_page:
+                edge_payload["source_trace_page"] = source_trace_page
+            source_trajectory_id = str(serialized.get("source_trajectory_id", "") or "").strip()
+            if source_trajectory_id:
+                edge_payload["source_trajectory_id"] = source_trajectory_id
+            source_step_indices = serialized.get("source_step_indices") or []
+            if isinstance(source_step_indices, list) and source_step_indices:
+                edge_payload["source_step_indices"] = [int(v) for v in source_step_indices]
+            outgoing_transitions.append(edge_payload)
         child_nodes = []
         for target_page in _non_system_target_pages(page, pages):
             child = build_node(target_page)
@@ -2787,7 +4252,8 @@ def _build_topology_graph_payload(
         })
 
     for page_id, target_page, transition, action_label in _iter_topology_transitions(pages, ordered_page_ids):
-        edges.append({
+        serialized = _serialize_transition(transition)
+        edge_payload = {
             "source_page_id": page_id,
             "target_page_id": target_page,
             "action": action_label,
@@ -2796,7 +4262,18 @@ def _build_topology_graph_payload(
             "type_text": str(transition.get("type_text", "") or ""),
             "gesture_direction": str(transition.get("gesture_direction", "") or ""),
             "system": False,
-        })
+        }
+        edge_payload.update(_transition_spatial_metadata_from_serialized(serialized))
+        source_trace_page = str(serialized.get("source_trace_page", "") or "").strip()
+        if source_trace_page:
+            edge_payload["source_trace_page"] = source_trace_page
+        source_trajectory_id = str(serialized.get("source_trajectory_id", "") or "").strip()
+        if source_trajectory_id:
+            edge_payload["source_trajectory_id"] = source_trajectory_id
+        source_step_indices = serialized.get("source_step_indices") or []
+        if isinstance(source_step_indices, list) and source_step_indices:
+            edge_payload["source_step_indices"] = [int(v) for v in source_step_indices]
+        edges.append(edge_payload)
 
     return {
         "root_page_id": root_page_id,
@@ -3097,18 +4574,46 @@ def _expand_topology_pages_by_trajectory_asset_clusters(
     if not split_page_ids:
         return pages
 
+    def _system_transitions_for_page(page: dict) -> List[dict]:
+        return [
+            deepcopy(transition)
+            for transition in page.get("transitions", [])
+            if _transition_action_label(transition) in ("press_back", "press_home")
+        ]
+
+    def _forward_transitions_for_page(page: dict) -> List[dict]:
+        return [
+            deepcopy(transition)
+            for transition in page.get("transitions", [])
+            if _topology_transition_label(page, transition, pages)
+            and _should_keep_transition(page, transition, pages)
+        ]
+
+    def _rebase_transition_source_trace_pages(transitions: List[dict], source_page_id: str) -> List[dict]:
+        rebased: List[dict] = []
+        for transition in transitions:
+            remapped = deepcopy(transition)
+            remapped["source_trace_page"] = source_page_id
+            rebased.append(remapped)
+        return rebased
+
     expanded_pages: Dict[str, dict] = {}
     for page_id, page in pages.items():
         cloned = deepcopy(page)
-        if int(cloned.get("depth", 0)) >= 2:
-            cloned["transitions"] = []
+        if int(cloned.get("depth", 0)) >= 2 and cloned.get("application_id") != "launcher":
+            cloned["_fallback_forward_transitions"] = _forward_transitions_for_page(page)
+            cloned["transitions"] = _system_transitions_for_page(page)
         expanded_pages[page_id] = cloned
 
     for (base_page_id, cluster_index), synthetic_page_id in synthetic_ids_by_page_and_cluster.items():
         cloned = deepcopy(pages[base_page_id])
         cloned["page_id"] = synthetic_page_id
         cloned["image"] = pages[base_page_id].get("image", f"{base_page_id}.png")
-        cloned["transitions"] = []
+        cloned["_fallback_forward_transitions"] = _rebase_transition_source_trace_pages(
+            _forward_transitions_for_page(pages[base_page_id]),
+            synthetic_page_id,
+        )
+        cloned["transitions"] = _system_transitions_for_page(pages[base_page_id])
         cloned["topology_split_from_page_id"] = base_page_id
         expanded_pages[synthetic_page_id] = cloned
 
@@ -3141,7 +4646,7 @@ def _expand_topology_pages_by_trajectory_asset_clusters(
             desired_canonical_target_by_pair[pair_key] = target_page_id
 
     for source_page_id, source_page in pages.items():
-        if int(source_page.get("depth", 0)) < 2:
+        if int(source_page.get("depth", 0)) < 2 or source_page.get("application_id") == "launcher":
             continue
         source_node_ids = [source_page_id]
         source_node_ids.extend(
@@ -3152,28 +4657,26 @@ def _expand_topology_pages_by_trajectory_asset_clusters(
             )
             if base_page_id == source_page_id
         )
-        kept_transitions = [
-            transition
-            for transition in source_page.get("transitions", [])
-            if _topology_transition_label(source_page, transition, pages)
-            and _should_keep_transition(source_page, transition, pages)
-        ]
+        kept_transitions = _forward_transitions_for_page(source_page)
         transitions_by_canonical_target: Dict[str, List[dict]] = defaultdict(list)
         for transition in kept_transitions:
             transitions_by_canonical_target[str(transition.get("target_page", "") or "")].append(transition)
 
         for source_node_id in source_node_ids:
-            base_source_page_id = base_page_id_by_node_id.get(source_node_id, source_page_id)
             target_use_counts: Dict[str, int] = defaultdict(int)
             for target_node_id in desired_targets_by_source_node.get(source_node_id, []):
                 canonical_target_page_id = desired_canonical_target_by_pair.get((source_node_id, target_node_id), "")
                 candidate_pool = transitions_by_canonical_target.get(canonical_target_page_id, [])
                 if not candidate_pool:
+                    candidate_pool = list(expanded_pages[source_node_id].get("_fallback_forward_transitions", []))
+                if not candidate_pool:
                     continue
-                candidate_index = min(target_use_counts[canonical_target_page_id], len(candidate_pool) - 1)
-                target_use_counts[canonical_target_page_id] += 1
+                pool_key = canonical_target_page_id or f"fallback::{target_node_id}"
+                candidate_index = min(target_use_counts[pool_key], len(candidate_pool) - 1)
+                target_use_counts[pool_key] += 1
                 remapped = deepcopy(candidate_pool[candidate_index])
                 remapped["target_page"] = target_node_id
+                remapped["source_trace_page"] = source_node_id
                 expanded_pages[source_node_id]["transitions"].append(remapped)
 
     row_node_id_by_row_key: Dict[Tuple[str, str], str] = {}
@@ -3195,8 +4698,21 @@ def _expand_topology_pages_by_trajectory_asset_clusters(
             row["page_id"] = node_id
 
     for page_id, page in expanded_pages.items():
-        if int(page.get("depth", 0)) < 2:
+        if int(page.get("depth", 0)) < 2 or page.get("application_id") == "launcher":
+            page.pop("_fallback_forward_transitions", None)
             continue
+        has_forward_transition = any(
+            _transition_action_label(transition) not in ("press_back", "press_home")
+            for transition in page.get("transitions", [])
+        )
+        if not has_forward_transition:
+            for transition in page.pop("_fallback_forward_transitions", []):
+                target_page = str(transition.get("target_page", "") or "")
+                if not target_page or target_page not in expanded_pages:
+                    continue
+                page["transitions"].append(deepcopy(transition))
+        else:
+            page.pop("_fallback_forward_transitions", None)
         deduped_transitions: List[dict] = []
         seen_signatures: set[str] = set()
         for transition in page.get("transitions", []):
@@ -3208,6 +4724,188 @@ def _expand_topology_pages_by_trajectory_asset_clusters(
         page["transitions"] = deduped_transitions
 
     return expanded_pages
+
+
+def _contract_same_page_split_groups_for_topology(
+    output_dir: Path,
+    pages: Dict[str, dict],
+) -> Dict[str, dict]:
+    working_pages = {
+        page_id: deepcopy(page)
+        for page_id, page in pages.items()
+    }
+    page_hashes: Dict[str, str] = {}
+    structure_cache: Dict[str, List[Tuple[int, int, int, int]]] = {}
+
+    for _ in range(max(1, len(working_pages))):
+        split_children_by_parent: Dict[str, List[str]] = defaultdict(list)
+        for page_id, page in working_pages.items():
+            split_parent_id = str(page.get("topology_split_from_page_id", "") or "").strip()
+            if split_parent_id and split_parent_id in working_pages:
+                split_children_by_parent[split_parent_id].append(page_id)
+
+        contracted = False
+        for split_parent_id, child_page_ids in sorted(
+            split_children_by_parent.items(),
+            key=lambda item: _topology_page_order_key(item[0], working_pages),
+        ):
+            group_page_ids = [split_parent_id]
+            group_page_ids.extend(
+                sorted(
+                    _ordered_unique(child_page_ids),
+                    key=lambda page_id: _topology_page_order_key(page_id, working_pages),
+                )
+            )
+            if len(group_page_ids) < 2:
+                continue
+            if any(page_id not in working_pages for page_id in group_page_ids):
+                continue
+
+            if any(
+                not _looks_like_same_page(
+                    output_dir,
+                    working_pages,
+                    split_parent_id,
+                    child_page_id,
+                    page_hashes,
+                    structure_cache,
+                )
+                for child_page_id in group_page_ids[1:]
+            ):
+                continue
+
+            outgoing_by_member: Dict[str, List[dict]] = {}
+            for member_page_id in group_page_ids:
+                member_page = working_pages[member_page_id]
+                outgoing_transitions = []
+                for transition in member_page.get("transitions", []):
+                    target_page = str(transition.get("target_page", "") or "").strip()
+                    if not target_page or target_page not in working_pages or target_page in group_page_ids:
+                        continue
+                    if _transition_action_label(transition) in ("press_back", "press_home"):
+                        continue
+                    if not _should_keep_transition(member_page, transition, working_pages):
+                        continue
+                    outgoing_transitions.append(deepcopy(transition))
+                if not outgoing_transitions:
+                    outgoing_by_member = {}
+                    break
+                outgoing_by_member[member_page_id] = outgoing_transitions
+            if not outgoing_by_member:
+                continue
+
+            incoming_by_member: Dict[str, List[Tuple[str, int]]] = defaultdict(list)
+            for source_page_id, source_page in working_pages.items():
+                if source_page_id in group_page_ids:
+                    continue
+                for transition_index, transition in enumerate(source_page.get("transitions", [])):
+                    target_page = str(transition.get("target_page", "") or "").strip()
+                    if target_page not in group_page_ids:
+                        continue
+                    if _transition_action_label(transition) in ("press_back", "press_home"):
+                        continue
+                    if not _should_keep_transition(source_page, transition, working_pages):
+                        continue
+                    incoming_by_member[target_page].append((source_page_id, transition_index))
+            if not any(incoming_by_member.values()):
+                continue
+
+            removed_transition_indexes_by_source: Dict[str, set[int]] = defaultdict(set)
+            bridged_transitions_by_source: Dict[str, List[dict]] = defaultdict(list)
+            for member_page_id, incoming_refs in incoming_by_member.items():
+                for source_page_id, transition_index in incoming_refs:
+                    removed_transition_indexes_by_source[source_page_id].add(transition_index)
+                    for outgoing_transition in outgoing_by_member.get(member_page_id, []):
+                        bridged_transition = deepcopy(outgoing_transition)
+                        bridged_transition["topology_collapsed_via_page_id"] = member_page_id
+                        bridged_transition["topology_collapsed_split_parent_id"] = split_parent_id
+                        bridged_transitions_by_source[source_page_id].append(bridged_transition)
+
+            for source_page_id, source_page in working_pages.items():
+                retained_transitions: List[dict] = []
+                removed_indexes = removed_transition_indexes_by_source.get(source_page_id, set())
+                for transition_index, transition in enumerate(source_page.get("transitions", [])):
+                    target_page = str(transition.get("target_page", "") or "").strip()
+                    if transition_index in removed_indexes:
+                        continue
+                    if target_page in group_page_ids:
+                        continue
+                    retained_transitions.append(deepcopy(transition))
+                retained_transitions.extend(bridged_transitions_by_source.get(source_page_id, []))
+
+                deduped_transitions: List[dict] = []
+                seen_signatures: set[str] = set()
+                for transition in retained_transitions:
+                    target_page = str(transition.get("target_page", "") or "").strip()
+                    if target_page and target_page not in working_pages and target_page not in group_page_ids:
+                        continue
+                    signature = _transition_merge_signature(transition)
+                    if signature in seen_signatures:
+                        continue
+                    seen_signatures.add(signature)
+                    deduped_transitions.append(transition)
+                source_page["transitions"] = deduped_transitions
+
+            for member_page_id in group_page_ids:
+                working_pages.pop(member_page_id, None)
+                page_hashes.pop(member_page_id, None)
+                structure_cache.pop(member_page_id, None)
+
+            for page in working_pages.values():
+                page["transitions"] = [
+                    transition
+                    for transition in page.get("transitions", [])
+                    if str(transition.get("target_page", "") or "").strip() not in group_page_ids
+                ]
+
+            contracted = True
+            break
+
+        if not contracted:
+            break
+
+    return working_pages
+
+
+def _recompute_topology_depths(
+    pages: Dict[str, dict],
+    root_page_id: str,
+) -> Dict[str, dict]:
+    if not pages:
+        return {}
+
+    depth_by_page_id: Dict[str, int] = {}
+
+    def assign_component_depths(start_page_id: str, base_depth: int) -> int:
+        queue = [start_page_id]
+        if start_page_id not in depth_by_page_id:
+            depth_by_page_id[start_page_id] = base_depth
+        cursor = 0
+        while cursor < len(queue):
+            page_id = queue[cursor]
+            cursor += 1
+            page_depth = depth_by_page_id[page_id]
+            for target_page_id in _non_system_target_pages(pages[page_id], pages):
+                candidate_depth = page_depth + 1
+                previous_depth = depth_by_page_id.get(target_page_id)
+                if previous_depth is None or candidate_depth < previous_depth:
+                    depth_by_page_id[target_page_id] = candidate_depth
+                    queue.append(target_page_id)
+        return max(depth_by_page_id[page_id] for page_id in queue)
+
+    next_base_depth = 0
+    if root_page_id in pages:
+        next_base_depth = assign_component_depths(root_page_id, 0) + 1
+
+    for page_id in _ordered_topology_page_ids(pages, root_page_id):
+        if page_id in depth_by_page_id:
+            continue
+        next_base_depth = assign_component_depths(page_id, next_base_depth) + 1
+
+    return {
+        page_id: dict(page, depth=int(depth_by_page_id.get(page_id, page.get("depth", 0))))
+        for page_id, page in pages.items()
+    }
 
 
 def _topology_display_name_for_band(
@@ -3386,8 +5084,8 @@ def _save_topology_visualization_pil_fallback(
 
     canvas = Image.new("RGB", (canvas_w, canvas_h), (250, 251, 253))
     draw = ImageDraw.Draw(canvas)
-    font_title = launcher_mock.FONT_MD
-    font_page = launcher_mock.FONT_SM
+    font_title = FONT_MD
+    font_page = FONT_SM
     font_tag = _ac_try_load_font(20)
     band_label_lookup = _build_topology_band_label_lookup(metadata)
     canonical_by_page_id = dict((same_page_state or {}).get("canonical_by_page_id", {}))
@@ -3635,6 +5333,8 @@ def _write_topology_artifacts(
     pages: Dict[str, dict],
     root_page_id: str,
     metadata: Optional[dict] = None,
+    matched_rows: Optional[List[dict]] = None,
+    asset_rows: Optional[List[dict]] = None,
 ) -> None:
     same_page_state = _build_topology_same_page_state(pages, output_dir, metadata)
     topology_pages, topology_root_page_id = _collapse_topology_pages(
@@ -3647,6 +5347,16 @@ def _write_topology_artifacts(
         output_dir=output_dir,
         pages=topology_pages,
         metadata=metadata,
+        matched_rows=matched_rows,
+        asset_rows=asset_rows,
+    )
+    topology_pages = _contract_same_page_split_groups_for_topology(
+        output_dir=output_dir,
+        pages=topology_pages,
+    )
+    topology_pages = _recompute_topology_depths(
+        pages=topology_pages,
+        root_page_id=topology_root_page_id,
     )
     topology_tree = _build_topology_tree_payload(topology_pages, root_page_id=topology_root_page_id)
     topology_graph = _build_topology_graph_payload(
@@ -3736,6 +5446,149 @@ def _ordered_unique(values: Iterable[Any]) -> List[Any]:
     return result
 
 
+_TASK_ENTRY_GOAL_STOPWORDS = set(GENERIC_PACKAGE_TOKENS) | _NON_DISTINCT_MATCH_TOKENS | {
+    "about",
+    "after",
+    "app",
+    "find",
+    "from",
+    "go",
+    "goal",
+    "help",
+    "into",
+    "next",
+    "open",
+    "please",
+    "show",
+    "that",
+    "then",
+    "through",
+    "using",
+    "with",
+    "within",
+}
+
+
+def _instruction_goal_tokens(text: str, app_tokens: Iterable[str] = ()) -> List[str]:
+    blocked = set(str(token or "").strip().lower() for token in app_tokens if str(token or "").strip())
+    blocked.update(_TASK_ENTRY_GOAL_STOPWORDS)
+    tokens: List[str] = []
+    for token in _tokenize_words(text):
+        if len(token) < 3 or token in blocked:
+            continue
+        tokens.append(token)
+    return tokens
+
+
+def _build_task_conditioned_app_entries(
+    drawer_apps: List[DrawerAppSpec],
+    app_entry_pages: Dict[str, List[str]],
+    entry_goal_rows: List[dict],
+) -> Dict[str, dict]:
+    rows_by_app_page: Dict[Tuple[str, str], List[dict]] = defaultdict(list)
+    for row in entry_goal_rows:
+        app_slug = str(row.get("app_slug", "") or "").strip()
+        page_id = str(row.get("entry_page_id", "") or "").strip()
+        if not app_slug or not page_id:
+            continue
+        rows_by_app_page[(app_slug, page_id)].append(dict(row))
+
+    task_conditioned_entries: Dict[str, dict] = {}
+    for app in drawer_apps:
+        entry_page_ids = _ordered_unique(app_entry_pages.get(app.slug, []))
+        if not entry_page_ids:
+            continue
+
+        app_match_tokens = _build_match_tokens(app.label, app.asset)
+        entry_payloads: List[dict] = []
+        for page_id in entry_page_ids:
+            rows = rows_by_app_page.get((app.slug, page_id), [])
+            instructions = _ordered_unique(
+                str(row.get("instruction", "") or "").strip()
+                for row in rows
+                if str(row.get("instruction", "") or "").strip()
+            )
+            goal_token_counts: Counter[str] = Counter()
+            for instruction in instructions:
+                goal_token_counts.update(_instruction_goal_tokens(instruction, app_match_tokens))
+
+            entry_payloads.append({
+                "page_id": page_id,
+                "support_count": len(_ordered_unique(
+                    str(row.get("trajectory_id_full", "") or row.get("episode_id", "") or "").strip()
+                    for row in rows
+                    if str(row.get("trajectory_id_full", "") or row.get("episode_id", "") or "").strip()
+                )),
+                "goal_examples": instructions[:5],
+                "goal_tokens": [
+                    token
+                    for token, _ in goal_token_counts.most_common(24)
+                ],
+                "trajectory_ids_full": _ordered_unique(
+                    str(row.get("trajectory_id_full", "") or "").strip()
+                    for row in rows
+                    if str(row.get("trajectory_id_full", "") or "").strip()
+                ),
+                "episode_ids": _ordered_unique(
+                    str(row.get("episode_id", "") or "").strip()
+                    for row in rows
+                    if str(row.get("episode_id", "") or "").strip()
+                ),
+            })
+
+        entry_payloads.sort(
+            key=lambda item: (-int(item.get("support_count", 0)), str(item.get("page_id", "") or ""))
+        )
+        task_conditioned_entries[app.slug] = {
+            "application_id": app.slug,
+            "application_name": app.label,
+            "entry_pages": entry_payloads,
+        }
+
+    return task_conditioned_entries
+
+
+def _annotate_pages_with_task_conditioned_entries(
+    pages: Dict[str, dict],
+    task_conditioned_entries: Dict[str, dict],
+) -> None:
+    entry_info_by_page_id: Dict[str, dict] = {}
+    for app_payload in task_conditioned_entries.values():
+        app_id = str(app_payload.get("application_id", "") or "").strip()
+        app_name = str(app_payload.get("application_name", "") or "").strip()
+        for rank, entry in enumerate(app_payload.get("entry_pages", []) or []):
+            page_id = str(entry.get("page_id", "") or "").strip()
+            if not page_id:
+                continue
+            entry_info_by_page_id[page_id] = {
+                "application_id": app_id,
+                "application_name": app_name,
+                "entry_rank": rank,
+                "support_count": int(entry.get("support_count", 0) or 0),
+                "goal_examples": list(entry.get("goal_examples", []) or []),
+                "goal_tokens": list(entry.get("goal_tokens", []) or []),
+            }
+
+    for page_id, page in pages.items():
+        entry_info = entry_info_by_page_id.get(page_id)
+        if entry_info is None:
+            continue
+        page["is_task_conditioned_entry_page"] = True
+        page["entry_metadata"] = {
+            "application_id": entry_info["application_id"],
+            "application_name": entry_info["application_name"],
+            "entry_rank": entry_info["entry_rank"],
+            "support_count": entry_info["support_count"],
+            "goal_examples": list(entry_info["goal_examples"]),
+            "goal_tokens": list(entry_info["goal_tokens"]),
+        }
+        summary = page.setdefault("page_summary", {}) or {}
+        page["page_summary"] = summary
+        summary.setdefault("page_family", "content_page")
+        if summary.get("page_family") == "content_page":
+            summary["page_family"] = "entry_page"
+
+
 def _page_structure_signature(page: dict) -> str:
     summary = page.get("page_summary") or {}
     payload = {
@@ -3786,6 +5639,67 @@ def _page_structure_similarity(items_a: List[Tuple[int, int, int, int]],
     return float(intersection) / float(union)
 
 
+def _topology_transition_semantic_signature(transition: dict) -> str:
+    serialized = _serialize_transition(transition)
+    payload = _transition_signature_payload_from_serialized(
+        serialized,
+        include_coordinates=False,
+    )
+    payload.pop("target_page", None)
+    payload.pop("icon_bbox", None)
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+
+def _topology_target_page_context_signature(
+    target_page_id: str,
+    pages: Dict[str, dict],
+    structure_cache: Dict[str, List[Tuple[int, int, int, int]]],
+) -> Tuple[str, int, Tuple[Tuple[int, int, int, int], ...]]:
+    if target_page_id not in structure_cache and target_page_id in pages:
+        structure_cache[target_page_id] = _page_structure_items(pages[target_page_id])
+    target_page = pages.get(target_page_id, {})
+    return (
+        _page_merge_group_id(target_page),
+        int(target_page.get("depth", 0)),
+        tuple(structure_cache.get(target_page_id, [])),
+    )
+
+
+def _topology_page_transition_context_signature(
+    page_id: str,
+    pages: Dict[str, dict],
+    structure_cache: Dict[str, List[Tuple[int, int, int, int]]],
+) -> Tuple[Tuple[str, Tuple[str, int, Tuple[Tuple[int, int, int, int], ...]]], ...]:
+    page = pages.get(page_id, {})
+    signatures = []
+    for transition in page.get("transitions", []):
+        target_page_id = str(transition.get("target_page", "") or "").strip()
+        if not target_page_id or target_page_id not in pages:
+            continue
+        if not _should_keep_transition(page, transition, pages):
+            continue
+        action_label = _topology_transition_label(page, transition, pages)
+        if not action_label:
+            continue
+        signatures.append((
+            _topology_transition_semantic_signature(transition),
+            _topology_target_page_context_signature(target_page_id, pages, structure_cache),
+        ))
+    signatures.sort()
+    return tuple(signatures)
+
+
+def _topology_pages_can_collapse(
+    page_id_a: str,
+    page_id_b: str,
+    pages: Dict[str, dict],
+    structure_cache: Dict[str, List[Tuple[int, int, int, int]]],
+) -> bool:
+    return _topology_page_transition_context_signature(page_id_a, pages, structure_cache) == (
+        _topology_page_transition_context_signature(page_id_b, pages, structure_cache)
+    )
+
+
 def _build_topology_same_page_state(
     pages: Dict[str, dict],
     output_dir: Path,
@@ -3831,6 +5745,13 @@ def _build_topology_same_page_state(
 
         for idx, canonical_id in enumerate(ordered_ids):
             for candidate_id in ordered_ids[idx + 1:]:
+                if not _topology_pages_can_collapse(
+                    canonical_id,
+                    candidate_id,
+                    pages,
+                    structure_cache,
+                ):
+                    continue
                 if _looks_like_same_page(
                     output_dir,
                     pages,
@@ -4548,6 +6469,9 @@ def _renumber_page_outputs(output_dir: Path,
         new_page_id = page_id_map[old_page_id]
         page["page_id"] = new_page_id
         page["image"] = f"{new_page_id}.png"
+        split_from_page_id = str(page.get("topology_split_from_page_id", "") or "").strip()
+        if split_from_page_id in page_id_map:
+            page["topology_split_from_page_id"] = page_id_map[split_from_page_id]
 
         remapped_transitions = []
         for transition in page.get("transitions", []):
@@ -4579,26 +6503,48 @@ def build_unified_graph(args) -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     trajectory_limit = args.max_trajectories_per_app if int(args.max_trajectories_per_app) > 0 else None
+    scan_only = args.scan_only or getattr(args, "list_apps", False)
 
-    layout_config = launcher_mock._load_layout_config(Path(args.layout_config))
-    home_layout, drawer_layout, launcher_meta = _save_mock_pages(output_dir, layout_config)
-    drawer_apps = _extract_drawer_apps(layout_config, drawer_layout)
+    annotations_dir = Path(args.annotations_dir) if args.annotations_dir else None
+    layout_config = _load_layout_config(
+        Path(args.layout_config),
+        annotations_dir=annotations_dir,
+    )
+
+    # Print auto-discovery summary when annotations_dir drives the drawer icons.
+    if annotations_dir is not None:
+        discovered_count = layout_config.get("metadata", {}).get("annotation_app_count", 0)
+        if discovered_count:
+            print(f"Auto-discovered {discovered_count} apps from AMEX annotations directory.")
+
+    launcher_pages, drawer_page_specs, launcher_meta = _save_mock_pages(output_dir, layout_config)
+    drawer_apps = _extract_drawer_apps(drawer_page_specs, launcher_pages)
     matches_by_app = _scan_matching_annotations(drawer_apps, args.annotations_dir, args.include_post_app_steps)
     _write_match_report(output_dir, drawer_apps, matches_by_app)
     _print_match_summary(drawer_apps, matches_by_app, trajectory_limit)
 
-    if args.scan_only:
+    if scan_only:
         total_matches = sum(len(matches_by_app.get(app.slug, [])) for app in drawer_apps)
-        print(f"scan_only: apps={len(drawer_apps)} matched_trajectories={total_matches}")
+        apps_with_matches = sum(1 for app in drawer_apps if matches_by_app.get(app.slug))
+        print()
+        print("=" * 60)
+        print(f"  Apps discovered in drawer : {len(drawer_apps)}")
+        print(f"  Apps with matched traj.   : {apps_with_matches}")
+        print(f"  Total matched trajectories: {total_matches}")
+        print("=" * 60)
         return
 
     _ensure_compose_modules()
     client = action_compose.load_api_client()
     model_name = args.model_name
+    api_concurrency = max(1, int(getattr(args, "api_concurrency", 1) or 1))
+    print(f"Model: {model_name}")
+    print(f"API concurrency: {api_concurrency}")
     yolo_model, ocr_reader = action_compose.load_detection_models(args.weights_dir, args.gpu)
 
     pages: Dict[str, dict] = {}
     first_page_candidates_by_app: Dict[str, List[str]] = defaultdict(list)
+    entry_goal_rows: List[dict] = []
     asset_manifest: List[dict] = []
     matched_step_rows: List[dict] = []
 
@@ -4606,16 +6552,24 @@ def build_unified_graph(args) -> None:
 
     for app in drawer_apps:
         app_matches = matches_by_app.get(app.slug, [])
-        if trajectory_limit is not None:
-            app_matches = app_matches[:trajectory_limit]
         if not app_matches:
             print(f"\n[App] {app.label}: no matched trajectories to compose")
             continue
 
-        print(f"\n[App] {app.label}: composing {len(app_matches)} trajectories")
+        if trajectory_limit is None:
+            print(f"\n[App] {app.label}: composing {len(app_matches)} trajectories")
+        else:
+            print(
+                f"\n[App] {app.label}: composing up to {trajectory_limit} successful trajectories "
+                f"from {len(app_matches)} matches"
+            )
 
         composed_rows_by_episode: Dict[str, List[dict]] = {}
+        attempted_matches = 0
         for match_idx, match in enumerate(app_matches, start=1):
+            if trajectory_limit is not None and len(composed_rows_by_episode) >= trajectory_limit:
+                break
+            attempted_matches += 1
             print(
                 f"  [{match_idx}/{len(app_matches)}] "
                 f"trajectory_id={_full_trajectory_id(match)} "
@@ -4626,7 +6580,7 @@ def build_unified_graph(args) -> None:
             page_rows, manifest_rows, matched_rows = _compose_segment_pages(
                 match=match,
                 app=app,
-                app_root_page_id=DRAWER_PAGE_ID,
+                app_root_page_id=app.launcher_page_id,
                 home_page_id=HOME_PAGE_ID,
                 args=args,
                 client=client,
@@ -4643,6 +6597,16 @@ def build_unified_graph(args) -> None:
                 continue
             composed_rows_by_episode[match.episode_id] = page_rows
             first_page_candidates_by_app[app.slug].append(page_rows[0]["page_id"])
+            entry_goal_rows.append({
+                "app_slug": app.slug,
+                "app_label": app.label,
+                "entry_page_id": page_rows[0]["page_id"],
+                "instruction": match.instruction,
+                "episode_id": match.episode_id,
+                "trajectory_id_full": _full_trajectory_id(match),
+                "start_step_idx": int(match.start_step_idx) + 1,
+                "end_step_idx": int(match.end_step_idx),
+            })
             asset_manifest.extend(manifest_rows)
             matched_step_rows.extend(matched_rows)
             print(
@@ -4656,25 +6620,44 @@ def build_unified_graph(args) -> None:
 
         for episode_id in sorted(composed_rows_by_episode):
             all_app_pages.extend(composed_rows_by_episode[episode_id])
-        print(f"  -> direct_entry_candidates={len(composed_rows_by_episode)} trajectory_pages={sum(len(v) for v in composed_rows_by_episode.values())}")
+        print(
+            f"  -> direct_entry_candidates={len(composed_rows_by_episode)} "
+            f"trajectory_pages={sum(len(v) for v in composed_rows_by_episode.values())} "
+            f"attempted_matches={attempted_matches}"
+        )
 
     content_pages_by_id = {page["page_id"]: page for page in all_app_pages}
     entry_page_candidates = _ordered_unique(
         page_id
         for page_id in content_pages_by_id
     )
-    content_pages_by_id, content_page_alias_map, merge_stats = _merge_duplicate_content_pages(
-        output_dir=output_dir,
-        pages=content_pages_by_id,
-        asset_manifest=asset_manifest,
-        matched_step_rows=matched_step_rows,
-        merge_candidate_page_ids=entry_page_candidates,
-    )
-    print(
-        "Merged duplicate content pages: "
-        f"{merge_stats['original_content_pages']} -> {merge_stats['merged_content_pages']} "
-        f"(collapsed={merge_stats['collapsed_duplicate_pages']})"
-    )
+    content_page_alias_map: Dict[str, str] = {}
+    merge_stats: dict = {
+        "original_content_pages": len(content_pages_by_id),
+        "merged_content_pages": len(content_pages_by_id),
+        "merge_candidate_pages": len(entry_page_candidates),
+        "collapsed_duplicate_pages": 0,
+        "collapsed_entry_pages": 0,
+    }
+    if not getattr(args, "no_merge", False):
+        content_pages_by_id, content_page_alias_map, merge_stats = _merge_duplicate_content_pages(
+            output_dir=output_dir,
+            pages=content_pages_by_id,
+            asset_manifest=asset_manifest,
+            matched_step_rows=matched_step_rows,
+            merge_candidate_page_ids=entry_page_candidates,
+        )
+        for row in entry_goal_rows:
+            page_id = str(row.get("entry_page_id", "") or "")
+            if page_id in content_page_alias_map:
+                row["entry_page_id"] = content_page_alias_map[page_id]
+        print(
+            "Merged duplicate content pages: "
+            f"{merge_stats['original_content_pages']} -> {merge_stats['merged_content_pages']} "
+            f"(collapsed={merge_stats['collapsed_duplicate_pages']})"
+        )
+    else:
+        print("Skipping page merging (--no_merge)")
 
     merged_entry_pages_by_app: Dict[str, List[str]] = {}
     for app in drawer_apps:
@@ -4685,9 +6668,7 @@ def build_unified_graph(args) -> None:
         )
 
     pages.update(_build_rich_launcher_pages(
-        home_layout=home_layout,
-        drawer_layout=drawer_layout,
-        swipe_transition=launcher_meta["swipe_transition"],
+        launcher_pages=launcher_pages,
         drawer_apps=drawer_apps,
         app_entry_pages=merged_entry_pages_by_app,
     ))
@@ -4695,31 +6676,25 @@ def build_unified_graph(args) -> None:
         page["depth"] = max(2, int(page.get("depth", 2)))
         pages[page["page_id"]] = page
 
-    pages, deterministic_action_merge_stats = _merge_pages_by_deterministic_action_targets(
-        output_dir=output_dir,
-        pages=pages,
-        asset_manifest=asset_manifest,
-        matched_step_rows=matched_step_rows,
-    )
-    print(
-        "Merged deterministic action targets: "
-        f"{deterministic_action_merge_stats['original_pages']} -> {deterministic_action_merge_stats['merged_pages']} "
-        f"(collapsed={deterministic_action_merge_stats['collapsed_duplicate_pages']}, "
-        f"deduped_transitions={deterministic_action_merge_stats['duplicate_transitions_removed']})"
-    )
-
-    expanded_pages = _expand_topology_pages_by_trajectory_asset_clusters(
-        output_dir=output_dir,
-        pages=pages,
-        matched_rows=matched_step_rows,
-        asset_rows=asset_manifest,
-    )
-    if len(expanded_pages) != len(pages):
-        print(
-            "Expanded shared-path pages by future trajectory splits: "
-            f"{len(pages)} -> {len(expanded_pages)}"
+    deterministic_action_merge_stats: dict = {
+        "original_pages": len(pages),
+        "merged_pages": len(pages),
+        "collapsed_duplicate_pages": 0,
+        "duplicate_transitions_removed": 0,
+    }
+    if not getattr(args, "no_merge", False):
+        pages, deterministic_action_merge_stats = _merge_pages_by_deterministic_action_targets(
+            output_dir=output_dir,
+            pages=pages,
+            asset_manifest=asset_manifest,
+            matched_step_rows=matched_step_rows,
         )
-    pages = expanded_pages
+        print(
+            "Merged deterministic action targets: "
+            f"{deterministic_action_merge_stats['original_pages']} -> {deterministic_action_merge_stats['merged_pages']} "
+            f"(collapsed={deterministic_action_merge_stats['collapsed_duplicate_pages']}, "
+            f"deduped_transitions={deterministic_action_merge_stats['duplicate_transitions_removed']})"
+        )
 
     metadata = {
         "launcher_layout_config": str(args.layout_config),
@@ -4727,6 +6702,7 @@ def build_unified_graph(args) -> None:
         "screenshots_dir": str(args.screenshots_dir),
         "element_anno_dir": str(args.element_anno_dir),
         "model_name": model_name,
+        "api_concurrency": api_concurrency,
         "max_trajectories_per_app": trajectory_limit,
         "matched_app_count": sum(1 for app in drawer_apps if merged_entry_pages_by_app.get(app.slug)),
         "matched_trajectory_count": len({row["episode_id"] for row in matched_step_rows}),
@@ -4744,12 +6720,42 @@ def build_unified_graph(args) -> None:
         root_page_id=HOME_PAGE_ID,
     )
     metadata["page_id_map"] = page_id_map
+    renumbered_entry_pages_by_app: Dict[str, List[str]] = {}
+    for app in drawer_apps:
+        renumbered_entry_pages_by_app[app.slug] = _ordered_unique(
+            page_id_map.get(page_id, page_id)
+            for page_id in merged_entry_pages_by_app.get(app.slug, [])
+            if page_id_map.get(page_id, page_id) in pages
+        )
+    for row in entry_goal_rows:
+        page_id = str(row.get("entry_page_id", "") or "")
+        if page_id in page_id_map:
+            row["entry_page_id"] = page_id_map[page_id]
+    task_conditioned_app_entries = _build_task_conditioned_app_entries(
+        drawer_apps=drawer_apps,
+        app_entry_pages=renumbered_entry_pages_by_app,
+        entry_goal_rows=entry_goal_rows,
+    )
+    metadata["task_conditioned_app_entries"] = task_conditioned_app_entries
+    _annotate_pages_with_task_conditioned_entries(pages, task_conditioned_app_entries)
+    pages = _recompute_output_page_depths(pages, root_page_id)
 
-    _save_ui_structure(output_dir, pages, root_page_id, metadata)
-    _write_topology_artifacts(output_dir, pages, root_page_id, metadata=metadata)
-    _save_action_debug_overlays(output_dir, pages)
+    # Persist the current run's rows before topology generation so the topology
+    # phase never falls back to stale artifacts left in the output directory.
     (output_dir / "trajectory_assets_manifest.json").write_text(json.dumps(asset_manifest, indent=2), encoding="utf-8")
     (output_dir / "matched_steps.json").write_text(json.dumps(matched_step_rows, indent=2), encoding="utf-8")
+    # Keep ui_structure.json RL-ready with the full navigation graph intact.
+    # Topology artifacts perform their own visualization-only expansion later.
+    _save_ui_structure(output_dir, pages, root_page_id, metadata)
+    _write_topology_artifacts(
+        output_dir,
+        pages,
+        root_page_id,
+        metadata=metadata,
+        matched_rows=matched_step_rows,
+        asset_rows=asset_manifest,
+    )
+    _save_action_debug_overlays(output_dir, pages)
 
     print(f"Done: {output_dir}")
     print(f"  pages: {len(pages)}")
@@ -4776,17 +6782,23 @@ def parse_args():
                         default="/ext_hdd2/nhkoh/OmniParser/weights",
                         help="OmniParser weights directory")
     parser.add_argument("--output_dir", type=str,
-                        default="data_engine/mock_unified_app_graph_4_simple_applications",
+                        default="amex_all_apps_graph",
                         help="Directory where the unified environment will be saved")
     parser.add_argument("--model_name", type=str, default="gpt-5-mini-2025-08-07",
                         help="OpenAI model used for page styling composition")
     parser.add_argument("--gpu", type=int, default=0, help="GPU index for OmniParser/EasyOCR")
-    parser.add_argument("--max_trajectories_per_app", type=int, default=2,
-                        help="Limit matched trajectories per app for testing. Use 0 for all trajectories.")
+    parser.add_argument("--api_concurrency", type=int, default=4,
+                        help="Maximum number of concurrent OpenAI page-styling compose calls")
+    parser.add_argument("--max_trajectories_per_app", type=int, default=1,
+                        help="Limit matched trajectories per app. 0 = use all trajectories (default). N > 0 = limit to N.")
     parser.add_argument("--include_post_app_steps", action="store_true",
                         help="Keep the full remainder of a trajectory after the app first appears")
     parser.add_argument("--scan_only", action="store_true",
                         help="Only scan annotations and write matched_annotations.json without GPT/detection")
+    parser.add_argument("--list_apps", action="store_true",
+                        help="List discovered apps and trajectory counts then exit (implies --scan_only)")
+    parser.add_argument("--no_merge", action="store_true",
+                        help="Skip page merging steps — keep every trajectory page as a separate node")
     return parser.parse_args()
 
 

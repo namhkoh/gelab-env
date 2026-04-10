@@ -410,8 +410,8 @@ class ActionMatchORM(ORM):
                 content = content.split("</think>")[-1]
                 sol = sol.split("</think>")[-1]
 
-            content_action_match = re.search(r'\tAction:\s*(\w+)', content)
-            sol_action_match = re.search(r'\tAction:\s*(\w+)', sol)
+            content_action_match = re.search(r'[\t\s]+Action:\s*(\w+)', content)
+            sol_action_match = re.search(r'[\t\s]+Action:\s*(\w+)', sol)
             
             if not content_action_match or not sol_action_match:
                 rewards.append(0.0)
@@ -445,8 +445,8 @@ class CoordinateMatchORM(ORM):
                 content = content.split("</think>")[-1]
                 sol = sol.split("</think>")[-1]
 
-            content_action_match = re.search(r'\tAction:\s*(\w+)', content)
-            sol_action_match = re.search(r'\tAction:\s*(\w+)', sol)
+            content_action_match = re.search(r'[\t\s]+Action:\s*(\w+)', content)
+            sol_action_match = re.search(r'[\t\s]+Action:\s*(\w+)', sol)
             
             if not content_action_match or not sol_action_match:
                 rewards.append(0.0)
@@ -508,8 +508,8 @@ class IntentMatchORM(ORM):
                 content = content.split("</think>")[-1]
                 sol = sol.split("</think>")[-1]
 
-            content_action_match = re.search(r'\tAction:\s*(\w+)', content)
-            sol_action_match = re.search(r'\tAction:\s*(\w+)', sol)
+            content_action_match = re.search(r'[\t\s]+Action:\s*(\w+)', content)
+            sol_action_match = re.search(r'[\t\s]+Action:\s*(\w+)', sol)
             
             if not content_action_match or not sol_action_match:
                 rewards.append(0.0)
@@ -617,8 +617,8 @@ class CoordinateMatchORM_bbox(ORM):
                 continue
             
             else:
-                content_action_match = re.search(r'\tAction:\s*(\w+)', content)
-                sol_action_match = re.search(r'\tAction:\s*(\w+)', sol)
+                content_action_match = re.search(r'[\t\s]+Action:\s*(\w+)', content)
+                sol_action_match = re.search(r'[\t\s]+Action:\s*(\w+)', sol)
                 
                 # Return 0.0 if action type cannot be extracted
                 if not content_action_match or not sol_action_match:
