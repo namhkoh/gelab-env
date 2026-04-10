@@ -1,0 +1,43 @@
+# Cache and compiled files
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Checkpoints and large model files (mount these at runtime)
+checkpoint/
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+
+# Data (mount at runtime)
+datas/
+datas_amex/
+eval_results/
+
+# Logs
+logs/
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Environment files (contain secrets)
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# Cache
+.cache/

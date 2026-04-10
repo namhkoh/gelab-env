@@ -4,9 +4,9 @@ set -e
 export WANDB_API_KEY="${WANDB_API_KEY:}"
 export WANDB_PROJECT="${WANDB_PROJECT:-gelab}"
 export HF_TOKEN="${HF_TOKEN:}"
-export HF_HOME="${HF_HOME:-/home/irteam/data-vol1/.cache/huggingface}"
-export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/home/irteam/data-vol1/.cache}"
-export TORCH_HOME="${TORCH_HOME:-/home/irteam/data-vol1/.cache/torch}"
+export HF_HOME="${HF_HOME:-/data/.cache/huggingface}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/data/.cache}"
+export TORCH_HOME="${TORCH_HOME:-/data/.cache/torch}"
 export CUDA_HOME="${CUDA_HOME:-$CONDA_PREFIX}"
 export PATH="$CUDA_HOME/bin:$PATH"
 export LD_LIBRARY_PATH="${CUDA_HOME}/lib:${LD_LIBRARY_PATH}"
@@ -14,12 +14,12 @@ export USE_HF="${USE_HF:-1}"
 export REPORT_TO="${REPORT_TO:-wandb}"
 
 export SAVE_NAME="${SAVE_NAME:-st_rl_amex}"
-export MODEL_PATH="${MODEL_PATH:-/home/irteam/gelab-env/checkpoint/gui_exp/sft_amex/v0-20260405_112032/checkpoint-2473}"
+export MODEL_PATH="${MODEL_PATH:-/data/checkpoint/gui_exp/sft_amex/latest}"
 # Generate with: python data_engine/generate_amex_st_rl_data.py \
 #   --env_dir /home/irteam/data-vol1/amex_sft \
 #   --output /home/irteam/data-vol1/amex_sft/st_rl_amex.json
-export DATASET_PATH="${DATASET_PATH:-/home/irteam/data-vol1/gelab-env/datas/st_rl_amex.json}"
-export CUSTOM_REGISTER_PATH="${CUSTOM_REGISTER_PATH:-/home/irteam/gelab-env/swift/plugin/orm_amex.py}"
+export DATASET_PATH="${DATASET_PATH:-/data/datas/st_rl_amex.json}"
+export CUSTOM_REGISTER_PATH="${CUSTOM_REGISTER_PATH:-/workspace/swift/plugin/orm_amex.py}"
 export BASE_OUTPUT_DIR="${BASE_OUTPUT_DIR:-./checkpoint/gui_exp}"
 export BASE_LOG_DIR="${BASE_LOG_DIR:-./logs/train}"
 
@@ -104,8 +104,8 @@ Explain: [Your brief explanation of why the task is complete or impossible]	Acti
 
 --- Coordinate Rules ---
 
-- The screen resolution is 672 x 1512.
-- All coordinates must be in the screen resolution coordinate space (0-672 for x, 0-1512 for y).
+- The screen resolution is 1080 x 2400.
+- All coordinates must be in the screen resolution coordinate space (0-1080 for x, 0-2400 for y).
 
 --- Valid Action Formats ---
 

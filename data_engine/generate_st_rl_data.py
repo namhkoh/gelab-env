@@ -58,7 +58,7 @@ class STRLDataGenerator(GELabEnvUtils):
                     history_steps = []
                     for h_idx in range(step_idx):
                         h_page, h_action, _ = path[h_idx]
-                        history_steps.append(f"step{h_idx+1}: click {h_action} icon on {h_page}")
+                        history_steps.append(f"step{h_idx+1}: click {h_action} icon")
                     history = "; ".join(history_steps)
 
                 norm_bbox = self.bbox_to_normalized(bbox)

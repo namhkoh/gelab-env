@@ -1,30 +1,16 @@
 """
-Generate SFT training data from AMEX trajectories.
+Generate SFT training data from pre-composed AMEX environments.
 
-Pipeline:
-1. For each AMEX trajectory, deterministically compose pages using
-   pre-extracted icons + element_anno bboxes (via amex_compose_deterministic.py)
-2. Generate SFT samples using the AMEX unified action space:
-   - TAP: tap(start_box=...)
-   - SWIPE: swipe(start_box=..., end_box=...)
-   - TYPE: type(start_box=..., text='...')
-   - PRESS_ENTER: press_enter()
-   - PRESS_BACK: press_back()
-   - PRESS_HOME: press_home()
-   - TASK_COMPLETE: complete
-   - TASK_IMPOSSIBLE: impossible
-   - Grounding: element label -> coordinates
-   - Captioning: coordinates -> element label
-3. Output sft_amex.json compatible with swift sft training
+Reads already-composed trajectory envs from
+    /ext_hdd2/tsyou/gelab-env/data_engine/amex_sft/<traj_stem>/
+(each containing ui_structure.json + pages/) and emits sft_amex.json.
+
+No AMEX raw dataset (annotation/screenshot/element_anno/icons) is needed —
+composition is assumed to have been done already.
 
 Usage:
-    python data_engine/generate_amex_sft_data.py \
-        --output_dir datas_amex \
-        --max_trajectories 100
-
-    python data_engine/generate_amex_sft_data.py \
-        --trajectory_id 2024_3_20_16_19_c7de79edba6b442681ddcdc40adb3900 \
-        --output_dir datas_amex
+    python data_engine/generate_amex_sft_data.py
+    python data_engine/generate_amex_sft_data.py --max_trajectories 100
 """
 
 from __future__ import annotations
@@ -33,38 +19,30 @@ import argparse
 import json
 import os
 import random
-import re
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
-from amex_compose_deterministic import (
-    CANVAS_H,
-    CANVAS_W,
-    compose_trajectory,
-)  # noqa: E402
+DEFAULT_ENVS_DIR = "/data/amex_envs"
+DEFAULT_OUTPUT_PATH = "/data/datas/sft_amex.json"
+
 
 def _bbox_to_normalized(bbox: List[int]) -> List[int]:
     if not bbox or bbox == [0, 0, 0, 0]:
         return [0, 0, 0, 0]
-    return list(bbox)
+    return [int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])]
 
 
 def _point_to_normalized(point: List[int]) -> Tuple[int, int]:
-    return (int(point[0]), int(point[1]))
+    return int(point[0]), int(point[1])
 
 
 def _bbox_center_normalized(bbox: List[int]) -> Tuple[int, int]:
-    if not bbox or bbox == [0, 0, 0, 0]:
-        return (0, 0)
-    x1, y1, x2, y2 = bbox
-    return ((x1 + x2) // 2, (y1 + y2) // 2)
+    return (int(bbox[0]) + int(bbox[2])) // 2, (int(bbox[1]) + int(bbox[3])) // 2
 
 
 def _find_closest_layout_element(
     action_coord: List[int],
     layout: Dict[str, Any],
 ) -> Tuple[str, List[int]]:
-    """Find the layout element whose bbox contains or is closest to action_coord."""
     ax, ay = action_coord[0], action_coord[1]
     best_key = ""
     best_bbox = [0, 0, 0, 0]
@@ -164,25 +142,31 @@ def _format_user_content(instruction: str, history: str) -> str:
 
 def generate_trajectory_samples(
     ui_structure: dict,
-    trajectory: dict,
     pages_dir: str,
     source_label: str,
 ) -> List[dict]:
-    """Generate SFT samples from a single composed trajectory."""
     samples: List[dict] = []
     pages = ui_structure.get("pages", {})
-    instruction = str(trajectory.get("instruction", "")).strip()
-    steps = trajectory.get("steps", [])
-    page_ids = sorted(pages.keys(), key=lambda x: int(x.split("_")[1]) if x.split("_")[1].isdigit() else 0)
+    if not isinstance(pages, dict):
+        return samples
+    metadata = ui_structure.get("metadata", {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+    instruction = str(metadata.get("instruction") or ui_structure.get("instruction") or "").strip()
+    page_ids = sorted(
+        pages.keys(),
+        key=lambda x: int(x.split("_")[1]) if x.split("_")[1].isdigit() else 0,
+    )
 
     if not page_ids:
         return samples
 
+    task_text = instruction or "complete the task"
     history_parts: List[str] = []
 
-    for i, page_id in enumerate(page_ids):
+    for page_id in page_ids:
         page = pages.get(page_id)
-        if not page:
+        if not page or not isinstance(page, dict):
             continue
 
         transitions = page.get("transitions", [])
@@ -192,90 +176,90 @@ def generate_trajectory_samples(
         t = transitions[0]
         action = str(t.get("action", "")).strip().upper()
         action_coord = t.get("action_coord", [0, 0])
-        target_page = t.get("target_page", page_id)
 
         history = "; ".join(history_parts) if history_parts else "Null"
         user_content = _format_user_content(instruction, history)
-        image_path = os.path.join(pages_dir, page.get("image", f"{page_id}.png"))
+        image_path = os.path.join(pages_dir, page.get("image", ""))
 
         if action == "TASK_COMPLETE":
-            sample = {
+            samples.append({
+                "task": task_text,
                 "messages": [
                     {"role": "user", "content": user_content},
                     {"role": "assistant", "content": _format_complete_action()},
                 ],
                 "images": [image_path],
+                "bbox_norm": [0, 0, 0, 0],
                 "source": source_label,
                 "action_type": "TASK_COMPLETE",
-            }
-            samples.append(sample)
+            })
             continue
 
         if action == "TASK_IMPOSSIBLE":
-            sample = {
+            samples.append({
+                "task": task_text,
                 "messages": [
                     {"role": "user", "content": user_content},
                     {"role": "assistant", "content": _format_impossible_action()},
                 ],
                 "images": [image_path],
+                "bbox_norm": [0, 0, 0, 0],
                 "source": source_label,
                 "action_type": "TASK_IMPOSSIBLE",
-            }
-            samples.append(sample)
+            })
             continue
 
         if action in ("TAP", "CLICK"):
             elem_key, elem_bbox = _find_closest_layout_element(action_coord, page.get("layout", {}))
-            assistant_content = _format_tap_action(elem_key, page_id, action_coord)
+            assistant_content = _format_tap_action(elem_key, action_coord)
             bbox_norm = _bbox_to_normalized(elem_bbox) if elem_bbox != [0, 0, 0, 0] else _bbox_to_normalized(
                 [action_coord[0] - 20, action_coord[1] - 20, action_coord[0] + 20, action_coord[1] + 20]
             )
-            history_parts.append(f"step{len(history_parts)+1}: tap {elem_key} on {page_id}")
+            history_parts.append(f"step{len(history_parts)+1}: tap {elem_key}")
             action_type = "TAP"
 
         elif action in ("SWIPE", "SCROLL"):
             lift_coord = t.get("lift_coord", action_coord)
             direction = _infer_swipe_direction(action_coord, lift_coord)
-            assistant_content = _format_swipe_action(page_id, action_coord, lift_coord, direction)
+            assistant_content = _format_swipe_action(action_coord, lift_coord, direction)
             x_coords = sorted([action_coord[0], lift_coord[0]])
             y_coords = sorted([action_coord[1], lift_coord[1]])
             bbox_norm = _bbox_to_normalized([x_coords[0], y_coords[0], x_coords[1], y_coords[1]])
-            history_parts.append(f"step{len(history_parts)+1}: swipe {direction} on {page_id}")
+            history_parts.append(f"step{len(history_parts)+1}: swipe {direction}")
             action_type = "SWIPE"
 
         elif action in ("TYPE", "TEXT"):
             type_text = str(t.get("type_text", "")).strip()
-            assistant_content = _format_type_action(type_text, page_id, action_coord)
+            assistant_content = _format_type_action(type_text, action_coord)
             bbox_norm = _bbox_to_normalized(
                 [action_coord[0] - 40, action_coord[1] - 20, action_coord[0] + 40, action_coord[1] + 20]
             )
-            history_parts.append(f"step{len(history_parts)+1}: type \"{type_text}\" on {page_id}")
+            history_parts.append(f"step{len(history_parts)+1}: type \"{type_text}\"")
             action_type = "TYPE"
 
         elif action == "PRESS_ENTER":
-            assistant_content = _format_press_enter_action(page_id)
+            assistant_content = _format_press_enter_action()
             bbox_norm = [0, 0, 0, 0]
-            history_parts.append(f"step{len(history_parts)+1}: press enter on {page_id}")
+            history_parts.append(f"step{len(history_parts)+1}: press enter")
             action_type = "PRESS_ENTER"
 
         elif action == "PRESS_BACK":
-            assistant_content = _format_press_back_action(page_id)
+            assistant_content = _format_press_back_action()
             bbox_norm = [0, 0, 0, 0]
-            history_parts.append(f"step{len(history_parts)+1}: press back on {page_id}")
+            history_parts.append(f"step{len(history_parts)+1}: press back")
             action_type = "PRESS_BACK"
 
         elif action == "PRESS_HOME":
-            assistant_content = _format_press_home_action(page_id)
+            assistant_content = _format_press_home_action()
             bbox_norm = [0, 0, 0, 0]
-            history_parts.append(f"step{len(history_parts)+1}: press home on {page_id}")
+            history_parts.append(f"step{len(history_parts)+1}: press home")
             action_type = "PRESS_HOME"
 
         else:
             continue
 
-        sample = {
-            "task": instruction or f"From {start_page} to {end_page}",
-            "route": f"From {start_page} to {end_page}",
+        samples.append({
+            "task": task_text,
             "messages": [
                 {"role": "user", "content": user_content},
                 {"role": "assistant", "content": assistant_content},
@@ -284,8 +268,7 @@ def generate_trajectory_samples(
             "bbox_norm": bbox_norm,
             "source": source_label,
             "action_type": action_type,
-        }
-        samples.append(sample)
+        })
 
     return samples
 
@@ -296,14 +279,22 @@ def generate_grounding_samples(
     source_label: str,
     max_per_trajectory: int = 50,
 ) -> List[dict]:
-    """Generate icon grounding samples from layout elements."""
     all_icons: List[Tuple[str, str, List[int]]] = []
-    for page_id, page in ui_structure.get("pages", {}).items():
+    pages = ui_structure.get("pages", {})
+    if not isinstance(pages, dict):
+        return []
+    for page_id, page in pages.items():
+        if not isinstance(page, dict):
+            continue
         layout = page.get("layout", {})
+        if not isinstance(layout, dict):
+            continue
         for key, value in layout.items():
             if key in ("back", "home"):
                 continue
             bbox = value.get("bbox", [0, 0, 0, 0]) if isinstance(value, dict) else value
+            if not isinstance(bbox, list) or len(bbox) != 4:
+                continue
             if bbox == [0, 0, 0, 0]:
                 continue
             all_icons.append((page_id, key, bbox))
@@ -315,7 +306,7 @@ def generate_grounding_samples(
     samples = []
     for page_id, label, bbox in sampled:
         cx, cy = _bbox_center_normalized(bbox)
-        image_path = os.path.join(pages_dir, ui_structure["pages"][page_id].get("image", f"{page_id}.png"))
+        image_path = os.path.join(pages_dir, ui_structure["pages"][page_id].get("image", ""))
         samples.append({
             "task": "grounding",
             "messages": [
@@ -336,14 +327,22 @@ def generate_captioning_samples(
     source_label: str,
     max_per_trajectory: int = 50,
 ) -> List[dict]:
-    """Generate icon captioning samples from layout elements."""
     all_icons: List[Tuple[str, str, List[int]]] = []
-    for page_id, page in ui_structure.get("pages", {}).items():
+    pages = ui_structure.get("pages", {})
+    if not isinstance(pages, dict):
+        return []
+    for page_id, page in pages.items():
+        if not isinstance(page, dict):
+            continue
         layout = page.get("layout", {})
+        if not isinstance(layout, dict):
+            continue
         for key, value in layout.items():
             if key in ("back", "home"):
                 continue
             bbox = value.get("bbox", [0, 0, 0, 0]) if isinstance(value, dict) else value
+            if not isinstance(bbox, list) or len(bbox) != 4:
+                continue
             if bbox == [0, 0, 0, 0]:
                 continue
             all_icons.append((page_id, key, bbox))
@@ -355,7 +354,7 @@ def generate_captioning_samples(
     samples = []
     for page_id, label, bbox in sampled:
         cx, cy = _bbox_center_normalized(bbox)
-        image_path = os.path.join(pages_dir, ui_structure["pages"][page_id].get("image", f"{page_id}.png"))
+        image_path = os.path.join(pages_dir, ui_structure["pages"][page_id].get("image", ""))
         samples.append({
             "task": "captioning",
             "messages": [
@@ -370,52 +369,11 @@ def generate_captioning_samples(
     return samples
 
 
-def _list_trajectory_stems(annotations_dir: str) -> List[str]:
-    stems = []
-    for f in sorted(os.listdir(annotations_dir)):
-        if f.endswith(".json"):
-            stems.append(f[:-5])
-    return stems
-
-
-def _has_matching_icons(traj_stem: str, icons_base_dir: str) -> bool:
-    return os.path.isdir(os.path.join(icons_base_dir, traj_stem))
-
-
-def process_single_trajectory(
-    traj_stem: str,
-    annotations_dir: str,
-    screenshots_dir: str,
-    element_anno_dir: str,
-    icons_base_dir: str,
-    output_base_dir: str,
+def process_single_env(
+    env_dir: str,
     grounding_per_traj: int,
     captioning_per_traj: int,
-    crop_mode: str = "icons_on_screenshot",
-    model_name: str = "gpt-5-mini-2025-08-07",
-    client: Any = None,
 ) -> Tuple[List[dict], dict]:
-    """Process one trajectory end-to-end: compose pages + generate SFT samples."""
-    anno_path = os.path.join(annotations_dir, f"{traj_stem}.json")
-    with open(anno_path, "r", encoding="utf-8") as f:
-        trajectory = json.load(f)
-
-    env_dir = os.path.join(output_base_dir, "envs", traj_stem)
-    os.makedirs(env_dir, exist_ok=True)
-
-    compose_trajectory(
-        trajectory=trajectory,
-        traj_stem=traj_stem,
-        screenshots_dir=screenshots_dir,
-        element_anno_dir=element_anno_dir,
-        icons_base_dir=icons_base_dir,
-        output_dir=env_dir,
-        max_steps=None,
-        crop_mode=crop_mode,
-        model_name=model_name,
-        client=client,
-    )
-
     ui_path = os.path.join(env_dir, "ui_structure.json")
     if not os.path.exists(ui_path):
         return [], {}
@@ -424,127 +382,95 @@ def process_single_trajectory(
         ui_structure = json.load(f)
 
     pages_dir = os.path.join(env_dir, "pages")
-    source_label = f"amex_{trajectory.get('episode_id', traj_stem)}"
+    traj_stem = os.path.basename(env_dir.rstrip("/"))
+    metadata = ui_structure.get("metadata", {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+    episode_id = metadata.get("episode_id") or traj_stem
+    source_label = f"amex_{episode_id}"
 
-    nav_samples = generate_trajectory_samples(ui_structure, trajectory, pages_dir, source_label)
+    nav_samples = generate_trajectory_samples(ui_structure, pages_dir, source_label)
     grounding_samples = generate_grounding_samples(ui_structure, pages_dir, source_label, grounding_per_traj)
     captioning_samples = generate_captioning_samples(ui_structure, pages_dir, source_label, captioning_per_traj)
 
     all_samples = nav_samples + grounding_samples + captioning_samples
-
     stats = {
         "traj_stem": traj_stem,
-        "episode_id": trajectory.get("episode_id", ""),
-        "instruction": trajectory.get("instruction", ""),
-        "total_steps": len(trajectory.get("steps", [])),
+        "episode_id": episode_id,
+        "instruction": metadata.get("instruction") or ui_structure.get("instruction", ""),
         "nav_samples": len(nav_samples),
         "grounding_samples": len(grounding_samples),
         "captioning_samples": len(captioning_samples),
         "total_samples": len(all_samples),
     }
-
     return all_samples, stats
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate SFT data from AMEX trajectories")
-    parser.add_argument("--trajectory_id", type=str, default=None,
-                        help="Single trajectory stem to process (for testing)")
-    parser.add_argument("--annotations_dir", type=str,
-                        default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/instruction_anno")
-    parser.add_argument("--screenshots_dir", type=str,
-                        default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/screenshot")
-    parser.add_argument("--element_anno_dir", type=str,
-                        default="/ext_hdd2/tsyou/AMEX_dataset/AMEX/element_anno")
-    parser.add_argument("--icons_dir", type=str,
-                        default="/ext_hdd2/ttran/datasets/AMEX_dataset/ui_elements_output_clean/elements")
-    parser.add_argument("--output_dir", type=str, default="datas_amex",
-                        help="Output directory for SFT data and composed environments")
-    parser.add_argument("--max_trajectories", type=int, default=None,
-                        help="Limit number of trajectories to process")
-    parser.add_argument("--grounding_per_traj", type=int, default=20,
-                        help="Grounding samples per trajectory")
-    parser.add_argument("--captioning_per_traj", type=int, default=20,
-                        help="Captioning samples per trajectory")
+    parser = argparse.ArgumentParser(description="Generate SFT data from pre-composed AMEX envs")
+    parser.add_argument("--envs_dir", type=str, default=DEFAULT_ENVS_DIR,
+                        help="Directory containing <traj_stem>/ui_structure.json + pages/")
+    parser.add_argument("--output_path", type=str, default=DEFAULT_OUTPUT_PATH,
+                        help="Output sft_amex.json path")
+    parser.add_argument("--max_trajectories", type=int, default=None)
+    parser.add_argument("--grounding_per_traj", type=int, default=20)
+    parser.add_argument("--captioning_per_traj", type=int, default=20)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--crop_mode", type=str, default="deterministic_compose",
-                        choices=["screenshot", "icons_on_screenshot", "icons_only",
-                                 "deterministic_compose", "gpt_compose"],
-                        help="Page composition mode (default: deterministic_compose)")
-    parser.add_argument("--model_name", type=str, default="gpt-5-mini-2025-08-07",
-                        help="OpenAI model for gpt_compose mode")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     random.seed(args.seed)
-    os.makedirs(args.output_dir, exist_ok=True)
 
-    if args.trajectory_id:
-        traj_stems = [args.trajectory_id]
-    else:
-        all_stems = _list_trajectory_stems(args.annotations_dir)
-        traj_stems = [s for s in all_stems if _has_matching_icons(s, args.icons_dir)]
-        print(f"Found {len(all_stems)} annotations, {len(traj_stems)} have matching icon directories")
-        if args.max_trajectories:
-            traj_stems = traj_stems[:args.max_trajectories]
+    traj_stems = sorted(
+        d for d in os.listdir(args.envs_dir)
+        if os.path.isdir(os.path.join(args.envs_dir, d))
+        and os.path.exists(os.path.join(args.envs_dir, d, "ui_structure.json"))
+    )
+    if args.max_trajectories:
+        traj_stems = traj_stems[:args.max_trajectories]
 
-    client = None
-    if args.crop_mode == "gpt_compose":
-        from amex_compose_deterministic import _load_gpt_compose
-        mod = _load_gpt_compose()
-        client = mod.load_api_client()
-
-    print(f"\n{'='*60}")
-    print(f"AMEX SFT DATA GENERATION")
     print(f"{'='*60}")
-    print(f"Trajectories to process: {len(traj_stems)}")
-    print(f"Crop mode: {args.crop_mode}")
-    print(f"Output: {args.output_dir}")
+    print("AMEX SFT DATA GENERATION (from pre-composed envs)")
+    print(f"{'='*60}")
+    print(f"Source:       {args.envs_dir}")
+    print(f"Trajectories: {len(traj_stems)}")
+    print(f"Output:       {args.output_path}")
     print()
 
     all_samples: List[dict] = []
     all_stats: List[dict] = []
     action_type_counts: Dict[str, int] = {}
 
-    for traj_idx, traj_stem in enumerate(traj_stems):
-        print(f"\n[{traj_idx+1}/{len(traj_stems)}] {traj_stem}")
+    for i, traj_stem in enumerate(traj_stems):
+        env_dir = os.path.join(args.envs_dir, traj_stem)
         try:
-            samples, stats = process_single_trajectory(
-                traj_stem=traj_stem,
-                annotations_dir=args.annotations_dir,
-                screenshots_dir=args.screenshots_dir,
-                element_anno_dir=args.element_anno_dir,
-                icons_base_dir=args.icons_dir,
-                output_base_dir=args.output_dir,
-                grounding_per_traj=args.grounding_per_traj,
-                captioning_per_traj=args.captioning_per_traj,
-                crop_mode=args.crop_mode,
-                model_name=args.model_name,
-                client=client,
+            samples, stats = process_single_env(
+                env_dir, args.grounding_per_traj, args.captioning_per_traj
             )
-            all_samples.extend(samples)
-            all_stats.append(stats)
-            for s in samples:
-                atype = s.get("action_type", "unknown")
-                action_type_counts[atype] = action_type_counts.get(atype, 0) + 1
-            print(f"  -> {stats.get('total_samples', 0)} samples "
-                  f"(nav={stats.get('nav_samples', 0)}, "
-                  f"grounding={stats.get('grounding_samples', 0)}, "
-                  f"captioning={stats.get('captioning_samples', 0)})")
         except Exception as e:
-            print(f"  -> ERROR: {e}")
+            print(f"[{i+1}/{len(traj_stems)}] {traj_stem}: ERROR {e}")
             continue
+
+        all_samples.extend(samples)
+        all_stats.append(stats)
+        for s in samples:
+            atype = s.get("action_type", "unknown")
+            action_type_counts[atype] = action_type_counts.get(atype, 0) + 1
+        print(f"[{i+1}/{len(traj_stems)}] {traj_stem}: {stats.get('total_samples', 0)} samples "
+              f"(nav={stats.get('nav_samples', 0)}, "
+              f"grounding={stats.get('grounding_samples', 0)}, "
+              f"captioning={stats.get('captioning_samples', 0)})")
 
     for i, s in enumerate(all_samples):
         s["idx"] = i
 
-    sft_path = os.path.join(args.output_dir, "sft_amex.json")
-    with open(sft_path, "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(args.output_path) or ".", exist_ok=True)
+    with open(args.output_path, "w", encoding="utf-8") as f:
         json.dump(all_samples, f, indent=2)
 
-    stats_path = os.path.join(args.output_dir, "generation_stats.json")
+    stats_path = os.path.join(os.path.dirname(args.output_path) or ".", "generation_stats.json")
     with open(stats_path, "w", encoding="utf-8") as f:
         json.dump({
             "total_trajectories": len(all_stats),
@@ -554,14 +480,14 @@ def main():
         }, f, indent=2)
 
     print(f"\n{'='*60}")
-    print(f"SUMMARY")
+    print("SUMMARY")
     print(f"{'='*60}")
     print(f"Trajectories processed: {len(all_stats)}")
     print(f"Total SFT samples:      {len(all_samples)}")
-    print(f"Action type distribution:")
+    print("Action type distribution:")
     for atype, count in sorted(action_type_counts.items()):
         print(f"  {atype:20s}: {count}")
-    print(f"Output: {sft_path}")
+    print(f"Output: {args.output_path}")
 
 
 if __name__ == "__main__":

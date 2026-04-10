@@ -1,0 +1,126 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: amex-sft
+  namespace: p-aipr
+
+spec:
+  template:
+    metadata:
+      labels:
+        private-h200-aipr-0-pod-default: "true"
+    spec:
+      restartPolicy: Never
+
+      # Download data from HuggingFace into PVC before training starts
+      initContainers:
+        - name: data-download
+          image: taeseungyou/my-project:latest
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -e
+              # Skip if sft_amex.json already has data
+              if [ -f /data/datas/sft_amex.json ]; then
+                SIZE=$(python -c "import json; d=json.load(open('/data/datas/sft_amex.json')); print(len(d))")
+                if [ "$SIZE" != "0" ]; then
+                  echo "sft_amex.json exists with $SIZE samples, skipping."
+                  exit 0
+                fi
+                echo "Removing empty sft_amex.json"
+                rm /data/datas/sft_amex.json
+              fi
+
+              # Step 1: Download from HF
+              if [ ! -d /data/amex-gelab/shards ]; then
+                echo "Downloading data from luca0621/amex-gelab..."
+                pip install -q huggingface_hub
+                huggingface-cli download luca0621/amex-gelab \
+                  --repo-type dataset \
+                  --local-dir /data/amex-gelab
+              fi
+
+              # Step 2: Extract tar shards
+              if [ ! -d /data/amex_envs ] || [ -z "$(ls -A /data/amex_envs 2>/dev/null)" ]; then
+                echo "Extracting tar shards..."
+                mkdir -p /data/amex_envs
+                for TAR in /data/amex-gelab/shards/*.tar; do
+                  echo "  Extracting $(basename $TAR)..."
+                  tar xf "$TAR" -C /data/amex_envs
+                done
+                echo "Extraction done."
+              else
+                echo "amex_envs already extracted, skipping."
+              fi
+
+              # Debug: show structure
+              echo "=== Extracted structure (sample) ==="
+              ls /data/amex_envs/ | head -5
+              FIRST_DIR=$(ls -d /data/amex_envs/*/ 2>/dev/null | head -1)
+              if [ -n "$FIRST_DIR" ]; then
+                echo "Contents of $FIRST_DIR:"
+                find "$FIRST_DIR" -maxdepth 2 | head -20
+              fi
+
+              # Step 3: Generate sft_amex.json using existing script
+              echo ""
+              echo "=== Generating sft_amex.json ==="
+              # Find the actual envs dir (may be nested under amex_sft/)
+              ENVS_DIR="/data/amex_envs"
+              if [ -d "/data/amex_envs/amex_sft" ]; then
+                ENVS_DIR="/data/amex_envs/amex_sft"
+              fi
+              echo "Using envs dir: $ENVS_DIR"
+              python /workspace/data_engine/generate_amex_sft_data.py \
+                --envs_dir "$ENVS_DIR" \
+                --output_path /data/datas/sft_amex.json
+
+              echo ""
+              python -c "import json; d=json.load(open('/data/datas/sft_amex.json')); print(f'Generated: {len(d)} samples')"
+          env:
+            - name: HF_TOKEN
+              value: ""
+          resources:
+            requests:
+              cpu: "8"
+              memory: "32Gi"
+            limits:
+              cpu: "8"
+              memory: "32Gi"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+
+      containers:
+        - name: main
+          image: taeseungyou/my-project:latest
+          command: ["/bin/bash", "-lc"]
+          args:
+            - bash /workspace/gui_scripts/sft_amex.sh
+          env:
+            - name: WANDB_API_KEY
+              value: ""
+            - name: HF_TOKEN
+              value: ""
+          resources:
+            requests:
+              cpu: "16"
+              memory: "128Gi"
+            limits:
+              cpu: "16"
+              memory: "128Gi"
+              nvidia.com/gpu: 4
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: dshm
+              mountPath: /dev/shm
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: tsyou-data
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Gi
