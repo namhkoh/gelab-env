@@ -1,0 +1,36 @@
+{
+  "model_path": "namhokaist/SFT_True_Final",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 33,
+      "total": 1272,
+      "accuracy": 0.025943396226415096
+    },
+    "ScreenSpot-v2": {
+      "correct": 33,
+      "total": 1272,
+      "accuracy": 0.025943396226415096
+    },
+    "MoTIF": {
+      "correct": 59,
+      "total": 1265,
+      "accuracy": 0.0466403162055336
+    },
+    "Refexp": {
+      "correct": 15,
+      "total": 565,
+      "accuracy": 0.02654867256637168
+    },
+    "VWB-EG": {
+      "correct": 2,
+      "total": 413,
+      "accuracy": 0.004842615012106538
+    },
+    "VWB-AG": {
+      "correct": 2,
+      "total": 103,
+      "accuracy": 0.019417475728155338
+    }
+  },
+  "average_accuracy": 0.024889311994166222
+}

@@ -339,6 +339,11 @@ python eval/evaluate_real_world.py \
 | Our Run 5 (amex-gelab 3-task, base eval) | 63.92 | 64.86 | 70.04 | 50.09 | 70.22 | 65.05 | 64.03 |
 | Our Run 6 (amex-gelab 3-task A.5 aligned, sys eval) | 3.38 | 3.07 | 13.99 | 4.60 | 45.04 | 20.39 | 15.08 |
 | Our Run 7 (23k combined: no-AMEX mixed + amex-gelab 3-task) | 70.75 | 72.33 | 76.13 | 61.59 | 74.82 | 65.05 | 70.11 |
+| Our Run 8 (SFT_True_Final + 21k mixed, base eval) | 1.57 | 1.15 | 2.43 | 0.95 | 0.00 | 0.00 | 1.02 |
+| Our Run 8 (SFT_True_Final + 21k mixed, sys eval) | 2.67 | 2.59 | 5.61 | 2.65 | 0.48 | 1.94 | 2.66 |
+| Our Run 9 (SFT_True_Final + 21k, LR=1e-5 2ep, sys eval) | 9.04 | 8.81 | 12.17 | 11.50 | 3.39 | 1.94 | 7.81 |
+| Our Run 9 (SFT_True_Final + 21k, LR=1e-5 2ep, base eval) | 3.46 | 3.46 | 18.25 | 6.69 | 0.24 | 1.04 | 5.52 |
+| Our Run 10 (luca0621/sft-448 + 21k, LR=1e-5 2ep, sys eval) | 7.23 | 7.13 | 22.15 | 11.86 | 2.91 | 3.88 | 9.19 |
 | Base Qwen (`--use_system_prompt` eval) | 4.87 | 4.56 | 11.38 | 3.01 | 7.26 | 1.94 | 5.51 |
 
 *Paper averages include FuncPred and AndroidWorld which we don't evaluate, so direct avg comparison is not meaningful. Compare individual benchmarks instead.
@@ -419,6 +424,88 @@ python eval/evaluate_real_world.py \
 - **Training**: 38 steps, 33 min. Final loss=1.04, token_acc=72.6%
 - **Eval** (`--base_model`): **70.1% avg**
 - **Result**: Worse than Run 2 (77.7%) despite having more data. The amex-gelab 3-task data diluted the diverse real-world data, and the full A.10 system prompt added distribution shift.
+
+### Run 8: SFT_True_Final + Continue-Train (21k mixed, LR=1e-6, 1 epoch)
+- **Data**: 21k mixed (AITW 6k + AITZ 3.3k + AMEX 6k + Mind2Web 6k) -- same as Run 2
+- **Starting model**: `namhokaist/SFT_True_Final` (GE-Lab SFT checkpoint, NOT base Qwen)
+- **Config**: LR=1e-6, 1 epoch, full A.10 system prompt, batch=256, ZeRO-3, packing+flash_attn
+- **Training**: 36 steps, 42 min on 4x H200. Loss: 3.39 -> 1.91. DATALOADER_NUM_WORKERS=0 (64MB shm limit)
+- **Checkpoint**: `checkpoint/gui_exp/continue_train_448_sft_hf/v0-20260406_130128/checkpoint-36`
+- **Eval** (`--base_model`): **1.0% avg** -- catastrophic failure
+
+| Benchmark | Base Qwen | Run 8 (base eval) | Delta |
+|-----------|-----------|-------------------|-------|
+| ScreenSpot | 74.8% | 1.6% | -73.2 |
+| ScreenSpot-v2 | 77.3% | 1.2% | -76.1 |
+| MoTIF | 82.0% | 2.4% | -79.6 |
+| Refexp | 83.9% | 0.9% | -83.0 |
+| VWB-EG | 75.3% | 0.0% | -75.3 |
+| VWB-AG | 65.0% | 0.0% | -65.0 |
+| **Average** | 76.4% | **1.0%** | **-75.4** |
+
+- **Eval** (`--use_system_prompt`): **2.7% avg** -- also catastrophic failure
+
+| Benchmark | Run 8 (sys eval) |
+|-----------|-----------------|
+| ScreenSpot | 2.7% |
+| ScreenSpot-v2 | 2.6% |
+| MoTIF | 5.6% |
+| Refexp | 2.7% |
+| VWB-EG | 0.5% |
+| VWB-AG | 1.9% |
+| **Average** | **2.7%** |
+
+- **Diagnosis**: Both eval modes fail. The SFT_True_Final model's GE-Lab grounding format was destroyed by continue-training on 21k mixed real-world data (navigation-only format). The mixed data uses a simplified system prompt and `click(start_box=...)` format for navigation but NOT for grounding queries. The model lost both: (1) Qwen's native `bbox_2d` format, and (2) the GE-Lab grounding query-response pattern.
+- **Root cause**: The 21k training data is navigation-style (instruction -> click action). The grounding benchmarks ask "locate element X" -- a fundamentally different task. Training on navigation data teaches the model to always predict click actions in response to multi-step instructions, not to locate elements from descriptions.
+- **Key lesson**: Continue-training on navigation data is destructive to grounding ability regardless of starting checkpoint. The paper's SFT-Continue-Train (85.06% ScreenSpot) likely uses the paper's own continue-train data pipeline which includes grounding-format samples, not just navigation.
+
+### Run 9: SFT_True_Final + Continue-Train (21k mixed, LR=1e-5, 2 epochs -- paper settings)
+- **Data**: 21k mixed (same as Run 2/8) -- AITW, AITZ, AMEX, Mind2Web (per paper A.5)
+- **Starting model**: `namhokaist/SFT_True_Final`
+- **Config**: **LR=1e-5, 2 epochs** (matching paper Section A.5), batch=256, full A.10 system prompt
+- **Training**: 72 steps, 84 min on 4x H200. Loss: 3.39 -> 0.35 (final). DATALOADER_NUM_WORKERS=0
+- **Checkpoint**: `checkpoint/gui_exp/continue_train_448_sft_hf/v0-20260406_222525/checkpoint-72`
+
+| Benchmark | Run 9 (sys eval) | Run 9 (base eval) | Paper SFT-CT |
+|-----------|-----------------|-------------------|--------------|
+| ScreenSpot | 9.0% | 3.5% | 85.06% |
+| ScreenSpot-v2 | 8.8% | 3.5% | 85.06% |
+| MoTIF | 12.2% | 18.2% | 80.47% |
+| Refexp | 11.5% | 6.7% | 83.19% |
+| VWB-EG | 3.4% | 0.2% | 92.01% |
+| VWB-AG | 1.9% | 1.0% | 68.93% |
+| **Average** | **7.8%** | **5.5%** | **70.87%** |
+
+- **Improvement over Run 8**: 3x better with sys_prompt (7.8% vs 2.7%), confirming paper LR/epochs matter
+- **Still far from paper**: 7.8% vs 70.87%. The ~63-point gap is too large to be explained by hyperparameters alone
+- **Possible causes**: (1) Different SFT checkpoint -- our SFT_True_Final may not match the paper's exact SFT model; (2) Paper may use 16 GPUs with different effective learning dynamics; (3) The 21k data may differ in format/content from what the paper actually uses; (4) MAX_PIXELS mismatch -- paper uses 200704, we use 1003520
+- **Investigation results**:
+  - MAX_PIXELS=200704 (paper value) at eval: 6.8% avg -- slightly worse, resolution is NOT the issue
+  - Raw SFT_True_Final (no continue-train): 2.5% avg -- confirms the SFT model itself has zero real-world grounding
+  - Verbose inspection: model outputs GE-Lab hallucinations ("click Business_17 icon on Business_158 page") on real screenshots
+  - **Conclusion**: The SFT_True_Final checkpoint lost all base Qwen visual grounding during GE-Lab simulation SFT. The paper's SFT checkpoint must be different -- retaining base grounding while learning GE-Lab navigation. This gap cannot be closed by tuning hyperparameters or data.
+
+### Run 10: luca0621/sft-448 + Continue-Train (sanity check on alternative SFT)
+- **Hypothesis tested**: Is the low score in Run 9 specific to `SFT_True_Final` or fundamental to the GE-Lab SFT pipeline?
+- **Starting model**: `luca0621/sft-448` (alternative SFT checkpoint from colleague)
+- **Config**: Same as Run 9 (LR=1e-5, 2 epochs, 21k mixed data)
+- **Training**: 72 steps, 82 min. Loss: 3.60 -> 2.17 -> 0.53 -> 0.43 -> 0.38 -> 0.35 -> 0.34 -> **0.34** (final)
+- **Pre-test verification**: Raw model outputs same GE-Lab hallucinations ("Business_208", "Business_168") on real screenshots
+- **Eval** (`--use_system_prompt`):
+
+| Benchmark | Run 9 (SFT_True_Final) | Run 10 (luca sft-448) |
+|-----------|------------------------|------------------------|
+| ScreenSpot | 9.0% | 7.2% |
+| ScreenSpot-v2 | 8.8% | 7.1% |
+| MoTIF | 12.2% | 22.2% |
+| Refexp | 11.5% | 11.9% |
+| VWB-EG | 3.4% | 2.9% |
+| VWB-AG | 1.9% | 3.9% |
+| **Average** | **7.8%** | **9.2%** |
+
+- **Conclusion**: Both SFT checkpoints converge to similar low scores (~8-9% avg) after the same continue-training. The issue is fundamental to the GE-Lab SFT pipeline -- training on simulated icons with random "Business_X" labels destroys real-world visual grounding regardless of which checkpoint we use.
+- **Why MoTIF is higher (22% vs 12%)**: MoTIF's mobile screenshots may be more similar in style to GE-Lab simulated screens than ScreenSpot's diverse desktop/web UIs.
+- **Final answer to user's question**: We cannot reproduce the paper's 70.9% with any available SFT checkpoint. The paper's actual SFT model used for Table 5 must differ from what's released on HuggingFace. The base Qwen + continue-train pipeline (Run 2 = 77.7%) remains our best result and exceeds the paper's base score on our hardware setup.
 
 ### Base Qwen eval with `--use_system_prompt`
 - Base Qwen2.5-VL scores **5.5% avg** with `--use_system_prompt` eval (A.5 grounding prompt)
@@ -506,3 +593,41 @@ We have ~1M potential grounding samples but only use 8k. Training with more grou
 | `eval/results_v2_full_base_prompt.json` | Reference: Run 2 best scores (77.7% avg) |
 | `eval/results_sft_v3_fixed_sys.json` | Reference: Run 6 amex-gelab A.5-aligned (15.1% avg, sys eval) |
 | `eval/results_sft_v3_gentle_base.json` | Reference: amex-gelab SFT scores (64.0% avg) |
+
+
+### Run 14: Paper-style 2-stage pipeline (Stage 1 SFT 50k luca + Stage 3 CT 15k no-AMEX)
+
+- **Stage 1**: Base Qwen2.5-VL-7B-Instruct -> SFT on 50k luca amex-gelab (16.7k each task), MAX_PIXELS=12,845,056 (Qwen base default native), LR=1e-5, 1 epoch, eff batch 256, max_length 5120. 196 steps in 4h 24m, final loss 0.281, token_acc 90.97%. Uploaded: namhokaist/Qwen2.5-VL-7B-AmexGelab-FullSFT-v1
+- **Stage 3**: Stage 1 SFT -> continue-train on 15k mind2web/aitw/aitz (no AMEX), MAX_PIXELS=12,845,056, LR=1e-5, 2 epochs, eff batch 256, max_length 5120. Uploaded: namhokaist/Qwen2.5-VL-7B-AmexGelab-FullSFT-ContinueTrain-v1
+
+| Variant | ScreenSpot | SS-v2 | MoTIF | Refexp | VWB-EG | VWB-AG | Avg |
+|---------|-----------|-------|-------|--------|--------|--------|-----|
+| Stage 1 (50k luca SFT, native px) [base eval] | 23.19 | 22.01 | 22.13 | 20.71 | 2.18 | 1.94 | 15.36 |
+| Stage 1 (50k luca SFT, native px) [sys eval] | 27.52 | 25.86 | 27.35 | 19.29 | 4.12 | 0.97 | 17.52 |
+| Stage 1+3 (Continue-Train, no AMEX) [base eval] | 7.39 | 7.63 | 19.37 | 9.56 | 3.63 | 7.77 | 9.22 |
+| Stage 1+3 (Continue-Train, no AMEX) [sys eval] | 15.25 | 15.02 | 21.58 | 21.06 | 5.57 | 3.88 | 13.73 |
+
+
+### Run 15: Paper-style 2-stage pipeline at LR=1e-6 (Run 5/Run 7 calibration)
+
+- **Motivation**: Run 14 used paper LR=1e-5 + native pixels which collapsed Stage 1 to 15.36% (vs Run 5's 64.03%) due to catastrophic forgetting of base Qwen grounding. Re-running with Run 5/Run 7 proven calibration.
+- **Stage 1 v2**: Base Qwen2.5-VL-7B-Instruct -> SFT on 23k luca amex-gelab (~7.7k each task), MAX_PIXELS=1,003,520 (Run 5 baseline), **LR=1e-6**, 1 epoch, eff batch 256, max_length 5120. Uploaded: namhokaist/Qwen2.5-VL-7B-AmexGelab-FullSFT-v2
+- **Stage 3 v2**: Stage 1 v2 -> continue-train on 15k mind2web/aitw/aitz (no AMEX), MAX_PIXELS=1,003,520, **LR=1e-6**, 2 epochs, eff batch 256, max_length 5120. Uploaded: namhokaist/Qwen2.5-VL-7B-AmexGelab-FullSFT-ContinueTrain-v2
+
+| Variant | ScreenSpot | SS-v2 | MoTIF | Refexp | VWB-EG | VWB-AG | Avg |
+|---------|-----------|-------|-------|--------|--------|--------|-----|
+| Run 15 Stage 1 v2 (23k luca, LR=1e-6, 1003520 px) [base eval] | 69.50 | 71.15 | 75.97 | 60.53 | 74.58 | 66.99 | 69.79 |
+| Run 15 Stage 1+3 v2 (Continue-Train 15k no-AMEX, LR=1e-6) [base eval] | 67.30 | 68.79 | 73.75 | 55.58 | 72.64 | 65.05 | 67.18 |
+
+
+### Run 16: Full 2.02M luca dataset + native resolution (LR=1e-6)
+
+- **Motivation**: Test whether the FULL luca amex-gelab dataset (2.02M samples: 24.8k nav + 1M grounding + 1M understanding) at native resolution improves over Run 15 Stage 1 v2 (23k, 69.79%).
+- **Stage 1 v3**: Base Qwen2.5-VL-7B-Instruct -> SFT on 225k balanced luca amex-gelab, MAX_PIXELS=12,845,056 (native), **LR=1e-6**, 1 epoch, eff batch 256, max_length 5120. Uploaded: namhokaist/Qwen2.5-VL-7B-AmexGelab-FullSFT-v3
+- **Stage 3 v3**: Stage 1 v3 -> continue-train on 15k mind2web/aitw/aitz (no AMEX), MAX_PIXELS=12,845,056, **LR=1e-6**, 2 epochs. Uploaded: namhokaist/Qwen2.5-VL-7B-AmexGelab-FullSFT-ContinueTrain-v3
+
+| Variant | ScreenSpot | SS-v2 | MoTIF | Refexp | VWB-EG | VWB-AG | Avg |
+|---------|-----------|-------|-------|--------|--------|--------|-----|
+| Run 16 Stage 1 v3 (225k balanced luca, LR=1e-6, native px) [base eval] | 10.61 | 10.93 | 17.63 | 3.19 | 7.26 | 19.42 | 11.51 |
+| Run 16 Stage 1+3 v3 (CT 15k no-AMEX, LR=1e-6, native px) [base eval] | 8.10 | 8.33 | 14.23 | 3.01 | 4.84 | 18.45 | 9.49 |
+

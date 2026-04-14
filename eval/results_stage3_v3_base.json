@@ -1,0 +1,36 @@
+{
+  "model_path": "checkpoint/gui_exp/ct_amex_full_no_amex/v0-20260410_062404/checkpoint-36",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 103,
+      "total": 1272,
+      "accuracy": 0.0809748427672956
+    },
+    "ScreenSpot-v2": {
+      "correct": 106,
+      "total": 1272,
+      "accuracy": 0.08333333333333333
+    },
+    "MoTIF": {
+      "correct": 180,
+      "total": 1265,
+      "accuracy": 0.1422924901185771
+    },
+    "Refexp": {
+      "correct": 17,
+      "total": 565,
+      "accuracy": 0.03008849557522124
+    },
+    "VWB-EG": {
+      "correct": 20,
+      "total": 413,
+      "accuracy": 0.048426150121065374
+    },
+    "VWB-AG": {
+      "correct": 19,
+      "total": 103,
+      "accuracy": 0.18446601941747573
+    }
+  },
+  "average_accuracy": 0.09493022188882806
+}
