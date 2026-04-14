@@ -390,6 +390,50 @@ def app_shift(
                 if nx != old_b[0] or ny != old_b[1]:
                     swap_count += 1
 
+        # --- Step 3b: Resolve overlaps ---
+        # Collect fixed obstacles (system + pinned elements)
+        occupied = []
+        for n in fixed_names:
+            if n in layout:
+                occupied.append(list(layout[n]["bbox"]))
+        for n in pinned:
+            occupied.append(list(layout[n]["bbox"]))
+
+        # Place elements one at a time; reject overlaps
+        placement_order = sorted(new_positions.keys(),
+            key=lambda n: (new_positions[n][2]-new_positions[n][0])
+                        * (new_positions[n][3]-new_positions[n][1]),
+            reverse=True)
+        revert_count = 0
+        for name in placement_order:
+            candidate = new_positions[name]
+            old_b = orig_bboxes[name]
+            ew, eh = old_b[2]-old_b[0], old_b[3]-old_b[1]
+
+            if not any(_boxes_overlap(candidate, o) for o in occupied):
+                occupied.append(candidate)
+                continue
+
+            # Try random nudges to resolve
+            resolved = False
+            for _ in range(30):
+                dx = rng.randint(-ew, ew)
+                dy = rng.randint(-eh // 2, eh // 2)
+                nx = clamp(candidate[0] + dx, 0, W - ew)
+                ny = clamp(candidate[1] + dy, max(sys_bottom + 5, 0), H - eh)
+                nudged = [nx, ny, nx + ew, ny + eh]
+                if not any(_boxes_overlap(nudged, o) for o in occupied):
+                    new_positions[name] = nudged
+                    occupied.append(nudged)
+                    resolved = True
+                    break
+
+            if not resolved:
+                # Fall back to original position
+                new_positions[name] = list(old_b)
+                occupied.append(list(old_b))
+                revert_count += 1
+
         # --- Step 4: Paste elements at new positions ---
         # Sort by area descending (large elements behind small ones)
         paste_order = sorted(shiftable,
@@ -427,7 +471,8 @@ def app_shift(
         img.save(orig_out)
 
         print(f"[app-shift] {page_id}: {swap_count}/{len(shiftable)} swapped "
-              f"({len(asset_by_label)} assets loaded, {len(pinned)} pinned)")
+              f"({len(asset_by_label)} assets loaded, {len(pinned)} pinned, "
+              f"{revert_count} reverted)")
 
     return struct
 
@@ -517,9 +562,9 @@ def add_popup(
 
         page_layout = None
         if struct:
-            for p in struct.get("pages", {}).values():
-                if p.get("page_id") == page_id:
-                    page_layout = p.get("layout", {}); break
+            page_data = struct.get("pages", {}).get(page_id)
+            if page_data:
+                page_layout = page_data.get("layout", {})
 
         for i, lbl in enumerate(popup_buttons):
             bx = px + btn_m + i*sbw + 10
@@ -541,6 +586,180 @@ def add_popup(
         print(f"[popup] {page_id}: popup added")
 
     return page_images, struct
+
+
+def render_popup_overlay(
+    base_image: Image.Image,
+    popup_text: str = "Allow access?",
+    popup_buttons: Optional[List[str]] = None,
+) -> Tuple[Image.Image, Dict[str, List[int]]]:
+    """Render a popup overlay on a base image.
+
+    Returns:
+        (composited_image, button_bboxes) where button_bboxes maps keys like
+        "popup_btn_allow", "popup_btn_deny", "popup_overlay" to [x1,y1,x2,y2].
+    """
+    if popup_buttons is None:
+        popup_buttons = ["Allow", "Deny"]
+
+    img = base_image.convert("RGBA")
+    W, H = img.size
+
+    # Dim background
+    img = Image.alpha_composite(img, Image.new("RGBA", (W, H), (0, 0, 0, 100)))
+
+    # Popup box
+    pw, ph = int(W * 0.80), int(H * 0.28)
+    px, py = (W - pw) // 2, (H - ph) // 2
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    d.rounded_rectangle([px, py, px + pw, py + ph], radius=30,
+                        fill=(255, 255, 255, 240), outline=(200, 200, 200, 255))
+
+    font_t = try_load_font(52)
+    font_b = try_load_font(42)
+    tb = d.textbbox((0, 0), popup_text, font=font_t)
+    d.text((px + (pw - (tb[2] - tb[0])) // 2, py + 60), popup_text,
+           fill=(30, 30, 30, 255), font=font_t)
+
+    # Buttons
+    btn_h, btn_m = 100, 30
+    sbw = (pw - 2 * btn_m) // len(popup_buttons)
+    btn_y = py + ph - btn_h - 30
+    colors = [(66, 133, 244, 255), (220, 220, 220, 255),
+              (234, 67, 53, 255), (52, 168, 83, 255)]
+
+    bboxes: Dict[str, List[int]] = {}
+    for i, lbl in enumerate(popup_buttons):
+        bx = px + btn_m + i * sbw + 10
+        bw = sbw - 20
+        d.rounded_rectangle([bx, btn_y, bx + bw, btn_y + btn_h], radius=15,
+                            fill=colors[i % len(colors)])
+        btb = d.textbbox((0, 0), lbl, font=font_b)
+        d.text((bx + (bw - (btb[2] - btb[0])) // 2,
+                btn_y + (btn_h - (btb[3] - btb[1])) // 2),
+               lbl, fill=(255, 255, 255, 255), font=font_b)
+        key = f"popup_btn_{lbl.lower().replace(' ', '_')}"
+        bboxes[key] = [bx, btn_y, bx + bw, btn_y + btn_h]
+
+    bboxes["popup_overlay"] = [px, py, px + pw, py + ph]
+
+    composited = Image.alpha_composite(img, layer).convert("RGB")
+    return composited, bboxes
+
+
+def insert_popup_page(
+    structure: dict,
+    pages_dir: str,
+    output_pages_dir: str,
+    target_page_id: str,
+    popup_text: str = "Allow access?",
+    popup_buttons: Optional[List[str]] = None,
+) -> dict:
+    """Insert a popup page BEFORE *target_page_id* in the trajectory.
+
+    Transforms the linear chain::
+
+        page_{N-1} --[TAP X]--> page_N --[TAP Y]--> page_{N+1}
+
+    into::
+
+        page_{N-1} --[TAP X]--> page_N_popup --[TAP Allow]--> page_N --> ...
+
+    *page_N* itself is unchanged and serves as the "popup dismissed" state.
+    The popup page gets proper transitions so that ``generate_amex_sft_data.py``
+    produces a valid "tap popup_btn_allow" navigation sample.
+    """
+    if popup_buttons is None:
+        popup_buttons = ["Allow", "Deny"]
+
+    pages = structure["pages"]
+    if target_page_id not in pages:
+        print(f"[insert-popup] {target_page_id} not in structure, skip")
+        return structure
+
+    target_page = pages[target_page_id]
+    popup_page_id = f"{target_page_id}_popup"
+    popup_image_name = f"{popup_page_id}.png"
+
+    # 1. Load base image (prefer output_pages_dir in case shift/bgcolor ran)
+    img_name = target_page["image"]
+    img_path = os.path.join(output_pages_dir, img_name)
+    if not os.path.exists(img_path):
+        img_path = os.path.join(pages_dir, img_name)
+    base_img = Image.open(img_path)
+
+    # 2. Render popup overlay
+    popup_img, button_bboxes = render_popup_overlay(base_img, popup_text, popup_buttons)
+
+    # 3. Save popup image
+    os.makedirs(output_pages_dir, exist_ok=True)
+    popup_img.save(os.path.join(output_pages_dir, popup_image_name))
+
+    # 4. Build popup page layout (popup elements only)
+    popup_layout = {}
+    for key, bbox in button_bboxes.items():
+        popup_layout[key] = {"bbox": bbox, "type": "popup"}
+
+    # 5. Build transitions — Allow button dismisses to the original page
+    allow_key = f"popup_btn_{popup_buttons[0].lower().replace(' ', '_')}"
+    allow_bbox = button_bboxes[allow_key]
+    allow_cx = (allow_bbox[0] + allow_bbox[2]) // 2
+    allow_cy = (allow_bbox[1] + allow_bbox[3]) // 2
+
+    popup_transitions = [
+        {
+            "action": "TAP",
+            "target_page": target_page_id,
+            "action_coord": [allow_cx, allow_cy],
+            "icon_bbox": allow_bbox,
+            "icon_name": allow_key,
+        },
+        {
+            "action": "PRESS_HOME",
+            "target_page": "page_0",
+            "action_coord": [1006, 34],
+            "icon_bbox": [942, 8, 1070, 60],
+        },
+    ]
+
+    popup_page = {
+        "image": popup_image_name,
+        "depth": target_page.get("depth", 0),
+        "layout": popup_layout,
+        "transitions": popup_transitions,
+    }
+
+    # 6. Insert popup page BEFORE target_page in the dict (preserves stable sort)
+    new_pages = {}
+    for key, value in pages.items():
+        if key == target_page_id:
+            new_pages[popup_page_id] = popup_page
+        new_pages[key] = value
+    structure["pages"] = new_pages
+
+    # 7. Rewire predecessor's forward transition to the popup page
+    #    Only rewire transitions[0] where it's a forward action pointing at target
+    for page_id, page_data in structure["pages"].items():
+        if page_id == popup_page_id:
+            continue
+        trans = page_data.get("transitions", [])
+        if not trans:
+            continue
+        t0 = trans[0]
+        if (t0.get("target_page") == target_page_id
+                and t0.get("action") not in ("PRESS_BACK", "PRESS_HOME",
+                                              "TASK_COMPLETE", "TASK_IMPOSSIBLE")):
+            t0["target_page"] = popup_page_id
+            break  # only one predecessor in a linear chain
+
+    # 8. Update metadata
+    if "metadata" in structure:
+        structure["metadata"]["total_pages"] = len(structure["pages"])
+
+    print(f"[insert-popup] inserted {popup_page_id} before {target_page_id} "
+          f"(Allow btn @ [{allow_cx},{allow_cy}])")
+    return structure
 
 
 # ===================================================================
