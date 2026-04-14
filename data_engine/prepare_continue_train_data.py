@@ -329,8 +329,8 @@ def _amex_to_action_str(action, touch_coord, lift_coord, type_text, device_dim):
     return None, None
 
 
-AMEX_LOCAL_ANNOTATIONS = "/home1/irteam/gelab-env/datas/amex_raw/AMEX/instruction_anno"
-AMEX_LOCAL_SCREENSHOTS = "/home1/irteam/gelab-env/datas/amex_raw/AMEX/screenshot"
+AMEX_LOCAL_ANNOTATIONS = "/workspace/gelab-env/datas/amex_raw/AMEX/instruction_anno"
+AMEX_LOCAL_SCREENSHOTS = "/workspace/gelab-env/datas/amex_raw/AMEX/screenshot"
 
 
 def process_amex(max_samples, image_dir, cache_dir):
@@ -583,7 +583,7 @@ def main():
              "AMEX excluded by default (requires 87GB manual zip download).",
     )
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--cache_dir", default="/ext_hdd2/nhkoh/.cache/huggingface/datasets")
+    parser.add_argument("--cache_dir", default=os.path.expanduser("~/.cache/huggingface/datasets"))
     args = parser.parse_args()
 
     random.seed(args.seed)
