@@ -20,9 +20,9 @@ export WANDB_API_KEY="${WANDB_API_KEY:?Set WANDB_API_KEY in your environment}"
 export WANDB_ENTITY="namhokoh-korea-advanced-institute-of-science-and-technology"
 export WANDB_PROJECT="gelab"
 export HF_TOKEN="${HF_TOKEN:?Set HF_TOKEN in your environment}"
-export HF_HOME="${HF_HOME:-/home1/irteam/.cache/huggingface}"
-export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/home1/irteam/.cache}"
-export TORCH_HOME="${TORCH_HOME:-/home1/irteam/.cache/torch}"
+export HF_HOME="${HF_HOME:-/workspace/data-vol1/huggingface_cache}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/workspace/data-vol1/.cache}"
+export TORCH_HOME="${TORCH_HOME:-/workspace/data-vol1/.cache/torch}"
 export USE_HF=1
 export REPORT_TO="wandb"
 
@@ -52,8 +52,31 @@ case "$MODEL_STAGE" in
         MODEL_PATH="checkpoint/gui_exp/mt_rl_448/v0-20260225_062227/checkpoint-1300"
         SAVE_NAME="continue_train_448_mt_rl"
         ;;
+    sft_luca)
+        MODEL_PATH="luca0621/sft-448"
+        SAVE_NAME="continue_train_448_sft_luca"
+        ;;
+    sft_luca_combined)
+        MODEL_PATH="luca0621/sft-448"
+        SAVE_NAME="continue_train_448_sft_luca_combined"
+        ;;
+    base_combined)
+        MODEL_PATH="Qwen/Qwen2.5-VL-7B-Instruct"
+        SAVE_NAME="continue_train_448_base_combined"
+        ;;
+    sft_amex_full)
+        # Stage 1: SFT base Qwen on amex-gelab (3-task) — produces FullSFT-v1
+        MODEL_PATH="Qwen/Qwen2.5-VL-7B-Instruct"
+        SAVE_NAME="sft_amex_gelab_full"
+        ;;
+    ct_amex_full)
+        # Stage 3: continue-train Stage 1 SFT on real-world no-AMEX
+        # MODEL_PATH must be supplied via env var (Stage 1 checkpoint or HF repo)
+        MODEL_PATH="${CT_MODEL_PATH:?Set CT_MODEL_PATH to Stage 1 SFT checkpoint}"
+        SAVE_NAME="ct_amex_full_no_amex"
+        ;;
     *)
-        echo "ERROR: MODEL_STAGE must be one of: base, sft, sft_hf, st_rl, mt_rl"
+        echo "ERROR: MODEL_STAGE must be one of: base, base_combined, sft, sft_hf, sft_luca, sft_luca_combined, sft_amex_full, ct_amex_full, st_rl, mt_rl"
         echo "Got: $MODEL_STAGE"
         exit 1
         ;;
@@ -61,7 +84,19 @@ esac
 
 export SAVE_NAME
 export MODEL_PATH
-export DATASET_PATH="datas/continue_train_24k.json"
+# Allow per-stage dataset override
+if [ "$MODEL_STAGE" = "sft_luca_combined" ] || [ "$MODEL_STAGE" = "base_combined" ]; then
+    export DATASET_PATH="${DATASET_PATH:-datas/combined_amex_gelab_full_no_amex_ct.json}"
+    export NUM_TRAIN_EPOCHS_OVERRIDE=1
+elif [ "$MODEL_STAGE" = "sft_amex_full" ]; then
+    export DATASET_PATH="${DATASET_PATH:-datas/sft_amex_gelab_23k.json}"
+    export NUM_TRAIN_EPOCHS_OVERRIDE=1
+elif [ "$MODEL_STAGE" = "ct_amex_full" ]; then
+    export DATASET_PATH="${DATASET_PATH:-datas/continue_train_no_amex_15k.json}"
+    export NUM_TRAIN_EPOCHS_OVERRIDE=2
+else
+    export DATASET_PATH="${DATASET_PATH:-datas/continue_train_24k.json}"
+fi
 export BASE_OUTPUT_DIR="./checkpoint/gui_exp"
 export BASE_LOG_DIR="./logs/train"
 
@@ -73,15 +108,18 @@ export BASE_LOG_DIR="./logs/train"
 # Paper: 16 GPUs, batch=16/gpu, grad_accum=1 -> 256 effective
 # Ours:  4 GPUs,  batch=2/gpu,  grad_accum=32 -> 256 effective
 # =============================================================================
-export LEARNING_RATE=1e-6
-export NUM_TRAIN_EPOCHS=1
-export MAX_PIXELS=1003520  # Qwen2.5-VL-7B default, full resolution for accurate grounding
+export LEARNING_RATE="${LEARNING_RATE_OVERRIDE:-1e-5}"
+export NUM_TRAIN_EPOCHS="${NUM_TRAIN_EPOCHS_OVERRIDE:-2}"
+# Use Qwen2.5-VL-7B base preprocessor max_pixels (12,845,056). At this cap, native
+# screenshot resolution (~2.6M for 1080x2400 mobile shots) is preserved.
+export MAX_PIXELS="${MAX_PIXELS_OVERRIDE:-12845056}"
 
 # GPU Adjustment for 4x H200 143GB
-# With packing, larger batch sizes are efficient (no padding waste)
+# At native resolution, lower per-device batch and raise grad_accum to fit VRAM
+# while preserving paper effective batch=256
 export NPROC_PER_NODE=4
-export PER_DEVICE_TRAIN_BATCH_SIZE=8
-export GRADIENT_ACCUMULATION_STEPS=8  # 4*8*8=256 effective batch (exact paper match)
+export PER_DEVICE_TRAIN_BATCH_SIZE="${PER_DEVICE_TRAIN_BATCH_SIZE_OVERRIDE:-4}"
+export GRADIENT_ACCUMULATION_STEPS="${GRADIENT_ACCUMULATION_STEPS_OVERRIDE:-16}"  # 4*4*16=256
 
 # Training Configuration
 # NOTE: zero2 + gradient_checkpointing + bf16 causes NaN (observed in SFT training).
@@ -90,7 +128,7 @@ export TRAIN_TYPE="full"
 export TORCH_DTYPE="bfloat16"
 export DEEPSPEED_CONFIG="zero3"
 export GRADIENT_CHECKPOINTING="true"
-export MAX_LENGTH=5120
+export MAX_LENGTH="${MAX_LENGTH_OVERRIDE:-5120}"
 export WARMUP_RATIO=0.05
 export LR_SCHEDULER_TYPE="cosine"
 
@@ -100,7 +138,7 @@ export SAVE_STEPS=500
 export SAVE_TOTAL_LIMIT=2
 export SAVE_ONLY_MODEL="true"
 export LOGGING_STEPS=10
-export DATALOADER_NUM_WORKERS=4
+export DATALOADER_NUM_WORKERS=0
 export DATASET_NUM_PROC=4
 
 # =============================================================================
