@@ -50,6 +50,19 @@ datas_backup_*/
 # Archived data (old datasets/environments, kept in git history)
 archive/data/
 
+# Large image datasets
+datas/amex_gelab_images_full/
+
+# Pipeline scripts with hardcoded secrets (not sanitized)
+run_pipeline_*.sh
+
+# Throwaway utilities
+gpu_burn.py
+sample.md
+
+# IDE / tool config
+.claude/
+
 # macOS
 .DS_Store
 
