@@ -25,6 +25,19 @@ datas/images/
 datas/pages/
 datas/real_world_images/
 
+# Augmented/extracted SFT data (large; regenerable or on HF)
+datas/amex_gelab_augmented/
+datas/amex_gelab_extracted/
+datas/amex_gelab_images_full/
+datas/amex_gelab_raw/
+datas/amex_raw/
+datas/hf_upload_augmented_sft/
+datas/amex_gelab_sft_full.json
+datas/combined_amex_gelab_full_no_amex_ct.json
+datas/continue_train_*.json
+datas/sft_amex_augmented.json
+datas/sft_amex_gelab_*.json
+
 # Sim2Real extracted icons and composed environments (regenerable)
 data_engine/real_icons/
 data_engine/sim2real_envs/
@@ -40,6 +53,9 @@ datas_backup_*/
 
 # Archived data (old datasets/environments, kept in git history)
 archive/data/
+
+# Editor / tooling
+.claude/
 
 # macOS
 .DS_Store
