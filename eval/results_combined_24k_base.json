@@ -1,0 +1,36 @@
+{
+  "model_path": "/home1/irteam/gelab-env/checkpoint/gui_exp/combined_24k/v0-20260406_093718/checkpoint-38",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 900,
+      "total": 1272,
+      "accuracy": 0.7075471698113207
+    },
+    "ScreenSpot-v2": {
+      "correct": 920,
+      "total": 1272,
+      "accuracy": 0.7232704402515723
+    },
+    "MoTIF": {
+      "correct": 963,
+      "total": 1265,
+      "accuracy": 0.7612648221343874
+    },
+    "Refexp": {
+      "correct": 348,
+      "total": 565,
+      "accuracy": 0.6159292035398231
+    },
+    "VWB-EG": {
+      "correct": 309,
+      "total": 413,
+      "accuracy": 0.7481840193704601
+    },
+    "VWB-AG": {
+      "correct": 67,
+      "total": 103,
+      "accuracy": 0.6504854368932039
+    }
+  },
+  "average_accuracy": 0.7011135153334613
+}

@@ -1,0 +1,36 @@
+{
+  "model_path": "checkpoint/gui_exp/sft_amex_gelab_full/v0-20260407_090358/checkpoint-196",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 350,
+      "total": 1272,
+      "accuracy": 0.2751572327044025
+    },
+    "ScreenSpot-v2": {
+      "correct": 329,
+      "total": 1272,
+      "accuracy": 0.2586477987421384
+    },
+    "MoTIF": {
+      "correct": 346,
+      "total": 1265,
+      "accuracy": 0.2735177865612648
+    },
+    "Refexp": {
+      "correct": 109,
+      "total": 565,
+      "accuracy": 0.1929203539823009
+    },
+    "VWB-EG": {
+      "correct": 17,
+      "total": 413,
+      "accuracy": 0.04116222760290557
+    },
+    "VWB-AG": {
+      "correct": 1,
+      "total": 103,
+      "accuracy": 0.009708737864077669
+    }
+  },
+  "average_accuracy": 0.1751856895761816
+}

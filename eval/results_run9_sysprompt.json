@@ -1,0 +1,36 @@
+{
+  "model_path": "checkpoint/gui_exp/continue_train_448_sft_hf/v0-20260406_222525/checkpoint-72",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 115,
+      "total": 1272,
+      "accuracy": 0.09040880503144653
+    },
+    "ScreenSpot-v2": {
+      "correct": 112,
+      "total": 1272,
+      "accuracy": 0.0880503144654088
+    },
+    "MoTIF": {
+      "correct": 154,
+      "total": 1265,
+      "accuracy": 0.12173913043478261
+    },
+    "Refexp": {
+      "correct": 65,
+      "total": 565,
+      "accuracy": 0.11504424778761062
+    },
+    "VWB-EG": {
+      "correct": 14,
+      "total": 413,
+      "accuracy": 0.03389830508474576
+    },
+    "VWB-AG": {
+      "correct": 2,
+      "total": 103,
+      "accuracy": 0.019417475728155338
+    }
+  },
+  "average_accuracy": 0.07809304642202494
+}

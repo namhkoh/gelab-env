@@ -1,0 +1,36 @@
+{
+  "model_path": "checkpoint/gui_exp/continue_train_448_sft_luca/v0-20260407_022524/checkpoint-72",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 91,
+      "total": 1272,
+      "accuracy": 0.07154088050314465
+    },
+    "ScreenSpot-v2": {
+      "correct": 90,
+      "total": 1272,
+      "accuracy": 0.07075471698113207
+    },
+    "MoTIF": {
+      "correct": 281,
+      "total": 1265,
+      "accuracy": 0.22213438735177865
+    },
+    "Refexp": {
+      "correct": 67,
+      "total": 565,
+      "accuracy": 0.11858407079646018
+    },
+    "VWB-EG": {
+      "correct": 12,
+      "total": 413,
+      "accuracy": 0.029055690072639227
+    },
+    "VWB-AG": {
+      "correct": 4,
+      "total": 103,
+      "accuracy": 0.038834951456310676
+    }
+  },
+  "average_accuracy": 0.09181744952691089
+}
