@@ -44,6 +44,14 @@ archive/data/
 # macOS
 .DS_Store
 
+# Unified app-graph outputs (large, regenerable from scripts)
+amex_all_apps_graph*/
+
+# API keys & secrets
+.env
+.env.*
+*.secrets
+
 # Debug & log files
 *.log
 debug_click_verification.png
