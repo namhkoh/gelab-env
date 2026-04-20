@@ -8,6 +8,10 @@ __pycache__/
 checkpoint/
 wandb/
 logs/
+.cache/
+
+# Secrets — plaintext HF_TOKEN / WANDB_API_KEY for chain env
+scripts/_chain_env.sh
 
 # Generated results & outputs
 eval_results/
@@ -24,6 +28,10 @@ data_engine/assets/
 datas/images/
 datas/pages/
 datas/real_world_images/
+
+# Experiment subset JSONs + HF-snapshot aug data (large; regenerable)
+datas_amex/
+sft_amex_nav_complete_only*.json
 
 # Augmented/extracted SFT data (large; regenerable or on HF)
 datas/amex_gelab_augmented/

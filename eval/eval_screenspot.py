@@ -203,9 +203,12 @@ def main():
     parser.add_argument("--num_gpus", type=int, default=1)
     parser.add_argument("--cache_dir", default="/ext_hdd2/nhkoh/.cache/huggingface/datasets")
     parser.add_argument("--output_file", default=None)
+    parser.add_argument("--dataset", default="rootsautomation/ScreenSpot",
+                        help="HF dataset id (rootsautomation/ScreenSpot or HongxinLi/ScreenSpot_v2)")
     args = parser.parse_args()
 
-    results = evaluate_screenspot(args.model_path, args.num_gpus, args.cache_dir)
+    results = evaluate_screenspot(args.model_path, args.num_gpus, args.cache_dir,
+                                   dataset_name=args.dataset)
 
     if args.output_file:
         os.makedirs(os.path.dirname(args.output_file) or ".", exist_ok=True)
