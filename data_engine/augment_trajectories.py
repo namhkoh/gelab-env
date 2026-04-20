@@ -279,6 +279,11 @@ def main():
         "--dry_run", action="store_true",
         help="Only compute augmentation assignments, no I/O",
     )
+    parser.add_argument(
+        "--only", choices=["shift", "bgcolor", "popup"], default=None,
+        help="Force every trajectory to get exactly this one operator "
+             "(ablation mode). Overrides the random-subset selection.",
+    )
     args = parser.parse_args()
 
     # Discover trajectories
@@ -304,7 +309,10 @@ def main():
         tseed = _trajectory_seed(args.seed, eid)
         rng = random.Random(tseed)
 
-        augmentations = select_augmentations(rng)
+        if args.only is not None:
+            augmentations = [args.only]
+        else:
+            augmentations = select_augmentations(rng)
 
         # Select bgcolor target
         bg_color = rng.choice(BG_PALETTE) if "bgcolor" in augmentations else None
