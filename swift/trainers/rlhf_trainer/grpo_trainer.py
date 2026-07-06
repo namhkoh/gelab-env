@@ -273,6 +273,15 @@ class GRPOTrainer(RLHFTrainerMixin, SwiftMixin, HFGRPOTrainer):
         else:
             from swift.llm import PtEngine
             self.engine = PtEngine.from_model_template(self.model, copy(self.template), max_batch_size=0)  # 0: no limit
+            if self.multi_turn_func is not None:
+                from transformers.integrations import is_deepspeed_zero3_enabled
+                if is_deepspeed_zero3_enabled() and not self.args.ds3_gather_for_generation:
+                    # PtEngine rollout disables synced_gpus (see pt_engine._infer_full);
+                    # without gathered params every forward needs all-rank ZeRO-3
+                    # fetch collectives, which deadlocks once ranks' pending rollout
+                    # counts diverge in the multi-turn loop.
+                    raise ValueError('multi_turn_func with the PT engine under ZeRO-3 requires '
+                                     'ds3_gather_for_generation=True')
 
         self._last_loaded_step = -1  # tag to avoid useless loading during grad accumulation
         self.request_config = RequestConfig(

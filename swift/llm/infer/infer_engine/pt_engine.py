@@ -2,6 +2,7 @@
 import asyncio
 import hashlib
 import inspect
+import os
 import pickle
 import time
 from copy import deepcopy
@@ -358,6 +359,17 @@ class PtEngine(InferEngine):
                     template_inputs=None) -> List[ChatCompletionResponse]:
         # bos_token TODO: encoder-decoder
         generate_kwargs = {'generation_config': generation_config, **inputs}
+        # Under ZeRO-3, transformers auto-enables synced_gpus, whose per-decode-step
+        # all_reduce requires every world rank to be inside generate(). In GRPO
+        # multi-turn rollout, ranks whose pending set is empty skip generate()
+        # entirely (PtEngine.infer([]) issues no collectives), which deadlocks
+        # against busy ranks' synced_gpus all_reduce (mismatched collectives at the
+        # same NCCL SeqNum). GRPO gathers full params for the whole rollout
+        # (ds3_gather_for_generation=True), so generation needs no collectives and
+        # synced_gpus can be safely disabled. Set SWIFT_PT_SYNCED_GPUS=1 to restore
+        # the transformers default (only valid if all ranks always call generate).
+        if os.environ.get('SWIFT_PT_SYNCED_GPUS', '0') != '1':
+            generate_kwargs['synced_gpus'] = False
         adapter_names = self._get_adapter_names(adapter_request)
         if adapter_names is not None:
             generate_kwargs['adapter_names'] = adapter_names

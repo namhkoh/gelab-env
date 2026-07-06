@@ -154,8 +154,16 @@ def check_gelab_result_and_give_tips_multi_turn(inputs):
         last_icon_name_match = re.search(r"click\s+(.*?)\s+icon", curr_action)
         last_page_name_match = re.search(r'on\s+((?:[A-Za-z0-9_]+_)?page_\d+)', curr_action, re.IGNORECASE)
 
+        # This branch continues the episode BEFORE the max_turns check below, so a
+        # model that keeps naming a target-adjacent icon could roll out forever
+        # (one rank spinning stalls the whole distributed job). Give it a hard cap
+        # a few grace turns above MT_RL_MAX_TURNS; normal episodes finish well
+        # under it and are unaffected.
+        _hist = re.search(r'History: (.*?)(?:\. State:|$)', prompt)
+        _turns_so_far = len(re.findall(r'step\d+:', _hist.group(1) if _hist else ''))
+        _hard_cap = int(os.environ.get('MT_RL_MAX_TURNS', '12')) + 4
 
-        if last_icon_name_match and last_page_name_match:
+        if last_icon_name_match and last_page_name_match and _turns_so_far < _hard_cap:
             last_icon_name = last_icon_name_match.group(1).strip()
             last_page_name = last_page_name_match.group(1).strip()
             # last_page_name = "page_" + last_page_name_match.group(1).strip()
