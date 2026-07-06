@@ -329,8 +329,8 @@ def _amex_to_action_str(action, touch_coord, lift_coord, type_text, device_dim):
     return None, None
 
 
-AMEX_LOCAL_ANNOTATIONS = "/workspace/gelab-env/datas/amex_raw/AMEX/instruction_anno"
-AMEX_LOCAL_SCREENSHOTS = "/workspace/gelab-env/datas/amex_raw/AMEX/screenshot"
+AMEX_LOCAL_ANNOTATIONS = "/workspace/nhkoh/gelab-env/datas/amex_raw/AMEX/instruction_anno_extracted/instruction_anno"
+AMEX_LOCAL_SCREENSHOTS = "/workspace/nhkoh/gelab-env/datas/amex_raw/AMEX/screenshot_extracted/screenshot"
 
 
 def process_amex(max_samples, image_dir, cache_dir):

@@ -49,7 +49,8 @@ case "$MODEL_STAGE" in
         SAVE_NAME="continue_train_448_st_rl"
         ;;
     mt_rl)
-        MODEL_PATH="checkpoint/gui_exp/mt_rl_448/v0-20260225_062227/checkpoint-1300"
+        # MT_RL_CKPT overrides the default (original run's checkpoint from the old host)
+        MODEL_PATH="${MT_RL_CKPT:-checkpoint/gui_exp/mt_rl_448/v0-20260225_062227/checkpoint-1300}"
         SAVE_NAME="continue_train_448_mt_rl"
         ;;
     sft_luca)
@@ -139,7 +140,8 @@ export SAVE_TOTAL_LIMIT=2
 export SAVE_ONLY_MODEL="true"
 export LOGGING_STEPS=10
 export DATALOADER_NUM_WORKERS=0
-export DATASET_NUM_PROC=4
+# num_proc>1 shares tensors via /dev/shm during packing; this container has 64MB
+export DATASET_NUM_PROC="${DATASET_NUM_PROC_OVERRIDE:-1}"
 
 # =============================================================================
 # System Prompt - Real-World GUI (Paper Appendix A.5)
@@ -257,10 +259,11 @@ swift sft \
     --dataloader_num_workers "$DATALOADER_NUM_WORKERS" \
     --dataset_num_proc "$DATASET_NUM_PROC" \
     --output_dir "$OUTPUT_DIR" \
+    --ddp_timeout 7200 \
     --system "$SYSTEM_PROMPT" \
     --add_version False \
     --max_pixels "$MAX_PIXELS" \
-    --packing true \
+    --packing "${PACKING_OVERRIDE:-true}" \
     --attn_impl flash_attn \
     --report_to "$REPORT_TO" \
     2>&1 | tee "$LOG_FILE"
