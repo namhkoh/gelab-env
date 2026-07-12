@@ -1,0 +1,36 @@
+{
+  "model_path": "checkpoint/gui_exp/continue_train_448_mt_rl/v0-20260711_133922/checkpoint-916",
+  "benchmarks": {
+    "ScreenSpot": {
+      "correct": 940,
+      "total": 1272,
+      "accuracy": 0.7389937106918238
+    },
+    "ScreenSpot-v2": {
+      "correct": 953,
+      "total": 1272,
+      "accuracy": 0.7492138364779874
+    },
+    "MoTIF": {
+      "correct": 982,
+      "total": 1265,
+      "accuracy": 0.7762845849802371
+    },
+    "Refexp": {
+      "correct": 360,
+      "total": 565,
+      "accuracy": 0.6371681415929203
+    },
+    "VWB-EG": {
+      "correct": 201,
+      "total": 413,
+      "accuracy": 0.48668280871670705
+    },
+    "VWB-AG": {
+      "correct": 45,
+      "total": 103,
+      "accuracy": 0.4368932038834951
+    }
+  },
+  "average_accuracy": 0.6375393810571952
+}
